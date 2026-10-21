@@ -1,0 +1,103 @@
+FIT CHECK v0.5 - Aurora_main_pcb.step
+
+PCB assembly bbox: X 8.80..38.20  Y -8.25..8.98  Z 5.99..12.40
+stand-in: U4: ESP32-C3-MINI-1 stand-in: module PCB + can, antenna overhang (build_dummies)
+stand-in: J1: USB-C receptacle stand-in 8.94 x 7.35 x 3.21 (build_dummies)
+stand-in: S1: S1 side switch + actuator stand-in (build_dummies)
+stand-in: L1: inductor 4.0 x 4.0 x 2.0 stand-in at the KiCad position
+stand-in: LED3: RGB LED 1.0 x 1.0 x 0.5 stand-in at the KiCad position
+
+[PCB centred]  collisions (> 0.001 mm^3): 0
+   min clearance (components; board vs all but the tray):
+      tray            0.211 mm  (J1)
+      lid             2.100 mm  (U4)
+      rf_window       1.900 mm  (U4)
+      antenna_spacer  0.150 mm  (PCB)
+      button_cap      0.200 mm  (PCB)
+      spacer_ring     more than 5 mm
+      cell1           2.640 mm  (U4)
+      cell2           1.100 mm  (U4)
+      laser           0.300 mm  (PCB)
+      window          more than 5 mm
+      mcpcb           3.600 mm  (PCB)
+      led             more than 5 mm
+
+[PCB at the -Y wall (-0.24)]  collisions (> 0.001 mm^3): 1
+        PCB x tray             0.0026 mm^3 at X 10.15 Y -8.48 Z 9.60   (contact-level sliver)
+   min clearance (components; board vs all but the tray):
+      tray            0.000 mm  (J1)
+      lid             2.100 mm  (U4)
+      rf_window       1.900 mm  (U4)
+      antenna_spacer  0.150 mm  (PCB)
+      button_cap      0.110 mm  (S1)
+      spacer_ring     more than 5 mm
+      cell1           2.640 mm  (U4)
+      cell2           1.100 mm  (U4)
+      laser           0.300 mm  (PCB)
+      window          more than 5 mm
+      mcpcb           3.600 mm  (PCB)
+      led             more than 5 mm
+
+[PCB at the +Y wall (+0.24)]  collisions (> 0.001 mm^3): 1
+        PCB x tray             0.0026 mm^3 at X 10.15 Y 8.48 Z 9.60   (contact-level sliver)
+   min clearance (components; board vs all but the tray):
+      tray            0.252 mm  (S2)
+      lid             2.100 mm  (U4)
+      rf_window       1.900 mm  (U4)
+      antenna_spacer  0.150 mm  (PCB)
+      button_cap      0.200 mm  (PCB)
+      spacer_ring     more than 5 mm
+      cell1           2.640 mm  (U4)
+      cell2           1.100 mm  (U4)
+      laser           0.300 mm  (PCB)
+      window          more than 5 mm
+      mcpcb           3.600 mm  (PCB)
+      led             more than 5 mm
+
+Free travel of the PCB assembly from the centred position (mm, until it touches):
+   +Y          0.229   [('PCB', 'tray')]
+   -Y          0.229   [('PCB', 'tray')]
+   +X (rear)   0.149   [('PCB', 'antenna_spacer')]
+   -X (front)  0.261   [('PCB', 'tray')]
+   +Z (up)     0.393   [('S2', 'tray')]
+   (-Z: the board rests on the ledges at Z = 9.20 by design)
+
+Insertion path: tilt about the X axis through Y 8.80 / Z 10.70 (S2 knob height), +Y edge low,
+  9 deg -> 0 deg in 12 steps; against tray, button cap, laser stand-in (spacer and cells: information)
+    9.00 deg: hits 1 [('J1', 'tray', 0.0019, (10.19, -8.48, 10.06))]   S2 to tray 0.215   components to tray 0.0 (J1)
+    8.25 deg: hits 1 [('J1', 'tray', 0.0018, (10.19, -8.48, 9.83))]   S2 to tray 0.219   components to tray 0.0 (J1)
+    7.50 deg: hits 1 [('J1', 'tray', 0.0016, (10.18, -8.48, 9.64))]   S2 to tray 0.222   components to tray 0.0 (J1)
+    6.75 deg: hits 1 [('J1', 'tray', 0.0011, (10.18, -8.48, 9.45))]   S2 to tray 0.226   components to tray 0.0 (J1)
+    6.00 deg: hits 0   S2 to tray 0.229   components to tray 0.0 (J1)
+    5.25 deg: hits 0   S2 to tray 0.232   components to tray 0.0 (J1)
+    4.50 deg: hits 0   S2 to tray 0.235   components to tray 0.0 (J1)
+    3.75 deg: hits 0   S2 to tray 0.238   components to tray 0.022 (J1)
+    3.00 deg: hits 0   S2 to tray 0.241   components to tray 0.057 (J1)
+    2.25 deg: hits 0   S2 to tray 0.244   components to tray 0.093 (J1)
+    1.50 deg: hits 0   S2 to tray 0.247   components to tray 0.131 (J1)
+    0.75 deg: hits 0   S2 to tray 0.249   components to tray 0.17 (J1)
+    0.00 deg: hits 0   S2 to tray 0.252   components to tray 0.211 (J1)
+   smallest component clearance to the tray along the path: 0.0 mm at (9.0, 'J1')
+
+SUMMARY
+-------
+collisions >= 0.01 mm^3 in the three poses: 0
+contact-level slivers (< 0.01 mm^3, above the 0.001 mm^3 threshold): 2
+   PCB at the -Y wall (-0.24): PCB x tray 0.0026 mm^3 at X 10.15 Y -8.48 Z 9.60
+   PCB at the +Y wall (+0.24): PCB x tray 0.0026 mm^3 at X 10.15 Y 8.48 Z 9.60
+minimum clearance per part over the three poses (mm, nearest item):
+   tray              0.000   J1    in pose 'PCB at the -Y wall (-0.24)'
+   lid               2.100   U4    in pose 'PCB centred'
+   rf_window         1.900   U4    in pose 'PCB centred'
+   antenna_spacer    0.150   PCB   in pose 'PCB centred'
+   button_cap        0.110   S1    in pose 'PCB at the -Y wall (-0.24)'
+   spacer_ring     more than 5 mm
+   cell1             2.640   U4    in pose 'PCB centred'
+   cell2             1.100   U4    in pose 'PCB centred'
+   laser             0.300   PCB   in pose 'PCB centred'
+   window          more than 5 mm
+   mcpcb             3.600   PCB   in pose 'PCB centred'
+   led             more than 5 mm
+insertion path: poses with a hit above the generator's 0.002 mm^3 threshold: 0; smallest S2-to-tray distance 0.215 mm
+
+housing_interface.json (simplified stand-in PCB) for comparison: see its interference_* keys.

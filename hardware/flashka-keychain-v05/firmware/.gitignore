@@ -1,0 +1,2 @@
+# build directory of the workspace (dist/ holds the release artefacts and is kept)
+target/

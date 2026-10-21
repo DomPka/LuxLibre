@@ -1,0 +1,15 @@
+[package]
+name = "aurora-core"
+version = "0.5.0"
+edition = "2024"
+rust-version = "1.88"
+description = "Hardware-independent logic of the Aurora++ v0.5 flashlight firmware (no_std, host-testable)"
+license = "MIT OR Apache-2.0"
+
+# This crate has no dependencies on purpose: everything in it is plain integer
+# (and a little f32) arithmetic, so `cargo test` runs on the host with the
+# normal stable toolchain and the same code is linked into the ESP32-C3 image.
+[dependencies]
+
+[lib]
+path = "src/lib.rs"

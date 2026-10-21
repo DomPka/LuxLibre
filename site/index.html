@@ -1,0 +1,150 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0b7a86">
+<title>LuxLibre - open-source flashlights</title>
+<meta name="description" content="Open-source firmware, design rules and reference designs for flashlights. Control app and firmware installer for the FlashKa Keychain v0.6.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="LuxLibre">
+<meta property="og:description" content="Open-source firmware, design rules and reference designs for flashlights.">
+<meta property="og:url" content="https://dompka.github.io/LuxLibre/">
+<meta property="og:image" content="https://dompka.github.io/LuxLibre/img/housing_closed_bottom.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='12' width='17' height='8' rx='3' fill='%230b7a86'/%3E%3Cpath d='M23 8l5-3M23 16h6M23 24l5 3' stroke='%236366f1' stroke-width='2.4' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<!-- Landing page of the LuxLibre GitHub Pages site. Self-contained: inline CSS, no scripts, no web fonts.
+     The colours, font stack and logo are those of the FlashKa web app (hardware/flashka-keychain-v06/app/).
+     .github/workflows/pages.yml publishes this folder at the site root and the FlashKa pages under flashka/. -->
+<style>
+:root{
+  color-scheme:light dark;
+  --bg:#f2f5f9; --surface:#ffffff; --surface2:#e9eef4; --text:#121820; --muted:#4f5d6d;
+  --border:#cfd7e2; --accent:#0b7a86; --accent-ink:#ffffff; --accent-soft:#d3eef1;
+  --warn:#7a4a00; --warn-soft:#fff0cc; --demo:#5b34c4; --demo-soft:#ece6fb;
+  --shadow:0 1px 2px rgba(15,23,42,.06),0 6px 18px rgba(15,23,42,.06);
+  --radius:16px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0c1116; --surface:#151b22; --surface2:#1f2832; --text:#e9eef4; --muted:#9eabbb;
+    --border:#2b3643; --accent:#46d3dc; --accent-ink:#031f23; --accent-soft:#10343a;
+    --warn:#f2b552; --warn-soft:#38290c; --demo:#b9a4ff; --demo-soft:#2a2046;
+    --shadow:0 1px 2px rgba(0,0,0,.5);
+  }
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow-wrap:anywhere}
+h1,h2,p,ul,figure{margin:0}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:980px;margin:0 auto;padding:28px 16px calc(32px + env(safe-area-inset-bottom));padding-top:max(28px,env(safe-area-inset-top))}
+
+/* header */
+.top{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.logo{width:52px;height:52px;flex:none}
+.top h1{font-size:2rem;line-height:1.1;letter-spacing:.2px}
+.top p{margin-top:4px;color:var(--muted)}
+
+/* FlashKa card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+.design{display:grid;gap:18px}
+.shot{background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.shot img{display:block;width:100%;height:auto}
+.shot figcaption{padding:6px 12px;font-size:.82rem;font-weight:700;text-align:center;background:var(--warn-soft);color:var(--warn);border-top:1px solid var(--warn)}
+.kicker{font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.design h2{font-size:1.5rem;line-height:1.2;margin:2px 0 8px}
+.design .lead{margin-bottom:8px}
+.status{color:var(--muted);font-size:.93rem}
+.actions{display:grid;gap:14px}
+.btn{display:flex;align-items:center;justify-content:center;min-height:56px;padding:10px 22px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:1.08rem;font-weight:700;text-align:center;text-decoration:none;overflow-wrap:normal}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.primary:hover{filter:brightness(1.08)}
+.need{margin-top:6px;color:var(--muted);font-size:.88rem}
+.demo{padding:12px 14px;border-radius:12px;border:1px solid var(--demo);background:var(--demo-soft);color:var(--text);font-size:.95rem}
+.demo b:first-child{color:var(--demo)}
+.local{color:var(--muted);font-size:.88rem}
+@media (min-width:760px){
+  .card{padding:20px}
+  .design,.actions{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px 26px}
+  .design{align-items:center}
+  .actions{align-items:start}
+  .design .wide,.design .actions{grid-column:1 / -1}
+}
+
+/* links */
+.more{margin-top:32px}
+.more h2{font-size:1.15rem;margin-bottom:12px}
+.links{list-style:none;padding:0;display:grid;gap:12px}
+.links a{display:block;height:100%;padding:14px 16px;border-radius:12px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow);text-decoration:none;color:var(--text);min-height:48px}
+.links a:hover{border-color:var(--accent)}
+.links .t{display:block;font-weight:700;color:var(--accent)}
+.links .d{display:block;margin-top:2px;color:var(--muted);font-size:.9rem}
+@media (min-width:600px){.links{grid-template-columns:1fr 1fr}}
+
+.foot{margin-top:32px;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:.86rem;display:grid;gap:8px}
+.foot .id{white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+      <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2dd4a7"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs>
+      <rect x="3" y="12" width="17" height="8" rx="3" fill="url(#lg)"/>
+      <path d="M23 8l5-3M23 16h6M23 24l5 3" stroke="url(#lg)" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+    </svg>
+    <div>
+      <h1>LuxLibre</h1>
+      <p>Open-source firmware, design rules and reference designs for flashlights.</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="card design" aria-labelledby="flashka-title">
+      <figure class="shot">
+        <img src="img/housing_closed_bottom.png" width="800" height="466" decoding="async"
+             alt="Computer render of the FlashKa Keychain v0.6 seen from below: a black keychain light with dotted panel lines, a round button in a glowing cyan ring, two small buttons beside it and a split ring at one end.">
+        <figcaption>Render &mdash; not yet built</figcaption>
+      </figure>
+      <div>
+        <p class="kicker">Reference design</p>
+        <h2 id="flashka-title">FlashKa Keychain v0.6</h2>
+        <p class="lead">A keychain flashlight with a laser pointer, USB-C charging and Bluetooth. In presenter mode it becomes a Bluetooth keyboard that turns your slides.</p>
+        <p class="status">Designed and checked by software. The first one has not been built yet.</p>
+      </div>
+      <div class="actions">
+        <div>
+          <a class="btn primary" href="flashka/flashka-app.html" aria-describedby="need-app">Open the control app</a>
+          <p id="need-app" class="need">Uses Web Bluetooth: Chrome or Edge on Android, Windows, macOS and ChromeOS (on Linux, Chrome may need the Web Bluetooth flag); on iPhone and iPad the free Bluefy browser.</p>
+        </div>
+        <div>
+          <a class="btn" href="flashka/flashka-flasher.html" aria-describedby="need-fw">Install the firmware</a>
+          <p id="need-fw" class="need">Uses Web Serial: Chrome or Edge on a computer, with a USB-C data cable. Phones and tablets cannot do this.</p>
+        </div>
+      </div>
+      <p class="demo wide"><b>Try the demo.</b> No FlashKa yet? Open the control app and press <b>Try demo mode</b>: a simulated light runs inside the page, in any browser.</p>
+      <p class="local wide">Both pages run entirely in your browser: nothing is uploaded.</p>
+    </section>
+
+    <section class="more" aria-labelledby="more-title">
+      <h2 id="more-title">Read more on GitHub</h2>
+      <ul class="links">
+        <li><a href="https://github.com/DomPka/LuxLibre"><span class="t">LuxLibre repository</span><span class="d">Firmware, documentation, tools and all design files</span></a></li>
+        <li><a href="https://github.com/DomPka/LuxLibre/tree/main/hardware/flashka-keychain-v06"><span class="t">FlashKa v0.6 design</span><span class="d">Specifications, pictures, cost, CAD, PCB and firmware</span></a></li>
+        <li><a href="https://github.com/DomPka/LuxLibre/blob/main/docs/design-rules.md"><span class="t">Design rules</span><span class="d">Rules with reasons and checks for designing any flashlight</span></a></li>
+        <li><a href="https://github.com/DomPka/LuxLibre/blob/main/hardware/flashka-keychain-v06/docs/build_guide_v0.6.md"><span class="t">Build guide</span><span class="d">Orders, firmware, assembly and first use of a FlashKa v0.6</span></a></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p><b>Safety:</b> lithium cells, bright LEDs, hot surfaces and lasers can hurt people. Read the <a href="https://github.com/DomPka/LuxLibre/blob/main/SAFETY.md">safety notes</a> before you build or test a light.</p>
+    <p>Firmware and tools: <span class="id">GPL-3.0-or-later</span>. Hardware design files: <span class="id">CERN-OHL-W-2.0</span>. Documentation: <span class="id">CC-BY-SA-4.0</span>. FlashKa firmware and web pages: MIT or <span class="id">Apache-2.0</span>. <a href="https://github.com/DomPka/LuxLibre/blob/main/LICENSING.md">What the licences mean</a>.</p>
+  </footer>
+</div>
+</body>
+</html>

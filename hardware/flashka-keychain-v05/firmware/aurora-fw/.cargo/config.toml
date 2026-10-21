@@ -1,0 +1,13 @@
+[build]
+target = "riscv32imc-unknown-none-elf"
+rustflags = ["-C", "force-frame-pointers"]
+
+[target.riscv32imc-unknown-none-elf]
+# linker: rust-lld (rustc's default for this target; build.sh points a distribution rustc to one)
+rustflags = ["-C", "link-arg=-Tlinkall.x", "-C", "force-frame-pointers"]
+
+[env]
+ESP_LOG = "info"
+
+[unstable]
+build-std = ["core", "alloc"]

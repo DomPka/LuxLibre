@@ -1,0 +1,1686 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+//! The flashlight state machine.
+//!
+//! The firmware drives it like this (see `aurora-fw/src/main.rs`):
+//!
+//! ```text
+//! let mut c = Controller::new(settings_from_flash, boot_info, now);
+//! loop {
+//!     c.button(button_is_pressed, now);        // every 10 ms while busy, else on edges
+//!     every 100 ms: c.sensors(adc_and_pins, now);
+//!     let out = c.tick(now);                    // apply out.led_ma, out.laser_on, ...
+//!     BLE: c.command(..) / c.profile_write(..) / c.ble_connected(..) / c.status(now)
+//! }
+//! ```
+
+use crate::battery::{self, ChargeInfo, SocEstimator};
+use crate::charger::{ChargePin, Charger};
+use crate::config::*;
+use crate::gesture::{GestureEvent, GestureParser};
+use crate::hw::{self, TempReading};
+use crate::mathx::div_ceil;
+use crate::profile::{Level, Profile, ProfileId, FLAG_MEMORY, FLAG_SHOW_BATTERY};
+use crate::protection::{self, LowVoltage, LvEvent};
+use crate::protocol::{
+    self, status_flags as sf, CmdError, Command, ControlSource, Status, LEVEL_EXACT, PROFILE_LEN,
+    RUNTIME_UNKNOWN,
+};
+use crate::rgb::{Rgb, RgbContext, RgbEngine, Shot};
+use crate::settings::Settings;
+
+/// What the main LED is doing.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Mode {
+    Off,
+    Level(Level),
+    /// Exact current requested by the app (Status level 0xFF).
+    Exact(u16),
+}
+
+/// How the MCU came out of reset.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct BootInfo {
+    /// Woken from deep sleep by the button (GPIO3).
+    pub woke_by_button: bool,
+    /// Button level at the first sample.
+    pub button_pressed: bool,
+    /// Woken by the stuck-button re-check timer.
+    pub woke_by_timer: bool,
+}
+
+/// One sample of the analog inputs and the charger status pins.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Sensors {
+    /// Battery voltage, mV (already 2 x ADC).
+    pub vbat_mv: u16,
+    /// NTC node voltage, mV.
+    pub ntc_mv: u16,
+    /// TP4057 CHRG (GPIO4) reads low.
+    pub chrg_low: bool,
+    /// TP4057 STDBY (GPIO5) reads low.
+    pub stdby_low: bool,
+}
+
+/// Requested advertising state.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AdvMode {
+    Off,
+    /// 100 ms interval (first 30 s of a window).
+    Fast,
+    /// 500 ms interval.
+    Slow,
+}
+
+/// Everything the firmware has to apply after a [`Controller::tick`].
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Outputs {
+    /// Main LED current (0 = LED_EN low). Set the duty first, then LED_EN.
+    pub led_ma: u16,
+    pub laser_on: bool,
+    pub rgb: Rgb,
+    pub charge_pin: ChargePin,
+    pub adv: AdvMode,
+    /// Everything is idle: enter deep sleep (after saving `save` if set).
+    pub sleep: bool,
+    /// Deep sleep wakes on the button (normal). `false` = the button is stuck
+    /// (lockout, held >= 10 s): wake on the charger pins and on a timer
+    /// ([`STUCK_RECHECK_MS`]) only.
+    pub wake_on_button: bool,
+    /// Write these settings to flash, then call [`Controller::saved`].
+    pub save: Option<Settings>,
+    /// Reboot (after saving) - factory reset.
+    pub reboot: bool,
+}
+
+/// The light.
+#[derive(Clone, Debug)]
+pub struct Controller {
+    settings: Settings,
+    saved: Settings,
+    save_pending: bool,
+
+    mode: Mode,
+    turbo_prev: Level,
+    turbo_start: u64,
+    turbo_expired: bool,
+    source: ControlSource,
+    app_lock_until: u64,
+
+    gestures: GestureParser,
+    button_down_since: Option<u64>,
+    boot_timer_wake: bool,
+    hold_steps: bool,
+    laser_hold: bool,
+    laser_start: u64,
+    laser_blocked: bool,
+    laser_on: bool,
+
+    vbat_f16: i32,
+    temp: TempReading,
+    temp_f16: i32,
+    temp_bad: u8,
+    chrg_low: bool,
+    stdby_low: bool,
+
+    charger: Charger,
+    lv: LowVoltage,
+    thermal_shutdown: bool,
+    soc: SocEstimator,
+    rgb: RgbEngine,
+
+    connected: bool,
+    window_until: u64,
+    adv_since: Option<u64>,
+
+    led_ma: u16,
+    thermal_active: bool,
+    battery_active: bool,
+    reboot: bool,
+    boot_ms: u64,
+}
+
+impl Controller {
+    /// `settings` = what was loaded from flash (or defaults), `now` = ms since boot.
+    pub fn new(settings: Settings, boot: BootInfo, now: u64) -> Self {
+        let gestures = match (boot.woke_by_button, boot.button_pressed) {
+            (true, true) => GestureParser::new_pressed(now),
+            (true, false) => GestureParser::new_after_click(now),
+            (false, _) => GestureParser::new(now),
+        };
+        Controller {
+            settings,
+            saved: settings,
+            save_pending: false,
+            mode: Mode::Off,
+            turbo_prev: settings.level,
+            turbo_start: 0,
+            turbo_expired: false,
+            source: ControlSource::None,
+            app_lock_until: 0,
+            gestures,
+            button_down_since: None,
+            boot_timer_wake: boot.woke_by_timer,
+            hold_steps: false,
+            laser_hold: false,
+            laser_start: 0,
+            laser_blocked: false,
+            laser_on: false,
+            vbat_f16: 0,
+            temp: TempReading::Unknown,
+            temp_f16: 0,
+            temp_bad: 0,
+            chrg_low: false,
+            stdby_low: false,
+            charger: Charger::new(),
+            lv: LowVoltage::new(),
+            thermal_shutdown: false,
+            soc: SocEstimator::new(),
+            rgb: RgbEngine::new(),
+            connected: false,
+            window_until: 0,
+            adv_since: None,
+            led_ma: 0,
+            thermal_active: false,
+            battery_active: false,
+            reboot: false,
+            boot_ms: now,
+        }
+    }
+
+    // ------------------------------------------------------------ queries
+
+    pub fn settings(&self) -> Settings {
+        self.settings
+    }
+
+    pub fn profile(&self) -> Profile {
+        self.settings.active_profile()
+    }
+
+    pub fn mode(&self) -> Mode {
+        self.mode
+    }
+
+    pub fn is_on(&self) -> bool {
+        self.mode != Mode::Off
+    }
+
+    /// A gesture is in progress: sample the button every 10 ms.
+    pub fn button_busy(&self) -> bool {
+        !self.gestures.is_idle()
+    }
+
+    /// Filtered battery voltage, mV (3700 before the first sample).
+    pub fn vbat_mv(&self) -> u16 {
+        if self.vbat_f16 == 0 {
+            3_700
+        } else {
+            ((self.vbat_f16 + 8) / 16) as u16
+        }
+    }
+
+    pub fn temperature(&self) -> TempReading {
+        self.temp
+    }
+
+    pub fn battery_percent(&self) -> u8 {
+        self.soc.percent()
+    }
+
+    pub fn usb_present(&self) -> bool {
+        self.charger.usb_present()
+    }
+
+    pub fn connected(&self) -> bool {
+        self.connected
+    }
+
+    /// Profile characteristic value: parameters of the active profile.
+    pub fn profile_packet(&self) -> [u8; PROFILE_LEN] {
+        self.profile().encode(self.settings.profile)
+    }
+
+    fn on_level(&self) -> Level {
+        if self.profile().flags & FLAG_MEMORY != 0 {
+            self.settings.level
+        } else {
+            Level::Low
+        }
+    }
+
+    fn exact_in_turbo(p: &Profile, ma: u16) -> bool {
+        p.has_turbo() && ma > p.stepdown_ma
+    }
+
+    fn in_turbo_region(&self) -> bool {
+        let p = self.profile();
+        match self.mode {
+            Mode::Level(Level::Turbo) => p.has_turbo(),
+            Mode::Exact(ma) => Self::exact_in_turbo(&p, ma.clamp(1, p.max_output_ma())),
+            _ => false,
+        }
+    }
+
+    fn turbo_running(&self) -> bool {
+        self.in_turbo_region() && !self.turbo_expired
+    }
+
+    /// Turbo is refused within 5 degC of the profile limit (and without a valid temperature).
+    fn turbo_temp_ok(&self) -> bool {
+        let limit = self.profile().temp_limit_dc();
+        matches!(self.temp, TempReading::Valid(t) if t < limit - TURBO_TEMP_MARGIN_DC)
+    }
+
+    /// The level the light is "at" for stepping and as turbo's return level.
+    fn current_level(&self) -> Level {
+        match self.mode {
+            Mode::Level(l) if l != Level::Turbo => l,
+            Mode::Level(_) => self.turbo_prev,
+            _ => self.settings.level,
+        }
+    }
+
+    // ------------------------------------------------------------ inputs
+
+    /// Feed a raw button sample (`true` = pressed).
+    pub fn button(&mut self, pressed: bool, now: u64) {
+        let ev = self.gestures.update(pressed, now);
+        for e in ev.as_slice() {
+            self.on_gesture(*e, now);
+        }
+    }
+
+    /// Feed an analog / charger-pin sample (every ~100 ms).
+    pub fn sensors(&mut self, s: Sensors, now: u64) {
+        let _ = now;
+        let v16 = s.vbat_mv as i32 * 16;
+        self.vbat_f16 = if self.vbat_f16 == 0 {
+            v16
+        } else {
+            self.vbat_f16 + (v16 - self.vbat_f16) / 8
+        };
+        match hw::ntc_temp(s.ntc_mv) {
+            TempReading::Valid(t) => {
+                self.temp_bad = 0;
+                let t16 = t as i32 * 16;
+                self.temp_f16 = if matches!(self.temp, TempReading::Valid(_)) {
+                    self.temp_f16 + (t16 - self.temp_f16) / 4
+                } else {
+                    t16
+                };
+                self.temp = TempReading::Valid((self.temp_f16 / 16) as i16);
+            }
+            bad => {
+                self.temp_bad = self.temp_bad.saturating_add(1);
+                if self.temp_bad >= NTC_FAULT_SAMPLES || !matches!(self.temp, TempReading::Valid(_)) {
+                    self.temp = bad;
+                }
+            }
+        }
+        self.chrg_low = s.chrg_low;
+        self.stdby_low = s.stdby_low;
+    }
+
+    /// A central connected / disconnected.
+    pub fn ble_connected(&mut self, connected: bool, now: u64) {
+        if !connected && self.connected {
+            self.window_until = self.window_until.max(now + BLE_WINDOW_AFTER_DISCONNECT_MS);
+        }
+        self.connected = connected;
+    }
+
+    /// The firmware stored `s` in flash.
+    pub fn saved(&mut self, s: Settings) {
+        self.saved = s;
+        if self.settings == s {
+            self.save_pending = false;
+        }
+    }
+
+    // ------------------------------------------------------------ light actions
+
+    fn switch_off(&mut self, src: ControlSource, now: u64, open_window: bool) {
+        if !self.is_on() {
+            return;
+        }
+        self.mode = Mode::Off;
+        self.source = src;
+        self.turbo_expired = false;
+        self.hold_steps = false;
+        self.lv.reset();
+        if open_window {
+            self.window_until = self.window_until.max(now + BLE_WINDOW_AFTER_OFF_MS);
+        }
+    }
+
+    /// Change the mode of a light that may be off or on. `restart_turbo`:
+    /// an explicit turbo request restarts an expired turbo timer.
+    fn apply_mode(&mut self, mode: Mode, src: ControlSource, now: u64, restart_turbo: bool) {
+        let was_on = self.is_on();
+        let was_turbo = self.in_turbo_region();
+        self.mode = mode;
+        self.source = src;
+        self.lv.reset();
+        if self.in_turbo_region() && (!was_turbo || (restart_turbo && self.turbo_expired)) {
+            self.turbo_start = now;
+            self.turbo_expired = false;
+        }
+        if !self.in_turbo_region() {
+            self.turbo_expired = false;
+        }
+        if !was_on && self.is_on() && self.profile().flags & FLAG_SHOW_BATTERY != 0 {
+            self.rgb.show_battery(self.soc.percent(), now);
+        }
+    }
+
+    fn try_switch_on(&mut self, mode: Mode, src: ControlSource, now: u64) -> Result<(), CmdError> {
+        if self.settings.lockout {
+            return Err(CmdError::Lockout);
+        }
+        if self.thermal_shutdown || self.temp == TempReading::Short || self.settings.empty_latch {
+            return Err(CmdError::Protection);
+        }
+        self.apply_mode(mode, src, now, true);
+        Ok(())
+    }
+
+    /// Button switch-on with feedback on refusal. Returns true if the light is on.
+    fn button_on(&mut self, mode: Mode, now: u64) -> bool {
+        match self.try_switch_on(mode, ControlSource::Button, now) {
+            Ok(()) => true,
+            Err(_) => {
+                let shot = if self.settings.empty_latch { Shot::Empty } else { Shot::Refused };
+                self.rgb.play(shot, now);
+                false
+            }
+        }
+    }
+
+    /// Re-apply the level table after a profile change (no turbo restart).
+    fn reapply(&mut self, was_turbo: bool, now: u64) {
+        if self.in_turbo_region() && !was_turbo {
+            self.turbo_start = now;
+            self.turbo_expired = false;
+        }
+        if !self.in_turbo_region() {
+            self.turbo_expired = false;
+        }
+        if let Mode::Exact(ma) = self.mode {
+            self.mode = Mode::Exact(ma.clamp(1, self.profile().max_output_ma()));
+        }
+    }
+
+    fn start_laser(&mut self, now: u64) {
+        self.laser_hold = true;
+        self.laser_start = now;
+        self.laser_blocked = !protection::laser_permitted(self.temp, self.vbat_mv(), self.settings.lockout);
+        if self.laser_blocked {
+            self.rgb.play(Shot::Refused, now);
+        }
+    }
+
+    fn stop_laser(&mut self) {
+        self.laser_hold = false;
+        self.laser_blocked = false;
+        self.laser_on = false;
+    }
+
+    fn set_lockout(&mut self, locked: bool, src: ControlSource, now: u64) {
+        self.source = src;
+        if locked {
+            self.switch_off(src, now, true);
+            if self.laser_hold {
+                self.laser_blocked = true;
+                self.laser_on = false;
+            }
+        }
+        if self.settings.lockout != locked {
+            self.settings.lockout = locked;
+            self.save_pending = true;
+        }
+        self.rgb.play(if locked { Shot::Locked } else { Shot::Unlocked }, now);
+    }
+
+    // ------------------------------------------------------------ button UI
+
+    fn on_gesture(&mut self, e: GestureEvent, now: u64) {
+        use GestureEvent::*;
+        // Every button action locks out app commands for 3 s.
+        self.app_lock_until = now + APP_LOCK_MS;
+        match e {
+            Press => {
+                self.button_down_since = Some(now);
+                return;
+            }
+            Release => {
+                self.button_down_since = None;
+                return;
+            }
+            HoldEnd(_) => {
+                self.hold_steps = false;
+                if self.laser_hold {
+                    self.stop_laser();
+                }
+                return;
+            }
+            _ => {}
+        }
+
+        if self.settings.lockout {
+            match e {
+                Clicks(4) if !self.is_on() => self.set_lockout(false, ControlSource::Button, now),
+                // feedback for clicks only: a button pressed in a pocket stays dark
+                Clicks(_) => self.rgb.play(Shot::LockedPress, now),
+                _ => {}
+            }
+            return;
+        }
+
+        if self.is_on() {
+            // A button action cancels an app-selected exact current.
+            if matches!(e, Clicks(_) | HoldStart(_))
+                && let Mode::Exact(_) = self.mode
+            {
+                let l = self.settings.level;
+                self.apply_mode(Mode::Level(l), ControlSource::Button, now, false);
+            }
+            match e {
+                Clicks(1) => {
+                    self.switch_off(ControlSource::Button, now, true);
+                    self.save_pending = true;
+                }
+                Clicks(2) => self.button_turbo_toggle(now),
+                Clicks(3) => {
+                    self.source = ControlSource::Button;
+                    self.rgb.play(Shot::battery(self.soc.percent()), now);
+                }
+                HoldStart(0) | HoldStart(1) => {
+                    self.hold_steps = true;
+                    self.button_step(now);
+                }
+                HoldRepeat(_) if self.hold_steps => self.button_step(now),
+                _ => {}
+            }
+        } else {
+            match e {
+                Clicks(1) => {
+                    let l = self.on_level();
+                    self.button_on(Mode::Level(l), now);
+                }
+                HoldStart(0) => {
+                    let on = self.button_on(Mode::Level(Level::Moon), now);
+                    if on {
+                        self.settings.level = Level::Moon;
+                    }
+                }
+                Clicks(2) => self.button_turbo_from_off(now),
+                HoldStart(1) => self.start_laser(now),
+                Clicks(3) => {
+                    self.window_until = self.window_until.max(now + BLE_WINDOW_TRIPLE_CLICK_MS);
+                    self.rgb.play(Shot::BtWindow, now);
+                }
+                Clicks(4) => self.set_lockout(true, ControlSource::Button, now),
+                _ => {}
+            }
+        }
+    }
+
+    fn button_step(&mut self, now: u64) {
+        let next = self.current_level().next_in_cycle();
+        let next = if matches!(self.mode, Mode::Level(Level::Turbo)) { Level::Low } else { next };
+        self.apply_mode(Mode::Level(next), ControlSource::Button, now, false);
+        self.settings.level = next;
+    }
+
+    fn button_turbo_toggle(&mut self, now: u64) {
+        if self.mode == Mode::Level(Level::Turbo) {
+            let prev = self.turbo_prev;
+            self.apply_mode(Mode::Level(prev), ControlSource::Button, now, false);
+            return;
+        }
+        if self.profile().has_turbo() && !self.turbo_temp_ok() {
+            self.rgb.play(Shot::Refused, now);
+            return;
+        }
+        self.turbo_prev = self.current_level();
+        self.apply_mode(Mode::Level(Level::Turbo), ControlSource::Button, now, true);
+    }
+
+    fn button_turbo_from_off(&mut self, now: u64) {
+        self.turbo_prev = self.on_level();
+        if self.profile().has_turbo() && !self.turbo_temp_ok() {
+            if self.button_on(Mode::Level(Level::High), now) {
+                self.rgb.play(Shot::Refused, now);
+            }
+            return;
+        }
+        self.button_on(Mode::Level(Level::Turbo), now);
+    }
+
+    // ------------------------------------------------------------ app interface
+
+    /// Handle a Command characteristic write. `Err` = ATT application error.
+    pub fn command(&mut self, data: &[u8], now: u64) -> Result<(), CmdError> {
+        let cmd = protocol::decode_command(data)?;
+        if cmd.yields_to_button() && now < self.app_lock_until {
+            return Err(CmdError::ButtonPriority);
+        }
+        let p = self.profile();
+        match cmd {
+            Command::Off => {
+                self.switch_off(ControlSource::App, now, true);
+                Ok(())
+            }
+            Command::On => {
+                if self.is_on() {
+                    return Ok(());
+                }
+                let l = self.on_level();
+                self.try_switch_on(Mode::Level(l), ControlSource::App, now)
+            }
+            Command::Level(l) => {
+                if self.settings.lockout {
+                    return Err(CmdError::Lockout);
+                }
+                if l == Level::Turbo && p.has_turbo() && !self.turbo_running() && !self.turbo_temp_ok() {
+                    return Err(CmdError::Protection);
+                }
+                if l == Level::Turbo && self.mode != Mode::Level(Level::Turbo) {
+                    self.turbo_prev = if self.is_on() { self.current_level() } else { self.on_level() };
+                }
+                if self.is_on() {
+                    self.apply_mode(Mode::Level(l), ControlSource::App, now, true);
+                } else {
+                    self.try_switch_on(Mode::Level(l), ControlSource::App, now)?;
+                }
+                if l.is_memorable() {
+                    self.settings.level = l;
+                }
+                Ok(())
+            }
+            Command::Profile(id) => {
+                let was_turbo = self.in_turbo_region();
+                self.settings.profile = id;
+                self.source = ControlSource::App;
+                self.lv.reset();
+                self.reapply(was_turbo, now);
+                Ok(())
+            }
+            Command::OutputMa(ma) => {
+                if self.settings.lockout {
+                    return Err(CmdError::Lockout);
+                }
+                if ma == 0 {
+                    return Err(CmdError::Invalid);
+                }
+                let ma = ma.clamp(1, p.max_output_ma());
+                if Self::exact_in_turbo(&p, ma) && !self.turbo_running() && !self.turbo_temp_ok() {
+                    return Err(CmdError::Protection);
+                }
+                if self.is_on() {
+                    self.apply_mode(Mode::Exact(ma), ControlSource::App, now, true);
+                    Ok(())
+                } else {
+                    self.try_switch_on(Mode::Exact(ma), ControlSource::App, now)
+                }
+            }
+            Command::Lockout(locked) => {
+                self.set_lockout(locked, ControlSource::App, now);
+                Ok(())
+            }
+            Command::Identify => {
+                self.rgb.play(Shot::Identify, now);
+                Ok(())
+            }
+            Command::Save => {
+                self.save_pending = true;
+                Ok(())
+            }
+            Command::KeepAlive(s) => {
+                let s = (s as u64).min(BLE_KEEPALIVE_MAX_S);
+                self.window_until = self.window_until.max(now + s * 1_000);
+                Ok(())
+            }
+            Command::FactoryReset => {
+                self.switch_off(ControlSource::App, now, false);
+                self.stop_laser();
+                self.settings = Settings::default();
+                self.save_pending = true;
+                self.reboot = true;
+                Ok(())
+            }
+        }
+    }
+
+    /// Handle a Profile characteristic write (always the Custom profile, which
+    /// is then selected). Values are clamped; read back to see what is used.
+    pub fn profile_write(&mut self, data: &[u8], now: u64) -> Result<(), CmdError> {
+        let custom = Profile::decode_write(data)?;
+        if now < self.app_lock_until {
+            return Err(CmdError::ButtonPriority);
+        }
+        let was_turbo = self.in_turbo_region();
+        self.settings.custom = custom;
+        self.settings.profile = ProfileId::Custom;
+        self.source = ControlSource::App;
+        self.lv.reset();
+        self.reapply(was_turbo, now);
+        Ok(())
+    }
+
+    // ------------------------------------------------------------ periodic
+
+    fn requested_ma(&self) -> u16 {
+        let p = self.profile();
+        match self.mode {
+            Mode::Off => 0,
+            Mode::Level(Level::Turbo) => {
+                if !p.has_turbo() {
+                    p.high_ma
+                } else if self.turbo_expired {
+                    p.stepdown_ma
+                } else {
+                    p.turbo_ma
+                }
+            }
+            Mode::Level(l) => p.level_ma(l),
+            Mode::Exact(ma) => {
+                let ma = ma.clamp(1, p.max_output_ma());
+                if self.turbo_expired && Self::exact_in_turbo(&p, ma) {
+                    p.stepdown_ma
+                } else {
+                    ma
+                }
+            }
+        }
+    }
+
+    /// Apply every limit. Returns (current, thermal limit active, battery limit active).
+    fn limited_ma(&self, req: u16) -> (u16, bool, bool) {
+        if req == 0 {
+            return (0, false, false);
+        }
+        let p = self.profile();
+        let mut out = req;
+        let mut thermal = false;
+        let mut battery = false;
+        if let Some(cap) = self.lv.cap() {
+            let c = p.level_ma(cap);
+            if c < out {
+                out = c;
+                battery = true;
+            }
+        }
+        match self.temp {
+            TempReading::Valid(t) => {
+                let c = protection::thermal_cap_ma(t, p.temp_limit_dc(), out, p.low_ma, p.moon_ma);
+                if c < out {
+                    out = c;
+                    thermal = true;
+                }
+            }
+            // No usable temperature: never above High.
+            TempReading::Open | TempReading::Unknown => {
+                if p.high_ma < out {
+                    out = p.high_ma;
+                    thermal = true;
+                }
+            }
+            TempReading::Short => {
+                out = 0;
+                thermal = true;
+            }
+        }
+        let c = battery::max_led_ma_for_cell(self.vbat_mv(), p.cell_limit_ma);
+        if c < out {
+            out = c;
+            battery = true;
+        }
+        (out, thermal, battery)
+    }
+
+    /// Run the periodic logic and return what the hardware should do.
+    pub fn tick(&mut self, now: u64) -> Outputs {
+        let p = self.profile();
+        let vbat = self.vbat_mv();
+
+        // thermal shutdown (> 80 degC or shorted sensor)
+        let hot = match self.temp {
+            TempReading::Valid(t) => t > THERMAL_OFF_DC,
+            TempReading::Short => true,
+            _ => false,
+        };
+        if hot && !self.thermal_shutdown {
+            self.thermal_shutdown = true;
+            self.switch_off(ControlSource::Auto, now, true);
+        }
+        if self.thermal_shutdown && matches!(self.temp, TempReading::Valid(t) if t < THERMAL_OFF_CLEAR_DC) {
+            self.thermal_shutdown = false;
+        }
+
+        // turbo timer
+        if self.turbo_running() && now.saturating_sub(self.turbo_start) >= p.turbo_time_s as u64 * 1_000 {
+            self.turbo_expired = true;
+            self.source = ControlSource::Auto;
+        }
+
+        // laser: while the gesture is held, at most 60 s, protection rules
+        if self.laser_hold
+            && !self.laser_blocked
+            && (now.saturating_sub(self.laser_start) >= LASER_MAX_MS
+                || !protection::laser_permitted(self.temp, vbat, self.settings.lockout))
+        {
+            self.laser_blocked = true;
+        }
+        self.laser_on = self.laser_hold && !self.laser_blocked;
+
+        // main LED with all limits; the low-voltage rule looks at what is driven
+        let (out, _, _) = self.limited_ma(self.requested_ma());
+        match self.lv.update(now, vbat, p.lv_stepdown_mv(), p.level_for_current(out), self.is_on()) {
+            LvEvent::Empty => {
+                // window rule 2 applies to every switch-off, also this one
+                self.switch_off(ControlSource::Auto, now, true);
+                self.settings.empty_latch = true;
+                self.save_pending = true;
+                self.rgb.play(Shot::Empty, now);
+            }
+            LvEvent::CapChanged => self.source = ControlSource::Auto,
+            LvEvent::None => {}
+        }
+        let (out, thermal, battery_lim) = self.limited_ma(self.requested_ma());
+        if (thermal && !self.thermal_active) || (battery_lim && !self.battery_active) {
+            self.source = ControlSource::Auto;
+        }
+        self.thermal_active = thermal;
+        self.battery_active = battery_lim;
+        self.led_ma = out;
+
+        // charger and USB
+        let pin = self.charger.update(now, self.chrg_low, self.stdby_low, self.temp, out);
+        let usb = self.charger.usb_present();
+
+        // empty latch: released above 3.30 V at rest or with USB
+        if self.settings.empty_latch && !self.is_on() && (usb || vbat >= LV_RECOVER_MV) {
+            self.settings.empty_latch = false;
+        }
+
+        // state of charge
+        self.soc.update(
+            now,
+            vbat,
+            out,
+            ChargeInfo {
+                usb_present: usb,
+                fast_charging: self.charger.fast_charging(),
+                complete: self.charger.complete(),
+            },
+        );
+
+        // Bluetooth window and advertising
+        let window = self.is_on() || usb || self.connected || now < self.window_until;
+        let adv = if window && !self.connected {
+            let since = *self.adv_since.get_or_insert(now);
+            if now - since < ADV_FAST_PERIOD_MS { AdvMode::Fast } else { AdvMode::Slow }
+        } else {
+            self.adv_since = None;
+            AdvMode::Off
+        };
+
+        let rgb = self.rgb.render(
+            &RgbContext {
+                usb_present: usb,
+                charging: self.charger.charging(),
+                charge_complete: self.charger.complete(),
+                window_open: window,
+                connected: self.connected,
+                light_on: self.is_on(),
+                soc_pct: self.soc.percent(),
+            },
+            now,
+        );
+
+        // A button held in lockout (pocket) must not keep the MCU awake.
+        let stuck_after = if self.boot_timer_wake { STUCK_BUTTON_AFTER_WAKE_MS } else { STUCK_BUTTON_MS };
+        let stuck = self.settings.lockout
+            && self.button_down_since.is_some_and(|t| now.saturating_sub(t) >= stuck_after);
+        let sleep = !self.is_on()
+            && !self.laser_hold
+            && !window
+            && !usb
+            && (self.gestures.is_idle() || stuck)
+            && !self.rgb.busy(now)
+            && now.saturating_sub(self.boot_ms)
+                >= if self.boot_timer_wake { MIN_AWAKE_TIMER_WAKE_MS } else { MIN_AWAKE_MS }
+            && !self.reboot;
+
+        if self.settings == self.saved {
+            self.save_pending = false;
+        }
+        let save = ((self.save_pending || sleep || self.reboot) && self.settings != self.saved)
+            .then_some(self.settings);
+
+        Outputs {
+            led_ma: out,
+            laser_on: self.laser_on,
+            rgb,
+            charge_pin: pin,
+            adv,
+            sleep,
+            wake_on_button: !stuck,
+            save,
+            reboot: self.reboot,
+        }
+    }
+
+    /// The Status characteristic.
+    pub fn status(&self, now: u64) -> Status {
+        let p = self.profile();
+        let mut flags = 0u8;
+        if self.is_on() {
+            flags |= sf::LIGHT_ON;
+        }
+        let turbo = self.turbo_running();
+        if turbo {
+            flags |= sf::TURBO_ACTIVE;
+        }
+        if self.charger.charging() {
+            flags |= sf::CHARGING;
+        }
+        if self.charger.complete() {
+            flags |= sf::CHARGE_COMPLETE;
+        }
+        if self.charger.usb_present() {
+            flags |= sf::USB_POWER;
+        }
+        if self.settings.lockout {
+            flags |= sf::LOCKOUT;
+        }
+        if self.thermal_active || self.thermal_shutdown {
+            flags |= sf::THERMAL_LIMIT;
+        }
+        if self.battery_active || self.settings.empty_latch {
+            flags |= sf::BATTERY_LIMIT;
+        }
+        let level = match self.mode {
+            Mode::Off => self.on_level() as u8,
+            Mode::Level(Level::Turbo) if !p.has_turbo() => Level::High as u8,
+            Mode::Level(l) => l as u8,
+            Mode::Exact(_) => LEVEL_EXACT,
+        };
+        let turbo_left_s = if turbo {
+            let total = p.turbo_time_s as u64 * 1_000;
+            div_ceil(total.saturating_sub(now.saturating_sub(self.turbo_start)), 1_000) as u16
+        } else {
+            0
+        };
+        let app_lock_s = div_ceil(self.app_lock_until.saturating_sub(now), 1_000) as u8;
+        let vbat = self.vbat_mv();
+        let runtime_min = if self.is_on() {
+            battery::runtime_minutes(self.soc.soc_x10(), battery::total_cell_current_ma(self.led_ma, vbat))
+        } else {
+            RUNTIME_UNKNOWN
+        };
+        Status {
+            flags,
+            profile: self.settings.profile as u8,
+            level,
+            led_ma: self.led_ma,
+            vbat_mv: vbat,
+            soc_pct: self.soc.percent(),
+            temp_dc: self.temp.report_dc(),
+            turbo_left_s,
+            source: self.source,
+            app_lock_s,
+            runtime_min,
+            laser_on: self.laser_on,
+        }
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::field_reassign_with_default)]
+mod tests {
+    use super::*;
+    use crate::hw::ntc_mv_at;
+    use crate::protocol::opcode;
+
+    /// Simulated hardware around the controller.
+    struct Sim {
+        c: Controller,
+        t: u64,
+        pressed: bool,
+        vbat: u16,
+        temp_c: f32,
+        chrg: bool,
+        stdby: bool,
+        out: Outputs,
+        saves: Vec<Settings>,
+        max_laser_ms: u64,
+        laser_since: Option<u64>,
+    }
+
+    impl Sim {
+        fn new() -> Sim {
+            Sim::with(Settings::default(), BootInfo::default())
+        }
+
+        fn with(s: Settings, boot: BootInfo) -> Sim {
+            Sim::build(s, boot, 3_900)
+        }
+
+        /// Start with a given (resting) battery voltage.
+        fn build(s: Settings, boot: BootInfo, vbat: u16) -> Sim {
+            let c = Controller::new(s, boot, 0);
+            let mut sim = Sim {
+                c,
+                t: 0,
+                pressed: boot.button_pressed,
+                vbat,
+                temp_c: 25.0,
+                chrg: false,
+                stdby: false,
+                out: Outputs {
+                    led_ma: 0,
+                    laser_on: false,
+                    rgb: Rgb::OFF,
+                    charge_pin: ChargePin::Float,
+                    adv: AdvMode::Off,
+                    sleep: false,
+                    wake_on_button: true,
+                    save: None,
+                    reboot: false,
+                },
+                saves: Vec::new(),
+                max_laser_ms: 0,
+                laser_since: None,
+            };
+            sim.sample();
+            sim.out = sim.c.tick(0);
+            sim
+        }
+
+        fn sample(&mut self) {
+            let s = Sensors {
+                vbat_mv: self.vbat,
+                ntc_mv: ntc_mv_at(self.temp_c),
+                chrg_low: self.chrg,
+                stdby_low: self.stdby,
+            };
+            self.c.sensors(s, self.t);
+        }
+
+        /// Advance time in 10 ms steps.
+        fn run(&mut self, ms: u64) {
+            let end = self.t + ms;
+            while self.t < end {
+                self.t += 10;
+                self.c.button(self.pressed, self.t);
+                if self.t.is_multiple_of(100) {
+                    self.sample();
+                }
+                self.out = self.c.tick(self.t);
+                if let Some(s) = self.out.save {
+                    self.saves.push(s);
+                    self.c.saved(s);
+                }
+                if self.out.laser_on {
+                    let since = *self.laser_since.get_or_insert(self.t);
+                    self.max_laser_ms = self.max_laser_ms.max(self.t - since);
+                } else {
+                    self.laser_since = None;
+                }
+            }
+        }
+
+        fn press(&mut self, ms: u64) {
+            self.pressed = true;
+            self.run(ms);
+            self.pressed = false;
+        }
+
+        fn click(&mut self) {
+            self.press(120);
+            self.run(150);
+        }
+
+        /// n clicks and wait until the gesture completes.
+        fn clicks(&mut self, n: usize) {
+            for _ in 0..n {
+                self.click();
+            }
+            self.run(500);
+        }
+
+        fn cmd(&mut self, data: &[u8]) -> Result<(), CmdError> {
+            let r = self.c.command(data, self.t);
+            self.run(10);
+            r
+        }
+
+        fn status(&self) -> Status {
+            self.c.status(self.t)
+        }
+    }
+
+    // -------------------------------------------------------------- button UI
+
+    #[test]
+    fn click_on_and_off_with_memory() {
+        let mut s = Sim::new();
+        assert_eq!(s.out.led_ma, 0);
+        s.clicks(1);
+        assert_eq!(s.c.mode(), Mode::Level(Level::Low)); // default remembered level
+        assert_eq!(s.out.led_ma, 30);
+        assert_eq!(s.status().source, ControlSource::Button);
+        // step to Medium with a hold, then off: Medium is remembered and saved
+        s.press(500);
+        s.run(200);
+        assert_eq!(s.c.mode(), Mode::Level(Level::Medium));
+        s.clicks(1);
+        assert!(!s.c.is_on());
+        assert_eq!(s.saves.last().unwrap().level, Level::Medium);
+        s.clicks(1);
+        assert_eq!(s.c.mode(), Mode::Level(Level::Medium));
+    }
+
+    #[test]
+    fn hold_from_off_is_moon_and_does_not_step() {
+        let mut s = Sim::new();
+        s.press(3_000);
+        assert_eq!(s.c.mode(), Mode::Level(Level::Moon));
+        s.run(500);
+        assert_eq!(s.c.mode(), Mode::Level(Level::Moon));
+        assert_eq!(s.out.led_ma, 3);
+    }
+
+    #[test]
+    fn hold_steps_every_600ms() {
+        let mut s = Sim::new();
+        s.clicks(1); // Low
+        s.pressed = true;
+        s.run(450); // hold detected at ~425 -> Medium
+        assert_eq!(s.c.mode(), Mode::Level(Level::Medium));
+        s.run(600); // High
+        assert_eq!(s.c.mode(), Mode::Level(Level::High));
+        s.run(600); // Low
+        assert_eq!(s.c.mode(), Mode::Level(Level::Low));
+        s.run(600); // Medium
+        assert_eq!(s.c.mode(), Mode::Level(Level::Medium));
+        s.pressed = false;
+        s.run(1_000);
+        assert_eq!(s.c.mode(), Mode::Level(Level::Medium));
+    }
+
+    #[test]
+    fn double_click_turbo_with_timer_and_stepdown() {
+        let mut s = Sim::new(); // Balanced: 1200 mA for 60 s, then 600
+        s.clicks(2);
+        assert_eq!(s.c.mode(), Mode::Level(Level::Turbo));
+        assert_eq!(s.out.led_ma, 1_200);
+        let st = s.status();
+        assert_ne!(st.flags & sf::TURBO_ACTIVE, 0);
+        assert_eq!(st.level, 4);
+        assert!((59..=60).contains(&st.turbo_left_s), "{}", st.turbo_left_s);
+        s.run(30_000);
+        assert!((29..=30).contains(&s.status().turbo_left_s));
+        s.run(31_000);
+        assert_eq!(s.out.led_ma, 600);
+        let st = s.status();
+        assert_eq!(st.flags & sf::TURBO_ACTIVE, 0);
+        assert_eq!(st.turbo_left_s, 0);
+        assert_eq!(st.source, ControlSource::Auto);
+        // two clicks: back to the previous level (Low)
+        s.clicks(2);
+        assert_eq!(s.c.mode(), Mode::Level(Level::Low));
+    }
+
+    #[test]
+    fn turbo_toggle_from_on() {
+        let mut s = Sim::new();
+        s.clicks(1);
+        s.press(500); // Medium
+        s.run(300);
+        s.clicks(2);
+        assert_eq!(s.c.mode(), Mode::Level(Level::Turbo));
+        s.clicks(2);
+        assert_eq!(s.c.mode(), Mode::Level(Level::Medium));
+    }
+
+    #[test]
+    fn turbo_without_turbo_profile_is_high() {
+        let mut st = Settings::default();
+        st.profile = ProfileId::Endurance;
+        let mut s = Sim::with(st, BootInfo::default());
+        s.clicks(2);
+        assert_eq!(s.out.led_ma, 300);
+        assert_eq!(s.status().level, Level::High as u8);
+        assert_eq!(s.status().flags & sf::TURBO_ACTIVE, 0);
+    }
+
+    #[test]
+    fn turbo_refused_near_temperature_limit() {
+        let mut s = Sim::new(); // limit 50 degC
+        s.temp_c = 46.0;
+        s.run(2_000);
+        s.clicks(2); // from off: High instead of turbo + red blink
+        assert_eq!(s.c.mode(), Mode::Level(Level::High));
+        s.run(3_100);
+        assert_eq!(s.cmd(&[opcode::LEVEL, 4]), Err(CmdError::Protection));
+        assert_eq!(s.cmd(&[opcode::OUTPUT_MA, 0xb0, 0x04]), Err(CmdError::Protection)); // 1200 > stepdown
+        assert_eq!(s.cmd(&[opcode::OUTPUT_MA, 0x58, 0x02]), Ok(())); // 600 = stepdown is fine
+        s.temp_c = 40.0;
+        s.run(2_000);
+        assert_eq!(s.cmd(&[opcode::LEVEL, 4]), Ok(()));
+    }
+
+    #[test]
+    fn triple_click_opens_window_light_stays_off() {
+        let mut s = Sim::new();
+        s.run(2_000);
+        assert_eq!(s.out.adv, AdvMode::Off);
+        assert!(s.out.sleep);
+        s.clicks(3);
+        assert!(!s.c.is_on());
+        assert_eq!(s.out.adv, AdvMode::Fast);
+        assert!(!s.out.sleep);
+        s.run(30_000);
+        assert_eq!(s.out.adv, AdvMode::Slow);
+        s.run(90_000);
+        assert_eq!(s.out.adv, AdvMode::Off);
+        s.run(100);
+        assert!(s.out.sleep);
+    }
+
+    #[test]
+    fn lockout_toggle_and_only_four_clicks_work() {
+        let mut s = Sim::new();
+        s.clicks(4);
+        assert!(s.c.settings().lockout);
+        assert!(s.saves.last().unwrap().lockout, "lockout is persisted");
+        assert_eq!(s.status().flags & sf::LOCKOUT, sf::LOCKOUT);
+        s.clicks(1);
+        assert!(!s.c.is_on());
+        s.clicks(2);
+        assert!(!s.c.is_on());
+        s.clicks(3);
+        assert_eq!(s.out.adv, AdvMode::Off, "triple click does nothing in lockout");
+        s.press(1_000);
+        s.run(500);
+        assert!(!s.c.is_on());
+        // laser gesture does nothing
+        s.click();
+        s.press(2_000);
+        assert!(!s.out.laser_on);
+        s.run(500);
+        assert_eq!(s.cmd(&[opcode::ON]).err(), Some(CmdError::ButtonPriority));
+        s.run(3_100);
+        assert_eq!(s.cmd(&[opcode::ON]), Err(CmdError::Lockout));
+        assert_eq!(s.cmd(&[opcode::LEVEL, 2]), Err(CmdError::Lockout));
+        assert_eq!(s.cmd(&[opcode::OUTPUT_MA, 100, 0]), Err(CmdError::Lockout));
+        s.clicks(4);
+        assert!(!s.c.settings().lockout);
+        s.clicks(1);
+        assert!(s.c.is_on());
+    }
+
+    #[test]
+    fn laser_click_hold_max_60s() {
+        let mut s = Sim::new();
+        s.click();
+        s.pressed = true;
+        s.run(1_000);
+        assert!(s.out.laser_on);
+        assert!(!s.c.is_on(), "main LED stays off");
+        s.run(70_000);
+        assert!(!s.out.laser_on, "60 s limit");
+        assert!(s.max_laser_ms <= 60_000 + 20, "{}", s.max_laser_ms);
+        s.pressed = false;
+        s.run(500);
+        // again
+        s.click();
+        s.pressed = true;
+        s.run(1_000);
+        assert!(s.out.laser_on);
+        s.pressed = false;
+        s.run(50);
+        assert!(!s.out.laser_on, "off when released");
+    }
+
+    #[test]
+    fn laser_protection_rules() {
+        let mut s = Sim::new();
+        s.temp_c = 61.0;
+        s.run(3_000);
+        s.click();
+        s.press(1_000);
+        assert!(!s.out.laser_on, "too hot");
+        s.temp_c = 30.0;
+        s.vbat = 3_150;
+        s.run(5_000);
+        s.click();
+        s.press(1_000);
+        assert!(!s.out.laser_on, "battery too low");
+        s.vbat = 3_800;
+        s.run(5_000);
+        s.click();
+        s.pressed = true;
+        s.run(1_000);
+        assert!(s.out.laser_on);
+        s.temp_c = 65.0;
+        s.run(3_000);
+        assert!(!s.out.laser_on, "switched off when it gets hot");
+        s.temp_c = 30.0;
+        s.run(3_000);
+        assert!(!s.out.laser_on, "stays off for the rest of this hold");
+        s.pressed = false;
+        s.run(100);
+    }
+
+    #[test]
+    fn laser_never_from_ble() {
+        let mut s = Sim::new();
+        // no opcode exists for the laser; every opcode other than the defined ones is invalid
+        for op in 0x0au8..=0x7e {
+            assert_eq!(s.c.command(&[op], s.t), Err(CmdError::Invalid));
+            assert_eq!(s.c.command(&[op, 1], s.t), Err(CmdError::Invalid));
+        }
+        s.run(100);
+        assert!(!s.out.laser_on);
+    }
+
+    // -------------------------------------------------------------- app
+
+    #[test]
+    fn app_commands_basic() {
+        let mut s = Sim::new();
+        s.run(100);
+        assert_eq!(s.cmd(&[opcode::ON]), Ok(()));
+        assert_eq!(s.out.led_ma, 30);
+        assert_eq!(s.status().source, ControlSource::App);
+        assert_eq!(s.cmd(&[opcode::LEVEL, 3]), Ok(()));
+        assert_eq!(s.out.led_ma, 600);
+        assert_eq!(s.cmd(&[opcode::PROFILE, 0]), Ok(()));
+        assert_eq!(s.out.led_ma, 900, "level re-applied with the new table");
+        assert_eq!(s.status().profile, 0);
+        assert_eq!(s.cmd(&[opcode::OFF]), Ok(()));
+        assert!(!s.c.is_on());
+        assert_eq!(s.out.adv, AdvMode::Fast, "120 s window after off");
+        assert_eq!(s.cmd(&[0x55]), Err(CmdError::Invalid));
+        assert_eq!(s.cmd(&[opcode::LEVEL, 9]), Err(CmdError::Invalid));
+    }
+
+    #[test]
+    fn button_priority_3s() {
+        let mut s = Sim::new();
+        s.clicks(1);
+        // gesture completed ~400 ms ago; lock lasts 3 s from the last action
+        assert_eq!(s.cmd(&[opcode::OFF]), Err(CmdError::ButtonPriority));
+        assert_eq!(s.cmd(&[opcode::PROFILE, 2]), Err(CmdError::ButtonPriority));
+        let st = s.status();
+        assert!((1..=3).contains(&st.app_lock_s), "{}", st.app_lock_s);
+        // commands that do not switch or dim are accepted
+        assert_eq!(s.cmd(&[opcode::IDENTIFY]), Ok(()));
+        assert_eq!(s.cmd(&[opcode::KEEPALIVE, 10]), Ok(()));
+        assert_eq!(s.cmd(&[opcode::SAVE]), Ok(()));
+        s.run(3_000);
+        assert_eq!(s.status().app_lock_s, 0);
+        assert_eq!(s.cmd(&[opcode::OFF]), Ok(()));
+    }
+
+    #[test]
+    fn exact_current_clamped_and_cancelled_by_button() {
+        let mut s = Sim::new();
+        s.run(100);
+        assert_eq!(s.cmd(&[opcode::OUTPUT_MA, 0x10, 0x27]), Ok(())); // 10000 mA
+        assert_eq!(s.c.mode(), Mode::Exact(1_200));
+        assert_eq!(s.status().level, LEVEL_EXACT);
+        assert_eq!(s.out.led_ma, 1_200);
+        assert_ne!(s.status().flags & sf::TURBO_ACTIVE, 0, "above step-down: turbo timer runs");
+        s.run(61_000);
+        assert_eq!(s.out.led_ma, 600, "stepped down after the turbo time");
+        assert_eq!(s.cmd(&[opcode::OUTPUT_MA, 0, 0]), Err(CmdError::Invalid));
+        assert_eq!(s.cmd(&[opcode::OUTPUT_MA, 77, 0]), Ok(()));
+        assert_eq!(s.out.led_ma, 77);
+        assert_eq!(s.status().flags & sf::TURBO_ACTIVE, 0);
+        // a button action cancels the exact current: hold steps from the remembered level
+        s.press(500);
+        s.run(200);
+        assert_eq!(s.c.mode(), Mode::Level(Level::Medium));
+    }
+
+    #[test]
+    fn profile_write_clamps_and_selects_custom() {
+        let mut s = Sim::new();
+        s.run(100);
+        let mut p = Profile::EXTREME;
+        p.turbo_ma = 5_000;
+        p.temp_limit_c = 90;
+        let pkt = p.encode(ProfileId::Custom);
+        assert_eq!(s.c.profile_write(&pkt, s.t), Ok(()));
+        let back = s.c.profile_packet();
+        assert_eq!(back[0], 3);
+        let (_, rp) = Profile::decode_raw(&back);
+        assert_eq!(rp.turbo_ma, 3_000);
+        assert_eq!(rp.temp_limit_c, 70);
+        assert_eq!(s.status().profile, 3);
+        // wrong id / length
+        let bad = Profile::BALANCED.encode(ProfileId::Balanced);
+        assert_eq!(s.c.profile_write(&bad, s.t), Err(CmdError::Invalid));
+        assert_eq!(s.c.profile_write(&pkt[..10], s.t), Err(CmdError::Invalid));
+        // reading returns the active profile
+        assert_eq!(s.cmd(&[opcode::PROFILE, 2]), Ok(()));
+        assert_eq!(s.c.profile_packet(), Profile::ENDURANCE.encode(ProfileId::Endurance));
+    }
+
+    #[test]
+    fn save_only_when_changed() {
+        let mut s = Sim::new();
+        s.run(100);
+        assert_eq!(s.cmd(&[opcode::SAVE]), Ok(()));
+        s.run(100);
+        assert!(s.saves.is_empty(), "defaults were not changed");
+        assert_eq!(s.cmd(&[opcode::PROFILE, 0]), Ok(()));
+        assert_eq!(s.cmd(&[opcode::SAVE]), Ok(()));
+        s.run(100);
+        assert_eq!(s.saves.len(), 1);
+        assert_eq!(s.saves[0].profile, ProfileId::Extreme);
+        assert_eq!(s.cmd(&[opcode::SAVE]), Ok(()));
+        s.run(100);
+        assert_eq!(s.saves.len(), 1);
+    }
+
+    #[test]
+    fn factory_reset() {
+        let mut st = Settings::default();
+        st.profile = ProfileId::Custom;
+        st.custom.high_ma = 1_500;
+        st.lockout = true;
+        let mut s = Sim::with(st, BootInfo::default());
+        assert_eq!(s.cmd(&[opcode::FACTORY_RESET, 0x00]), Err(CmdError::Invalid));
+        assert_eq!(s.cmd(&[opcode::FACTORY_RESET, 0xa5]), Ok(()));
+        assert!(s.out.reboot);
+        assert_eq!(*s.saves.last().unwrap(), Settings::default());
+    }
+
+    #[test]
+    fn keepalive_and_disconnect_windows() {
+        let mut s = Sim::new();
+        s.clicks(3); // 120 s window
+        s.c.ble_connected(true, s.t);
+        s.run(200_000);
+        assert_eq!(s.out.adv, AdvMode::Off, "no advertising while connected");
+        assert!(!s.out.sleep, "connected keeps the window open");
+        s.c.ble_connected(false, s.t);
+        s.run(100);
+        assert_eq!(s.out.adv, AdvMode::Fast, "30 s after disconnect");
+        assert_eq!(s.cmd(&[opcode::KEEPALIVE, 200]), Ok(()));
+        s.run(150_000);
+        assert_ne!(s.out.adv, AdvMode::Off);
+        s.run(51_000);
+        assert_eq!(s.out.adv, AdvMode::Off);
+    }
+
+    // -------------------------------------------------------------- protection
+
+    #[test]
+    fn thermal_derating_and_shutdown() {
+        let mut s = Sim::new();
+        s.run(100);
+        s.cmd(&[opcode::LEVEL, 3]).unwrap(); // High 600, limit 50
+        s.temp_c = 57.5; // halfway into the 15 degC span
+        s.run(3_000);
+        let ma = s.out.led_ma;
+        assert!((300..=330).contains(&ma), "{ma}");
+        assert_ne!(s.status().flags & sf::THERMAL_LIMIT, 0);
+        assert_eq!(s.status().source, ControlSource::Auto);
+        s.temp_c = 72.0;
+        s.run(3_000);
+        assert_eq!(s.out.led_ma, 3, "Moon above 70");
+        s.temp_c = 82.0;
+        s.run(3_000);
+        assert!(!s.c.is_on(), "off above 80");
+        s.run(3_100);
+        assert_eq!(s.cmd(&[opcode::ON]), Err(CmdError::Protection));
+        s.temp_c = 74.0;
+        s.run(3_000);
+        assert_eq!(s.cmd(&[opcode::ON]), Ok(()));
+    }
+
+    #[test]
+    fn low_voltage_steps_moon_and_empty_latch() {
+        let mut s = Sim::new(); // Balanced: step-down 3.35 V
+        s.run(100);
+        s.cmd(&[opcode::LEVEL, 3]).unwrap();
+        s.vbat = 3_300;
+        // the filtered voltage crosses 3.35 V about 1.9 s later
+        s.run(2_000);
+        assert_eq!(s.out.led_ma, 600);
+        s.run(4_500);
+        assert_eq!(s.out.led_ma, 600, "not before 5 s below the threshold");
+        s.run(1_000);
+        assert_eq!(s.out.led_ma, 200, "one step after 5 s");
+        assert_ne!(s.status().flags & sf::BATTERY_LIMIT, 0);
+        assert_eq!(s.status().source, ControlSource::Auto);
+        s.run(5_000);
+        assert_eq!(s.out.led_ma, 30, "next step 5 s later");
+        s.vbat = 3_050;
+        s.run(3_000);
+        assert_eq!(s.out.led_ma, 3, "Moon below 3.10 V");
+        s.vbat = 2_950;
+        s.run(4_000);
+        assert!(!s.c.is_on(), "off below 3.00 V");
+        assert!(s.c.settings().empty_latch);
+        assert!(s.saves.last().unwrap().empty_latch, "latch persisted for deep sleep");
+        assert_ne!(s.out.adv, AdvMode::Off, "the 120 s window opens after every switch-off");
+        s.vbat = 3_250; // rests at 3.25 V: still refused
+        s.run(5_000);
+        s.clicks(1);
+        assert!(!s.c.is_on());
+        s.run(3_100);
+        assert_eq!(s.cmd(&[opcode::ON]), Err(CmdError::Protection));
+        s.vbat = 3_350;
+        s.run(5_000);
+        assert!(!s.c.settings().empty_latch);
+        s.clicks(1);
+        assert!(s.c.is_on());
+    }
+
+    #[test]
+    fn empty_latch_released_by_usb() {
+        let mut st = Settings::default();
+        st.empty_latch = true;
+        let mut s = Sim::build(st, BootInfo::default(), 3_200);
+        s.run(1_000);
+        s.clicks(1);
+        assert!(!s.c.is_on());
+        s.chrg = true;
+        s.run(500);
+        assert!(!s.c.settings().empty_latch);
+        s.clicks(1);
+        assert!(s.c.is_on());
+    }
+
+    #[test]
+    fn cell_current_limit() {
+        let mut st = Settings::default();
+        st.profile = ProfileId::Custom;
+        st.custom.cell_limit_ma = 500;
+        let mut s = Sim::build(st, BootInfo::default(), 3_700);
+        s.run(1_000);
+        s.cmd(&[opcode::LEVEL, 4]).unwrap();
+        s.run(500);
+        let ma = s.out.led_ma;
+        let cell = battery::led_cell_current_ma(ma, s.c.vbat_mv());
+        assert!(cell <= 500 && ma < 1_200, "ma={ma} cell={cell}");
+        assert_ne!(s.status().flags & sf::BATTERY_LIMIT, 0);
+    }
+
+    #[test]
+    fn ntc_open_limits_to_high_and_blocks_charging() {
+        let mut s = Sim::new();
+        s.temp_c = -30.0; // reads as open
+        s.chrg = true;
+        s.run(1_000);
+        assert_eq!(s.c.temperature(), TempReading::Open);
+        assert_eq!(s.out.charge_pin, ChargePin::High);
+        s.run(3_100);
+        assert_eq!(s.cmd(&[opcode::LEVEL, 4]), Err(CmdError::Protection));
+        assert_eq!(s.cmd(&[opcode::OUTPUT_MA, 0x58, 0x02]), Ok(()));
+        assert_eq!(s.out.led_ma, 600);
+    }
+
+    // -------------------------------------------------------------- charging, RGB, sleep
+
+    #[test]
+    fn charging_and_pause_above_500ma() {
+        let mut s = Sim::new();
+        s.chrg = true;
+        s.run(500);
+        assert!(s.c.usb_present());
+        assert_eq!(s.out.charge_pin, ChargePin::Low);
+        let st = s.status();
+        assert_eq!(st.flags & (sf::USB_POWER | sf::CHARGING), sf::USB_POWER | sf::CHARGING);
+        assert_ne!(s.out.adv, AdvMode::Off, "USB keeps the window open");
+        assert!(s.out.rgb.r > 0 && s.out.rgb.g == 0, "red breathing");
+        s.run(3_000);
+        s.cmd(&[opcode::LEVEL, 4]).unwrap(); // 1200 mA
+        s.run(200);
+        assert_eq!(s.out.charge_pin, ChargePin::High);
+        s.cmd(&[opcode::LEVEL, 1]).unwrap();
+        s.run(200);
+        assert_eq!(s.out.charge_pin, ChargePin::Low);
+        // complete
+        s.chrg = false;
+        s.stdby = true;
+        s.cmd(&[opcode::OFF]).unwrap();
+        s.run(500);
+        assert_ne!(s.status().flags & sf::CHARGE_COMPLETE, 0);
+        assert_eq!(s.out.rgb, Rgb::GREEN.scale(120));
+        // unplugged
+        s.stdby = false;
+        s.run(1_500);
+        assert!(!s.c.usb_present());
+        assert_eq!(s.out.charge_pin, ChargePin::Float);
+    }
+
+    #[test]
+    fn battery_display_on_switch_on() {
+        let mut s = Sim::new();
+        s.vbat = 4_100;
+        s.run(3_000);
+        s.clicks(1);
+        assert_eq!(s.out.rgb, Rgb::GREEN, "battery colour for 2 s");
+        s.run(2_000);
+        assert_ne!(s.out.rgb, Rgb::GREEN);
+    }
+
+    #[test]
+    fn sleep_conditions() {
+        let mut s = Sim::new();
+        s.run(1_000);
+        assert!(!s.out.sleep, "minimum awake time");
+        s.run(600);
+        assert!(s.out.sleep);
+        s.clicks(1);
+        assert!(!s.out.sleep);
+        s.clicks(1);
+        assert!(!s.out.sleep, "120 s window after switch-off");
+        s.run(119_000);
+        assert!(!s.out.sleep);
+        s.run(1_500);
+        assert!(s.out.sleep);
+        s.chrg = true;
+        s.run(200);
+        assert!(!s.out.sleep, "USB present");
+    }
+
+    #[test]
+    fn stuck_button_in_lockout_sleeps_without_button_wake() {
+        let mut st = Settings::default();
+        st.lockout = true;
+        let mut s = Sim::with(st, BootInfo::default());
+        s.run(2_000);
+        assert!(s.out.sleep && s.out.wake_on_button);
+        s.pressed = true; // pressed in a pocket
+        s.run(5_000);
+        assert!(!s.out.sleep, "a press may be a real gesture");
+        assert_eq!(s.out.rgb, Rgb::OFF, "no feedback for a hold in lockout");
+        s.run(6_000);
+        assert!(s.out.sleep, "stuck after 10 s");
+        assert!(!s.out.wake_on_button);
+        // after the re-check timer wake with the button still pressed: back to sleep quickly
+        let mut s = Sim::with(
+            st,
+            BootInfo {
+                woke_by_button: false,
+                button_pressed: true,
+                woke_by_timer: true,
+            },
+        );
+        s.pressed = true;
+        s.run(300);
+        assert!(!s.out.sleep);
+        s.run(200);
+        assert!(s.out.sleep && !s.out.wake_on_button);
+        // released meanwhile: normal sleep with button wake
+        s.pressed = false;
+        s.run(500);
+        assert!(s.out.sleep && s.out.wake_on_button);
+        // not in lockout a held button switches the light on (Moon) - no sleep
+        let mut s = Sim::new();
+        s.pressed = true;
+        s.run(15_000);
+        assert!(s.c.is_on() && !s.out.sleep);
+    }
+
+    #[test]
+    fn wake_by_button_click_turns_on() {
+        // woken by a click that was already over at the first sample
+        let mut s = Sim::with(
+            Settings::default(),
+            BootInfo {
+                woke_by_button: true,
+                button_pressed: false,
+                woke_by_timer: false,
+            },
+        );
+        s.run(600);
+        assert!(s.c.is_on());
+        // woken by a hold
+        let mut s = Sim::with(
+            Settings::default(),
+            BootInfo {
+                woke_by_button: true,
+                button_pressed: true,
+                woke_by_timer: false,
+            },
+        );
+        s.pressed = true;
+        s.run(600);
+        assert_eq!(s.c.mode(), Mode::Level(Level::Moon));
+    }
+
+    #[test]
+    fn status_when_off() {
+        let s = Sim::new();
+        let st = s.status();
+        assert_eq!(st.flags & sf::LIGHT_ON, 0);
+        assert_eq!(st.led_ma, 0);
+        assert_eq!(st.runtime_min, RUNTIME_UNKNOWN);
+        assert_eq!(st.level, Level::Low as u8);
+        assert_eq!(st.profile, 1);
+        assert_eq!(st.source, ControlSource::None);
+        assert!(!st.laser_on);
+    }
+
+    #[test]
+    fn runtime_estimate_when_on() {
+        let mut s = Sim::build(Settings::default(), BootInfo::default(), 3_800); // 50 %
+        s.run(1_000);
+        s.cmd(&[opcode::LEVEL, 3]).unwrap(); // 600 mA
+        s.run(500);
+        let st = s.status();
+        // 400 mAh / (2.84 V*0.6 A/(0.9*3.8 V) + 20 mA) = 400 / 518 mA = 46 min
+        assert!((40..=52).contains(&st.runtime_min), "{}", st.runtime_min);
+    }
+}

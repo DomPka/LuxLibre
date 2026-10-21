@@ -1,0 +1,384 @@
+{
+ "version": "0.5",
+ "params": {
+  "W": 20.0,
+  "H": 16.0,
+  "R_edge": 2.0,
+  "C_end": 0.8,
+  "C_front": 0.2,
+  "wall": 1.5,
+  "floor": 1.5,
+  "lid_t": 1.5,
+  "inner_r": 2.0,
+  "L_head": 8.5,
+  "Z_axis": 8.0,
+  "lid_x0": 4.2,
+  "Y_w": -3.825,
+  "win_d": 10.0,
+  "win_t": 1.0,
+  "win_recess": 0.2,
+  "bore_clear": 0.2,
+  "led_h": 2.0,
+  "led_gap": 0.4,
+  "mcpcb_d": 10.0,
+  "mcpcb_t": 1.6,
+  "tim_t": 0.15,
+  "ring_od": 10.1,
+  "ring_id": 7.2,
+  "wire_groove": [
+   1.4,
+   0.8
+  ],
+  "led_wire_dz": 4.3,
+  "ledwire_d": 1.3,
+  "Y_l": 5.85,
+  "Z_las": 5.9,
+  "las_d": 6.0,
+  "las_len": 12.0,
+  "las_clear": 0.1,
+  "las_recess": 0.3,
+  "las_grub_x": 5.6,
+  "las_bore_extra": 0.3,
+  "sleeve_id": 4.6,
+  "sleeve_od": 6.0,
+  "sleeve_len": 10.0,
+  "sleeve_slit": 0.8,
+  "pcb_len": 24.0,
+  "pcb_t": 0.8,
+  "Z_pcb_bot": 9.2,
+  "pcb_gap_front": 0.3,
+  "pcb_side_gap": 0.25,
+  "pcb_chamfer": 1.3,
+  "ledge_w": 0.8,
+  "las_keepout_x": 12.9,
+  "mod_w": 13.2,
+  "mod_len": 16.6,
+  "mod_onboard": 11.2,
+  "mod_h": 2.4,
+  "mod_y": -1.4,
+  "ant_gap": 0.8,
+  "L_batt": 48.0,
+  "cell_t": 6.0,
+  "cell_w": 16.0,
+  "cell_l": 47.0,
+  "tail_front_wall": 1.0,
+  "lan_slot_w": 4.4,
+  "lan_slot_len": 7.6,
+  "tail_end_wall": 2.0,
+  "lan_chamfer": 0.35,
+  "twin_x": 6.0,
+  "twin_y": 14.0,
+  "twin_r": 0.8,
+  "twin_corner": 1.8,
+  "twin_depth": 1.0,
+  "twin_chamfer": 0.3,
+  "twin_front_gap": 1.0,
+  "tail_facet": 2.0,
+  "rfw_x0_over_pcb": 1.0,
+  "rfw_x_beyond_ant": 0.5,
+  "rfw_y": 14.0,
+  "rfw_r": 1.5,
+  "rfw_flange": 0.8,
+  "rfw_flange_t": 0.6,
+  "rfw_flange_drop": 0.2,
+  "rfw_clear": 0.05,
+  "knurl": true,
+  "knurl_x0": 40.5,
+  "knurl_x1": 81.5,
+  "knurl_w": 12.4,
+  "knurl_r": 2.0,
+  "knurl_pitch": 1.6,
+  "knurl_depth": 0.35,
+  "sgroove_x0": 40.5,
+  "sgroove_x1": 81.5,
+  "sgroove_z": [
+   5.5,
+   10.5
+  ],
+  "sgroove_depth": 0.3,
+  "seam_depth": 0.25,
+  "dish_r": 8.0,
+  "dish_depth": 0.6,
+  "m16_tap": 1.25,
+  "m16_drill": 3.6,
+  "m16_clear": 1.8,
+  "m16_csk": 3.3,
+  "screw_dy": 6.3,
+  "screw_x_front": 7.0,
+  "m2_tap": 1.6,
+  "X_usb": 14.6,
+  "usb_open": [
+   12.6,
+   6.8,
+   2.0
+  ],
+  "usb_open_chamfer": 0.3,
+  "X_s1": 25.6,
+  "s1_hole": [
+   3.4,
+   2.4,
+   0.8
+  ],
+  "s1_act_z": 1.25,
+  "s1_act_prot": 0.83,
+  "s1_gap": 0.35,
+  "cap_flange": [
+   5.2,
+   2.1,
+   0.6
+  ],
+  "cap_protrude": 1.0,
+  "X_s2": 14.05,
+  "s2_slot": [
+   3.2,
+   2.0,
+   0.8
+  ],
+  "s2_knob_z": 0.7,
+  "s2_knob_len": 1.55,
+  "s2_knob_out": 0.75
+ },
+ "derived": {
+  "L": 94.4,
+  "L_total": 94.4,
+  "Z_lid": 14.5,
+  "Z_pcb_top": 10.0,
+  "D_w": 5.3500000000000005,
+  "X_pcb0": 8.8,
+  "X_pcb1": 32.8,
+  "X_ant1": 38.2,
+  "Y_pcb": 8.25,
+  "X_batt0": 39.0,
+  "X_batt1": 87.0,
+  "X_lan": 90.2,
+  "X_screw_front": 7.0,
+  "X_screw_back": 90.2,
+  "Z_s1": 7.949999999999999,
+  "Z_usb": 7.594999999999999,
+  "rf_window": [
+   31.799999999999997,
+   38.7,
+   7.0
+  ]
+ },
+ "pcb_outline": [
+  [
+   10.100000000000001,
+   -8.25
+  ],
+  [
+   32.8,
+   -8.25
+  ],
+  [
+   32.8,
+   8.25
+  ],
+  [
+   10.100000000000001,
+   8.25
+  ],
+  [
+   8.8,
+   6.95
+  ],
+  [
+   8.8,
+   -6.95
+  ]
+ ],
+ "components": {
+  "J1_usb": {
+   "x": 14.6,
+   "face_y": -8.25,
+   "side": "B",
+   "z_centre": 7.594999999999999,
+   "note": "TYPE-C-31-M-12 on the bottom side, mating face flush with the PCB edge"
+  },
+  "S1_button": {
+   "x": 25.6,
+   "actuator_tip_y": -7.550000000000001,
+   "side": "B",
+   "z_actuator": 7.949999999999999,
+   "note": "side push, actuator towards -Y"
+  },
+  "S2_interlock": {
+   "x": 14.05,
+   "knob_tip_y": 9.0,
+   "side": "F",
+   "note": "PCM12-class slide, knob towards +Y into the wall slot"
+  },
+  "U4_module": {
+   "x_onboard_end": 32.8,
+   "y": -1.4,
+   "side": "F",
+   "note": "ESP32-C3-MINI-1, antenna overhangs the rear edge by 5.4 mm"
+  },
+  "pcb": {
+   "x0": 8.8,
+   "x1": 32.8,
+   "y_minus": -8.25,
+   "y_plus": 8.25,
+   "z_bottom": 9.2,
+   "t": 0.8
+  },
+  "keepout_bottom": [
+   {
+    "what": "laser module tail",
+    "x0": 7.800000000000001,
+    "x1": 12.9,
+    "y0": 2.55,
+    "y1": 9.25
+   }
+  ],
+  "trough_y": [
+   -7.55,
+   7.55
+  ],
+  "trough_exceptions": [
+   {
+    "what": "USB-C (no ledge)",
+    "x0": 9.7,
+    "x1": 19.6,
+    "side": "-Y"
+   },
+   {
+    "what": "S1 (no ledge)",
+    "x0": 22.400000000000002,
+    "x1": 28.8,
+    "side": "-Y"
+   },
+   {
+    "what": "laser (no ledge)",
+    "x0": 7.800000000000001,
+    "x1": 12.9,
+    "side": "+Y"
+   }
+  ],
+  "rf_window": {
+   "x0": 31.799999999999997,
+   "x1": 38.7,
+   "half_y": 7.0
+  },
+  "max_height_top": 4.3,
+  "max_height_bottom": 7.3999999999999995,
+  "led_wire_top": {
+   "y": -3.825,
+   "z": 12.3
+  },
+  "led_wire_bottom": {
+   "y": -3.825,
+   "z": 3.7
+  },
+  "front_screw_tips_z": 10.9
+ },
+ "volumes_mm3": {
+  "Aurora_tray": 8670.7,
+  "Aurora_lid": 2238.3,
+  "Aurora_rf_window": 184.1,
+  "Aurora_button_cap": 22.7,
+  "Aurora_spacer_ring": 83.9,
+  "Aurora_antenna_spacer": 865.1
+ },
+ "mass_g": {
+  "Aurora_tray": 23.4,
+  "Aurora_lid": 6.0,
+  "Aurora_rf_window": 0.2,
+  "Aurora_button_cap": 0.0,
+  "Aurora_spacer_ring": 0.1,
+  "Aurora_antenna_spacer": 1.0
+ },
+ "tray_bbox": [
+  -0.0033966036196133686,
+  94.4083680440771,
+  -10.006561425039171,
+  10.00385386049766,
+  -0.008368044077099413,
+  16.00385386049766
+ ],
+ "solids_valid": {
+  "Aurora_tray": true,
+  "Aurora_lid": true,
+  "Aurora_rf_window": true,
+  "Aurora_button_cap": true,
+  "Aurora_spacer_ring": true,
+  "Aurora_antenna_spacer": true,
+  "Aurora_laser_sleeve": true,
+  "Aurora_print_kit": true
+ },
+ "min_walls": {
+  "window bore to control-side face": 1.075,
+  "window bore to top face (lid seat, X > lid_x0)": 1.4,
+  "window bore to bottom face": 2.9,
+  "LED wire groove (top) to lid seat": 0.8,
+  "LED wire groove (bottom) to bottom face": 2.3,
+  "laser bore to laser-side face": 1.1,
+  "laser bore to bottom face (M2 thread length)": 2.85,
+  "window bore to laser bore": 1.525,
+  "laser module top below the PCB": 0.3,
+  "side walls": 1.5,
+  "floor": 1.5,
+  "lid": 1.5,
+  "floor under the knurl": 1.15,
+  "lid under the knurl": 1.15,
+  "side wall under the side grooves": 1.2,
+  "lid around the RF window flange pocket": 0.9,
+  "lanyard bridge (slot to tail face)": 2.0,
+  "tail front wall (bay to slot)": 1.0,
+  "slot end to rear screw tap": 1.875,
+  "front screw tap to head rear face": 0.875,
+  "front screw tap to LED bore floor": 1.025,
+  "bottom long-edge corner (R_edge vs cavity corner)": 1.293,
+  "wall front lid tap -Y - LED wire hole top": 1.2,
+  "wall front lid tap -Y - window bore": 1.025,
+  "wall front lid tap +Y - laser bore": 1.95,
+  "wall window bore - laser bore": 1.75,
+  "wall M2 hole - window bore": 4.027,
+  "wall LED wire hole bottom - laser bore": 6.222,
+  "wall LED wire hole top - laser bore": 7.9,
+  "wall rear lid tap +Y - lanyard slot": 1.875,
+  "wall rear lid tap -Y - lanyard slot": 1.875
+ },
+ "texture_walls": {
+  "knurl (bottom) to cavity": 1.15,
+  "side grooves to cavity": 1.2,
+  "seam V-ring to window bore / wire grooves": 0.825,
+  "tail bottom window to cavity": 1.118,
+  "tail bottom window to rear lid taps": 9.9,
+  "thumb dish to cavity": 0.9
+ },
+ "countersink_rim_past_flat_top_mm": -0.05,
+ "interference_pcb_centred": [],
+ "interference_pcb_at_-Y": [
+  [
+   "Aurora_tray",
+   "pcb",
+   0.003
+  ]
+ ],
+ "interference_pcb_at_+Y": [
+  [
+   "Aurora_tray",
+   "pcb",
+   0.003
+  ]
+ ],
+ "insertion_path": [],
+ "button_cap_stroke": {
+  "PCB at -Y wall": {
+   "free_gap_mm": 0.1,
+   "actuator_reached_at_mm": 0.15,
+   "other_contacts": []
+  },
+  "PCB centred": {
+   "free_gap_mm": 0.35,
+   "actuator_reached_at_mm": 0.4,
+   "other_contacts": []
+  },
+  "PCB at +Y wall": {
+   "free_gap_mm": 0.6,
+   "actuator_reached_at_mm": 0.65,
+   "other_contacts": []
+  }
+ }
+}

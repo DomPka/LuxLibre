@@ -1,0 +1,21 @@
+# FlashKa Keychain v0.5 (Aurora++) firmware: one Cargo workspace with the two crates.
+#   aurora-core  hardware-independent logic, tested on the host (cargo test in aurora-core/)
+#   aurora-fw    the ESP32-C3 firmware (cargo build --release in aurora-fw/; target and
+#                build-std come from aurora-fw/.cargo/config.toml)
+# A shared workspace makes the image independent of the folder it is built in: cargo then
+# hashes the crates' paths relative to this folder (see build.sh for the source paths).
+
+[workspace]
+members = ["aurora-core", "aurora-fw"]
+resolver = "3"
+
+# Profiles must be in the workspace root (cargo ignores them in member crates).
+[profile.release]
+opt-level = "s"
+lto = "fat"
+codegen-units = 1
+debug = false
+panic = "abort"
+
+[profile.dev]
+opt-level = "s"

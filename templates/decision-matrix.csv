@@ -1,0 +1,15 @@
+criterion,weight_pct,score_definitions_1_to_5,option_A,option_B,option_C,option_D,notes
+option name,,,<name A>,<name B>,<name C>,<name D>,
+must-pass screen,,,pass/fail,pass/fail,pass/fail,pass/fail,An option that fails any hard limit is not scored; list the limits here
+<criterion 1>,,"1=<...>; 2=<...>; 3=<...>; 4=<...>; 5=<...>",,,,,<requirement ID>
+<criterion 2>,,"1=<...>; 2=<...>; 3=<...>; 4=<...>; 5=<...>",,,,,<requirement ID>
+<criterion 3>,,"1=<...>; 2=<...>; 3=<...>; 4=<...>; 5=<...>",,,,,<requirement ID>
+<criterion 4>,,"1=<...>; 2=<...>; 3=<...>; 4=<...>; 5=<...>",,,,,<requirement ID>
+<criterion 5>,,"1=<...>; 2=<...>; 3=<...>; 4=<...>; 5=<...>",,,,,<requirement ID>
+<criterion 6>,,"1=<...>; 2=<...>; 3=<...>; 4=<...>; 5=<...>",,,,,<requirement ID>
+<criterion 7>,,"1=<...>; 2=<...>; 3=<...>; 4=<...>; 5=<...>",,,,,<requirement ID>
+weight sum,,,,,,,Must be 100
+weighted total,,,,,,,sum of (weight_pct x score) / 100 for each option (add your own formula)
+rank,,,,,,,
+sensitivity: biggest weight +10,,,,,,,Spread -10 evenly over the other weights; winner changed?
+sensitivity: biggest weight -10,,,,,,,Spread +10 evenly over the other weights; winner changed?

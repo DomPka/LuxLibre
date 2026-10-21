@@ -1,0 +1,69 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Tests and builds for every push and pull request.
+name: firmware
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  host:
+    name: Simulator tests, docs check, tools
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install compilers
+        run: sudo apt-get update && sudo apt-get install -y g++ make python3
+      - name: Unit and behaviour tests
+        run: make -C firmware test
+      - name: Simulator builds (generic and every board header)
+        run: |
+          make -C firmware sim
+          for b in firmware/boards/*/; do
+            b=$(basename "$b")
+            [ "$b" = host-sim ] || [ "$b" = host-sim-basic ] || make -C firmware sim BOARD="$b"
+          done
+      - name: Generated docs are up to date
+        run: |
+          make -C firmware docs
+          git diff --exit-code docs/firmware
+      - name: Calculator tests
+        run: python3 -m unittest tools/test_lux_calc.py
+
+  attiny1616:
+    name: ATtiny1616 build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install avr-gcc
+        run: sudo apt-get update && sudo apt-get install -y make gcc-avr binutils-avr avr-libc
+      - name: Build
+        run: make -C firmware tiny1616 BOARD=example-tiny1616-pwm
+
+  ch32v003:
+    name: CH32V003 build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install RISC-V gcc
+        run: sudo apt-get update && sudo apt-get install -y make gcc-riscv64-unknown-elf
+      - name: Build
+        run: make -C firmware ch32v003 BOARD=example-ch32v003-buck
+
+  esp32c3:
+    # The port has not been compiled with ESP-IDF yet: a failure here does not fail the run.
+    # Remove continue-on-error once this job has passed.
+    name: ESP32-C3 build (ESP-IDF, experimental)
+    runs-on: ubuntu-24.04
+    container: espressif/idf:v5.3.1
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        shell: bash
+        run: |
+          . "$IDF_PATH/export.sh"
+          cd firmware/ports/esp32c3
+          idf.py set-target esp32c3
+          idf.py -DLX_BOARD=flashka-keychain-v05 build
+          idf.py -B build-v06 -DLX_BOARD=flashka-keychain-v06 build

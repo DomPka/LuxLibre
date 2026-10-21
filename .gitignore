@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0
+# build output
+firmware/build/
+firmware/ports/esp32c3/build/
+firmware/ports/esp32c3/build-v06/
+firmware/ports/esp32c3/sdkconfig
+firmware/ports/esp32c3/sdkconfig.old
+firmware/ports/esp32c3/managed_components/
+hardware/*/firmware/*/target/
+hardware/*/firmware/target/
+# GitHub Pages site as .github/workflows/pages.yml assembles it
+_site/
+# also hardware/*/tools/web/node_modules/
+node_modules/
+__pycache__/
+.fk_cache/
+*.pyc
+.pytest_cache/
+.venv/
+
+# KiCad user-local files and backups
+*.kicad_prl
+*-backups/
+fp-info-cache
+_autosave-*
+*.lck
+
+# editors and systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

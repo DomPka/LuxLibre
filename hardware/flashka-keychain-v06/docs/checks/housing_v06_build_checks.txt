@@ -1,0 +1,259 @@
+L = 94.4  PCB X 8.8 - 32.8  antenna to 38.2  bay 39.0 - 87.0  slot X 90.2
+valid {'FlashKa_tray': True, 'FlashKa_lid': True, 'FlashKa_rf_window': True, 'FlashKa_tube': True, 'FlashKa_cap_main': True, 'FlashKa_cap_slide': True, 'FlashKa_cap_slide_prev': True, 'FlashKa_spacer_ring': True, 'FlashKa_antenna_spacer': True, 'FlashKa_laser_sleeve': True, 'FlashKa_print_kit': True}
+mass {'FlashKa_tray': 22.68, 'FlashKa_lid': 7.14, 'FlashKa_rf_window': 0.21, 'FlashKa_tube': 0.2, 'FlashKa_cap_main': 0.86, 'FlashKa_cap_slide': 0.32, 'FlashKa_cap_slide_prev': 0.32, 'FlashKa_spacer_ring': 0.1, 'FlashKa_antenna_spacer': 1.07}
+walls {
+ "window bore to control-side face": 1.075,
+ "window bore to top face (lid seat, X > lid_x0)": 1.4,
+ "window bore to bottom face": 2.9,
+ "LED wire groove (top) to lid seat": 0.8,
+ "LED wire groove (bottom) to bottom face": 2.3,
+ "laser bore to laser-side face": 1.1,
+ "laser bore to bottom face (M2 thread length)": 2.85,
+ "window bore to laser bore": 1.525,
+ "laser module top below the PCB": 0.3,
+ "side walls": 1.5,
+ "floor": 1.5,
+ "lid": 1.5,
+ "lid around the RF window flange pocket": 0.9,
+ "lanyard bridge (slot to tail face)": 2.0,
+ "tail front wall (bay to slot)": 1.0,
+ "slot end to rear screw tap": 1.875,
+ "front screw tap to head rear face": 0.875,
+ "front screw tap to LED bore floor": 1.025,
+ "bottom long-edge corner (R_edge vs cavity corner, with the fillet)": 1.505,
+ "floor: main counterbore to slide hole": 0.975,
+ "floor: next hole to main counterbore": 0.975,
+ "floor: previous hole to floor RF window": 1.0,
+ "floor: counterbore ledge (radial, rim seat)": 0.2,
+ "tube body to the +Y trough wall (gap, not a wall)": 0.3,
+ "floor RF window to side wall": 1.5,
+ "lid lip thickness (side)": 1.45,
+ "wall front lid tap -Y - LED wire hole top": 1.2,
+ "wall front lid tap -Y - window bore": 1.025,
+ "wall front lid tap +Y - laser bore": 1.95,
+ "wall window bore - laser bore": 1.75,
+ "wall M2 hole - window bore": 4.027,
+ "wall LED wire hole bottom - laser bore": 6.222,
+ "wall LED wire hole top - laser bore": 7.9,
+ "wall rear lid tap +Y - lanyard slot": 1.875,
+ "wall rear lid tap -Y - lanyard slot": 1.875
+}
+skin_min_metal_under_mm 1.11
+skin_min_clearance_to_openings_mm 0.945
+interference_pcb_centred []
+interference_pcb_at_-Y []
+interference_pcb_at_+Y []
+interference_part_to_part []
+insertion_path []
+led_to_tube_gap_mm {
+ "LED3": 0.15,
+ "LED4": 0.15,
+ "SW1 body to tube bore": 0.97,
+ "tube top to PCB": 1.0
+}
+cap_tolerance_stack {
+ "nominal_free_play_mm": 0.3,
+ "items_mm": {
+  "resin tube step Z 2.4 / printed seat": 0.1,
+  "switch height (actuator tip)": 0.1,
+  "floor ledge / PCB ledge Z": 0.05,
+  "cap length (turned)": 0.05
+ },
+ "worst_case_min_mm": 0.0,
+ "worst_case_max_mm": 0.6,
+ "rss_min_mm": 0.142,
+ "preload_possible": false,
+ "note": "main cap seat is the resin tube step (+/-0.10); slide caps sit on the floor face (+/-0.05, no resin step)"
+}
+holddown {
+ "model": "Mindlin plate FR-4 0.8 mm, E 20000 MPa, nu 0.14, grid 0.273 x 0.275 mm, free edges; unilateral ledge supports (+Y ledge X >= 12.9, -Y ledge X >= 19.6); pads = linear springs; S2 knob stop 0.225 mm above rest",
+ "pad_E_scale": 1.0,
+ "pad_gap_extra_mm": 0.0,
+ "can": {
+  "pad": "can pad (thermal pad)",
+  "box_mm": [
+   22.1,
+   30.9,
+   -7.6,
+   4.8
+  ],
+  "area_mm2": 108.3,
+  "free_thickness_mm": 1.0,
+  "compressed_mm": 0.8,
+  "compression_pct": 20.0,
+  "E_MPa": 1.0,
+  "stiffness_N_per_mm": 108.26,
+  "preload_N": 21.65
+ },
+ "sw2": {
+  "pad": "SW2 pad (silicone rubber sheet)",
+  "box_mm": [
+   15.65,
+   19.35,
+   0.05,
+   3.25
+  ],
+  "area_mm2": 11.6,
+  "free_thickness_mm": 1.0,
+  "compressed_mm": 0.8,
+  "compression_pct": 20.0,
+  "E_MPa": 5.3,
+  "stiffness_N_per_mm": 61.61,
+  "preload_N": 12.32
+ },
+ "rest_board_deflection_mm": -0.08,
+ "preload_total_N": 33.98,
+ "preload_target_N": 3.0,
+ "buttons": {
+  "SW2 next": {
+   "displacement_3N_mm": 0.0108,
+   "displacement_10N_mm": 0.0511,
+   "board_leaves_ledge_at_N": 8.0
+  },
+  "SW1 main": {
+   "displacement_3N_mm": 0.009,
+   "displacement_10N_mm": 0.0303,
+   "board_leaves_ledge_at_N": 6.0
+  },
+  "SW3 previous": {
+   "displacement_3N_mm": 0.0173,
+   "displacement_10N_mm": 0.1207,
+   "board_leaves_ledge_at_N": 2.0
+  }
+ },
+ "lift_limit_mm": 0.05,
+ "no_lift_below_N": 3.0,
+ "ok": false,
+ "note": "pad moduli are assumptions from the Shore hardness (Gent): thermal gap pad (Shore 00 70-80) 1.0 MPa, silicone rubber Shore A 70 5.3 MPa; PCB components add stiffness (ignored); J1 in the USB-C opening is not a support"
+}
+holddown_soft_case {
+ "model": "Mindlin plate FR-4 0.8 mm, E 20000 MPa, nu 0.14, grid 0.273 x 0.275 mm, free edges; unilateral ledge supports (+Y ledge X >= 12.9, -Y ledge X >= 19.6); pads = linear springs; S2 knob stop 0.225 mm above rest",
+ "pad_E_scale": 0.7,
+ "pad_gap_extra_mm": 0.1,
+ "can": {
+  "pad": "can pad (thermal pad)",
+  "box_mm": [
+   22.1,
+   30.9,
+   -7.6,
+   4.8
+  ],
+  "area_mm2": 108.3,
+  "free_thickness_mm": 1.0,
+  "compressed_mm": 0.9,
+  "compression_pct": 10.0,
+  "E_MPa": 0.7,
+  "stiffness_N_per_mm": 75.78,
+  "preload_N": 7.58
+ },
+ "sw2": {
+  "pad": "SW2 pad (silicone rubber sheet)",
+  "box_mm": [
+   15.65,
+   19.35,
+   0.05,
+   3.25
+  ],
+  "area_mm2": 11.6,
+  "free_thickness_mm": 1.0,
+  "compressed_mm": 0.9,
+  "compression_pct": 10.0,
+  "E_MPa": 3.71,
+  "stiffness_N_per_mm": 43.13,
+  "preload_N": 4.31
+ },
+ "rest_board_deflection_mm": -0.031,
+ "preload_total_N": 11.89,
+ "preload_target_N": 3.0,
+ "buttons": {
+  "SW2 next": {
+   "displacement_3N_mm": 0.0131,
+   "displacement_10N_mm": 0.1554,
+   "board_leaves_ledge_at_N": 3.0
+  },
+  "SW1 main": {
+   "displacement_3N_mm": 0.0096,
+   "displacement_10N_mm": 0.0781,
+   "board_leaves_ledge_at_N": 3.0
+  },
+  "SW3 previous": {
+   "displacement_3N_mm": 0.0326,
+   "displacement_10N_mm": 0.276,
+   "board_leaves_ledge_at_N": 3.0
+  }
+ },
+ "lift_limit_mm": 0.05,
+ "no_lift_below_N": 3.0,
+ "ok": false,
+ "note": "pad moduli are assumptions from the Shore hardness (Gent): thermal gap pad (Shore 00 70-80) 1.0 MPa, silicone rubber Shore A 70 5.3 MPa; PCB components add stiffness (ignored); J1 in the USB-C opening is not a support"
+}
+holddown_hard_case {
+ "model": "Mindlin plate FR-4 0.8 mm, E 20000 MPa, nu 0.14, grid 0.273 x 0.275 mm, free edges; unilateral ledge supports (+Y ledge X >= 12.9, -Y ledge X >= 19.6); pads = linear springs; S2 knob stop 0.225 mm above rest",
+ "pad_E_scale": 1.3,
+ "pad_gap_extra_mm": -0.1,
+ "can": {
+  "pad": "can pad (thermal pad)",
+  "box_mm": [
+   22.1,
+   30.9,
+   -7.6,
+   4.8
+  ],
+  "area_mm2": 108.3,
+  "free_thickness_mm": 1.0,
+  "compressed_mm": 0.7,
+  "compression_pct": 30.0,
+  "E_MPa": 1.3,
+  "stiffness_N_per_mm": 140.74,
+  "preload_N": 42.22
+ },
+ "sw2": {
+  "pad": "SW2 pad (silicone rubber sheet)",
+  "box_mm": [
+   15.65,
+   19.35,
+   0.05,
+   3.25
+  ],
+  "area_mm2": 11.6,
+  "free_thickness_mm": 1.0,
+  "compressed_mm": 0.7,
+  "compression_pct": 30.0,
+  "E_MPa": 6.89,
+  "stiffness_N_per_mm": 80.1,
+  "preload_N": 24.03
+ },
+ "rest_board_deflection_mm": -0.142,
+ "preload_total_N": 66.25,
+ "preload_target_N": 3.0,
+ "buttons": {
+  "SW2 next": {
+   "displacement_3N_mm": 0.0101,
+   "displacement_10N_mm": 0.0337,
+   "board_leaves_ledge_at_N": ">12"
+  },
+  "SW1 main": {
+   "displacement_3N_mm": 0.0084,
+   "displacement_10N_mm": 0.0281,
+   "board_leaves_ledge_at_N": 10.0
+  },
+  "SW3 previous": {
+   "displacement_3N_mm": 0.0161,
+   "displacement_10N_mm": 0.0695,
+   "board_leaves_ledge_at_N": 3.0
+  }
+ },
+ "lift_limit_mm": 0.05,
+ "no_lift_below_N": 3.0,
+ "ok": false,
+ "note": "pad moduli are assumptions from the Shore hardness (Gent): thermal gap pad (Shore 00 70-80) 1.0 MPa, silicone rubber Shore A 70 5.3 MPa; PCB components add stiffness (ignored); J1 in the USB-C opening is not a support"
+}
+cap_stroke main (SW1) / PCB at -Y wall {'free_play_mm': 0.3, 'actuator_reached_within_mm': 0.35, 'pressed_to_mm': 0.55, 'other_contacts': []}
+cap_stroke main (SW1) / PCB centred {'free_play_mm': 0.3, 'actuator_reached_within_mm': 0.35, 'pressed_to_mm': 0.55, 'other_contacts': []}
+cap_stroke main (SW1) / PCB at +Y wall {'free_play_mm': 0.3, 'actuator_reached_within_mm': 0.35, 'pressed_to_mm': 0.55, 'other_contacts': []}
+cap_stroke next (SW2) / PCB at -Y wall {'free_play_mm': 0.3, 'actuator_reached_within_mm': 0.35, 'pressed_to_mm': 0.55, 'other_contacts': []}
+cap_stroke next (SW2) / PCB centred {'free_play_mm': 0.3, 'actuator_reached_within_mm': 0.35, 'pressed_to_mm': 0.55, 'other_contacts': []}
+cap_stroke next (SW2) / PCB at +Y wall {'free_play_mm': 0.3, 'actuator_reached_within_mm': 0.35, 'pressed_to_mm': 0.55, 'other_contacts': []}
+cap_stroke previous (SW3) / PCB at -Y wall {'free_play_mm': 0.3, 'actuator_reached_within_mm': 0.35, 'pressed_to_mm': 0.55, 'other_contacts': []}
+cap_stroke previous (SW3) / PCB centred {'free_play_mm': 0.3, 'actuator_reached_within_mm': 0.35, 'pressed_to_mm': 0.55, 'other_contacts': []}
+cap_stroke previous (SW3) / PCB at +Y wall {'free_play_mm': 0.3, 'actuator_reached_within_mm': 0.35, 'pressed_to_mm': 0.55, 'other_contacts': []}

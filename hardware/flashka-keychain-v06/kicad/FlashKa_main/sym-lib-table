@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name "FlashKa")(type "KiCad")(uri "${KIPRJMOD}/FlashKa.kicad_sym")(options "")(descr "FlashKa project symbols"))
+)

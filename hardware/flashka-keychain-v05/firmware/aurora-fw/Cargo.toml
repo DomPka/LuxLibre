@@ -1,0 +1,36 @@
+[package]
+name = "aurora-fw"
+version = "0.5.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+rust-version = "1.88"
+
+[dependencies]
+# All flashlight logic (profiles, gestures, protection, packets, settings) is
+# in the host-tested aurora-core crate; this crate only does I/O.
+aurora-core = { path = "../aurora-core" }
+
+esp-hal = { version = "=1.1.2", features = ["esp32c3", "unstable"] }
+esp-rtos = { version = "=0.3.0", features = ["esp32c3", "embassy", "esp-radio", "esp-alloc"] }
+esp-radio = { version = "=0.18.0", features = ["esp32c3", "ble", "unstable", "esp-alloc"] }
+esp-bootloader-esp-idf = { version = "=0.5.0", features = ["esp32c3"] }
+esp-alloc = "=0.10.0"
+# USB-Serial-JTAG only: the default "auto" backend falls back to UART0, whose
+# TX pin (GPIO21) drives the red cathode of the RGB LED on this board.
+esp-println = { version = "=0.17.0", default-features = false, features = ["esp32c3", "log-04", "jtag-serial", "critical-section"] }
+# Flash access for the settings log (same release train as esp-hal 1.1.x).
+esp-storage = { version = "=0.9.0", features = ["esp32c3"] }
+embedded-storage = "0.3.1"
+log = "0.4"
+embassy-executor = { version = "0.10" }
+embassy-time = "0.5"
+# Must be 0.7: the trouble-host 0.6 GATT macros generate code that names
+# `embassy_sync::blocking_mutex::raw::{NoopRawMutex, RawMutex}` and need the
+# trait of the embassy-sync version trouble-host itself uses (0.7.x).
+embassy-sync = "0.7"
+embassy-futures = "0.1"
+trouble-host = { version = "=0.6.0", features = ["gatt", "peripheral", "derive"] }
+bt-hci = "0.8"
+static_cell = "2"
+heapless = "0.9"
+critical-section = "1"

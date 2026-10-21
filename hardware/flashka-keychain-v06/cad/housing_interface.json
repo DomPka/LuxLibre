@@ -1,0 +1,1081 @@
+{
+ "version": "0.6",
+ "params": {
+  "W": 20.0,
+  "H": 16.0,
+  "R_edge": 2.0,
+  "C_end": 0.8,
+  "C_front": 0.2,
+  "wall": 1.5,
+  "floor": 1.5,
+  "lid_t": 1.5,
+  "inner_r": 2.0,
+  "L_head": 8.5,
+  "Z_axis": 8.0,
+  "lid_x0": 4.2,
+  "Y_w": -3.825,
+  "win_d": 10.0,
+  "win_t": 1.0,
+  "win_recess": 0.2,
+  "bore_clear": 0.2,
+  "led_h": 2.0,
+  "led_gap": 0.4,
+  "mcpcb_d": 10.0,
+  "mcpcb_t": 1.6,
+  "tim_t": 0.15,
+  "ring_od": 10.1,
+  "ring_id": 7.2,
+  "wire_groove": [
+   1.4,
+   0.8
+  ],
+  "led_wire_dz": 4.3,
+  "ledwire_d": 1.3,
+  "Y_l": 5.85,
+  "Z_las": 5.9,
+  "las_d": 6.0,
+  "las_len": 12.0,
+  "las_clear": 0.1,
+  "las_recess": 0.3,
+  "las_grub_x": 5.6,
+  "las_bore_extra": 0.3,
+  "sleeve_id": 4.6,
+  "sleeve_od": 6.0,
+  "sleeve_len": 10.0,
+  "sleeve_slit": 0.8,
+  "pcb_len": 24.0,
+  "pcb_t": 0.8,
+  "Z_pcb_bot": 9.2,
+  "pcb_gap_front": 0.3,
+  "pcb_side_gap": 0.25,
+  "pcb_chamfer": 1.3,
+  "ledge_w": 0.8,
+  "las_keepout_x": 12.9,
+  "mod_w": 13.2,
+  "mod_len": 16.6,
+  "mod_onboard": 11.2,
+  "mod_h": 2.4,
+  "mod_y": -1.4,
+  "ant_gap": 0.8,
+  "L_batt": 48.0,
+  "cell_t": 6.0,
+  "cell_w": 16.0,
+  "cell_l": 47.0,
+  "tail_front_wall": 1.0,
+  "lan_slot_w": 4.4,
+  "lan_slot_len": 7.6,
+  "tail_end_wall": 2.0,
+  "lan_chamfer": 0.35,
+  "twin_x": 6.0,
+  "twin_y": 14.0,
+  "twin_r": 0.8,
+  "twin_corner": 1.8,
+  "twin_depth": 1.0,
+  "twin_chamfer": 0.3,
+  "twin_front_gap": 1.0,
+  "tail_facet": 2.0,
+  "rfw_x0_over_pcb": 1.0,
+  "rfw_x_beyond_ant": 0.5,
+  "rfw_y": 14.0,
+  "rfw_r": 1.5,
+  "rfw_flange": 0.8,
+  "rfw_flange_t": 0.6,
+  "rfw_flange_drop": 0.2,
+  "rfw_clear": 0.05,
+  "seam_depth": 0.25,
+  "skin_depth": 0.25,
+  "skin_frames": [
+   10.2,
+   30.1,
+   41.0,
+   56.0,
+   71.0,
+   86.0
+  ],
+  "skin_stringer_z": [
+   3.0,
+   13.0
+  ],
+  "skin_stringer_y": 3.6,
+  "skin_stringer_x": [
+   41.0,
+   86.0
+  ],
+  "skin_clear": 0.5,
+  "skin_min_metal": 1.1,
+  "lid_lip_z": 13.9,
+  "lid_lip_gap": 0.05,
+  "cav_gusset": 0.3,
+  "m16_tap": 1.25,
+  "m16_drill": 3.6,
+  "m16_clear": 1.8,
+  "m16_csk": 3.3,
+  "screw_dy": 6.3,
+  "screw_x_front": 7.0,
+  "m2_tap": 1.6,
+  "X_usb": 14.6,
+  "usb_open": [
+   12.6,
+   6.8,
+   2.0
+  ],
+  "usb_open_chamfer": 0.3,
+  "X_s2": 14.05,
+  "s2_slot": [
+   3.2,
+   2.0,
+   0.8
+  ],
+  "s2_knob_z": 0.7,
+  "s2_knob_len": 1.55,
+  "s2_knob_out": 0.75,
+  "btn_y": 3.2,
+  "X_next": 16.4,
+  "X_main": 23.6,
+  "X_prev": 30.8,
+  "sw_h": 2.0,
+  "sw_body": [
+   3.9,
+   2.9
+  ],
+  "sw_travel": 0.25,
+  "cap_gap": 0.3,
+  "cap_apex_z": -0.1,
+  "tube_od": 8.4,
+  "tube_rim": [
+   8.8,
+   1.1,
+   1.5
+  ],
+  "tube_id_low": 6.0,
+  "tube_id_up": 6.8,
+  "tube_step_z": 2.4,
+  "main_hole": 8.45,
+  "ring_led_h": 0.85,
+  "ring_led_r": 3.8,
+  "tube_led_gap": 0.15,
+  "main_cap": [
+   5.8,
+   6.6,
+   0.6,
+   3.0
+  ],
+  "slide_cap": [
+   3.4,
+   5.0,
+   0.6,
+   2.0
+  ],
+  "slide_hole": 3.6,
+  "frw_box": [
+   33.6,
+   38.7,
+   7.0,
+   1.5
+  ],
+  "holddown_preload_n": 3.0,
+  "holddown_front": [
+   15.6,
+   19.4,
+   0.0,
+   3.3
+  ],
+  "boss_box": [
+   22.1,
+   30.9,
+   -7.6,
+   4.8
+  ],
+  "boss_r": 1.0,
+  "boss_h": 1.3,
+  "pad_t0": 1.0,
+  "pad_E_mpa": 1.0,
+  "pad_press_n": 10.0,
+  "boss2_box": [
+   15.65,
+   19.35,
+   0.05,
+   3.25
+  ],
+  "boss2_r": 0.5,
+  "boss2_h": 3.7,
+  "pad2_t0": 1.0,
+  "pad2_E_mpa": 5.3,
+  "boss3_box": null,
+  "boss3_h": 3.7,
+  "pcb_E_mpa": 20000.0,
+  "pcb_nu": 0.14,
+  "s2_stop_gap": 0.225
+ },
+ "derived": {
+  "L": 94.4,
+  "L_total": 94.4,
+  "Z_lid": 14.5,
+  "Z_pcb_top": 10.0,
+  "D_w": 5.3500000000000005,
+  "X_pcb0": 8.8,
+  "X_pcb1": 32.8,
+  "X_ant1": 38.2,
+  "Y_pcb": 8.25,
+  "X_batt0": 39.0,
+  "X_batt1": 87.0,
+  "X_lan": 90.2,
+  "X_screw_front": 7.0,
+  "X_screw_back": 90.2,
+  "Z_usb": 7.594999999999999,
+  "Z_sw_tip": 7.199999999999999,
+  "Z_tube_top": 8.2,
+  "pad_t": 0.7999999999999989,
+  "rf_window": [
+   31.799999999999997,
+   38.7,
+   7.0
+  ]
+ },
+ "pcb_outline": [
+  [
+   10.100000000000001,
+   -8.25
+  ],
+  [
+   32.8,
+   -8.25
+  ],
+  [
+   32.8,
+   8.25
+  ],
+  [
+   10.100000000000001,
+   8.25
+  ],
+  [
+   8.8,
+   6.95
+  ],
+  [
+   8.8,
+   -6.95
+  ]
+ ],
+ "components": {
+  "J1_usb": {
+   "x": 14.6,
+   "face_y": -8.25,
+   "side": "B",
+   "z_centre": 7.594999999999999,
+   "note": "TYPE-C-31-M-12 on the bottom side, mating face flush with the PCB edge"
+  },
+  "buttons": {
+   "part": "Alps SKRKAEE020 (LCSC C115357), KiCad Button_Switch_SMD:SW_Push_SPST_NO_Alps_SKRK",
+   "side": "B",
+   "z_actuator_tip": 7.199999999999999,
+   "note": "top-push switches on the bottom side, actuator pointing down (-Z) at the floor; rot 0 = the two pads (footprint x -/+2.1) along housing X, rot 90 = pads along housing Y",
+   "SW1_main": {
+    "x": 23.6,
+    "y": 3.2,
+    "rot": 90
+   },
+   "SW2_next": {
+    "x": 16.4,
+    "y": 3.2,
+    "rot": 0
+   },
+   "SW3_prev": {
+    "x": 30.8,
+    "y": 3.2,
+    "rot": 90
+   }
+  },
+  "ring_leds": {
+   "part": "NH-B1010RGBT-HF (LCSC C2874113), Aurora:LED_RGB_1010_NH-B1010RGBT",
+   "side": "B",
+   "rot": 0,
+   "LED3": {
+    "x": 19.8,
+    "y": 3.2
+   },
+   "LED4": {
+    "x": 27.400000000000002,
+    "y": 3.2
+   },
+   "note": "emit downwards into the top face of the light-pipe tube (tube top Z 8.20, LED face Z 8.35)"
+  },
+  "S2_interlock": {
+   "x": 14.05,
+   "knob_tip_y": 9.0,
+   "side": "F",
+   "note": "PCM12-class slide, knob towards +Y into the wall slot"
+  },
+  "U4_module": {
+   "x_onboard_end": 32.8,
+   "y": -1.4,
+   "side": "F",
+   "note": "ESP32-C3-MINI-1, antenna overhangs the rear edge by 5.4 mm"
+  },
+  "pcb": {
+   "x0": 8.8,
+   "x1": 32.8,
+   "y_minus": -8.25,
+   "y_plus": 8.25,
+   "z_bottom": 9.2,
+   "t": 0.8
+  },
+  "keepout_bottom": [
+   {
+    "what": "laser module tail",
+    "x0": 7.800000000000001,
+    "x1": 12.9,
+    "y0": 2.55,
+    "y1": 9.25
+   }
+  ],
+  "keepout_top": [
+   {
+    "what": "front hold-down pad (lid boss presses here, next to SW2)",
+    "x0": 15.6,
+    "x1": 19.4,
+    "y0": 0.0,
+    "y1": 3.3,
+    "note": "no top-side components inside; copper, vias and solder mask allowed"
+   }
+  ],
+  "keepout_bottom_circles": [
+   {
+    "what": "light-pipe tube around SW1",
+    "x": 23.6,
+    "y": 3.2,
+    "r": 4.4,
+    "allowed": [
+     "SW1",
+     "LED3",
+     "LED4"
+    ],
+    "z_top": 8.2,
+    "note": "only SW1 (inside the bore, r <= tube_id_up/2) and the two ring LEDs (on the tube wall) may sit inside this circle on the bottom side"
+   }
+  ],
+  "trough_y": [
+   -7.55,
+   7.55
+  ],
+  "trough_exceptions": [
+   {
+    "what": "USB-C (no ledge)",
+    "x0": 9.7,
+    "x1": 19.6,
+    "side": "-Y"
+   },
+   {
+    "what": "laser (no ledge)",
+    "x0": 7.800000000000001,
+    "x1": 12.9,
+    "side": "+Y"
+   }
+  ],
+  "rf_window": {
+   "x0": 31.799999999999997,
+   "x1": 38.7,
+   "half_y": 7.0
+  },
+  "max_height_top": 4.3,
+  "max_height_bottom": 7.3999999999999995,
+  "led_wire_top": {
+   "y": -3.825,
+   "z": 12.3
+  },
+  "led_wire_bottom": {
+   "y": -3.825,
+   "z": 3.7
+  },
+  "front_screw_tips_z": 10.9
+ },
+ "volumes_mm3": {
+  "FlashKa_tray": 8401.2,
+  "FlashKa_lid": 2643.3,
+  "FlashKa_rf_window": 184.1,
+  "FlashKa_tube": 178.1,
+  "FlashKa_cap_main": 108.9,
+  "FlashKa_cap_slide": 40.0,
+  "FlashKa_cap_slide_prev": 40.0,
+  "FlashKa_spacer_ring": 83.9,
+  "FlashKa_antenna_spacer": 926.8
+ },
+ "mass_g": {
+  "FlashKa_tray": 22.68,
+  "FlashKa_lid": 7.14,
+  "FlashKa_rf_window": 0.21,
+  "FlashKa_tube": 0.2,
+  "FlashKa_cap_main": 0.86,
+  "FlashKa_cap_slide": 0.32,
+  "FlashKa_cap_slide_prev": 0.32,
+  "FlashKa_spacer_ring": 0.1,
+  "FlashKa_antenna_spacer": 1.07
+ },
+ "tray_bbox": [
+  -0.0033966036196133686,
+  94.4083680440771,
+  -10.00455267570433,
+  10.00385386049766,
+  -0.008368044077099413,
+  16.00385386049766
+ ],
+ "solids_valid": {
+  "FlashKa_tray": true,
+  "FlashKa_lid": true,
+  "FlashKa_rf_window": true,
+  "FlashKa_tube": true,
+  "FlashKa_cap_main": true,
+  "FlashKa_cap_slide": true,
+  "FlashKa_cap_slide_prev": true,
+  "FlashKa_spacer_ring": true,
+  "FlashKa_antenna_spacer": true,
+  "FlashKa_laser_sleeve": true,
+  "FlashKa_print_kit": true
+ },
+ "min_walls": {
+  "window bore to control-side face": 1.075,
+  "window bore to top face (lid seat, X > lid_x0)": 1.4,
+  "window bore to bottom face": 2.9,
+  "LED wire groove (top) to lid seat": 0.8,
+  "LED wire groove (bottom) to bottom face": 2.3,
+  "laser bore to laser-side face": 1.1,
+  "laser bore to bottom face (M2 thread length)": 2.85,
+  "window bore to laser bore": 1.525,
+  "laser module top below the PCB": 0.3,
+  "side walls": 1.5,
+  "floor": 1.5,
+  "lid": 1.5,
+  "lid around the RF window flange pocket": 0.9,
+  "lanyard bridge (slot to tail face)": 2.0,
+  "tail front wall (bay to slot)": 1.0,
+  "slot end to rear screw tap": 1.875,
+  "front screw tap to head rear face": 0.875,
+  "front screw tap to LED bore floor": 1.025,
+  "bottom long-edge corner (R_edge vs cavity corner, with the fillet)": 1.505,
+  "floor: main counterbore to slide hole": 0.975,
+  "floor: next hole to main counterbore": 0.975,
+  "floor: previous hole to floor RF window": 1.0,
+  "floor: counterbore ledge (radial, rim seat)": 0.2,
+  "tube body to the +Y trough wall (gap, not a wall)": 0.3,
+  "floor RF window to side wall": 1.5,
+  "lid lip thickness (side)": 1.45,
+  "wall front lid tap -Y - LED wire hole top": 1.2,
+  "wall front lid tap -Y - window bore": 1.025,
+  "wall front lid tap +Y - laser bore": 1.95,
+  "wall window bore - laser bore": 1.75,
+  "wall M2 hole - window bore": 4.027,
+  "wall LED wire hole bottom - laser bore": 6.222,
+  "wall LED wire hole top - laser bore": 7.9,
+  "wall rear lid tap +Y - lanyard slot": 1.875,
+  "wall rear lid tap -Y - lanyard slot": 1.875
+ },
+ "countersink_rim_past_flat_top_mm": -0.05,
+ "skin_layout": [
+  {
+   "name": "frame A X10.2 (top)",
+   "kind": "frame",
+   "x": 10.2,
+   "s0": 55.2466807156732,
+   "s1": 78.74446785945534
+  },
+  {
+   "name": "frame A X10.2 (bottom)",
+   "kind": "frame",
+   "x": 10.2,
+   "s0": 21.748893571891067,
+   "s1": 45.2466807156732
+  },
+  {
+   "name": "frame B X30.1",
+   "kind": "frame",
+   "x": 30.1,
+   "s0": 45.2466807156732,
+   "s1": 88.74446785945534
+  },
+  {
+   "name": "frame C X41 (upper half)",
+   "kind": "frame",
+   "x": 41.0,
+   "s0": 0.0,
+   "s1": 33.49778714378213
+  },
+  {
+   "name": "frame C X41 (lower half)",
+   "kind": "frame",
+   "x": 41.0,
+   "s0": 33.49778714378213,
+   "s1": 66.99557428756427
+  },
+  {
+   "name": "frame D X56 (upper half)",
+   "kind": "frame",
+   "x": 56.0,
+   "s0": 0.0,
+   "s1": 33.49778714378213
+  },
+  {
+   "name": "frame D X56 (lower half)",
+   "kind": "frame",
+   "x": 56.0,
+   "s0": 33.49778714378213,
+   "s1": 66.99557428756427
+  },
+  {
+   "name": "frame E X71 (upper half)",
+   "kind": "frame",
+   "x": 71.0,
+   "s0": 0.0,
+   "s1": 33.49778714378213
+  },
+  {
+   "name": "frame E X71 (lower half)",
+   "kind": "frame",
+   "x": 71.0,
+   "s0": 33.49778714378213,
+   "s1": 66.99557428756427
+  },
+  {
+   "name": "frame F X86 (upper half)",
+   "kind": "frame",
+   "x": 86.0,
+   "s0": 0.0,
+   "s1": 33.49778714378213
+  },
+  {
+   "name": "frame F X86 (lower half)",
+   "kind": "frame",
+   "x": 86.0,
+   "s0": 33.49778714378213,
+   "s1": 66.99557428756427
+  },
+  {
+   "name": "stringer lid Y-3.6",
+   "kind": "stringer",
+   "face": "top",
+   "a": [
+    41.0,
+    -3.6,
+    15.75
+   ],
+   "b": [
+    86.0,
+    -3.6,
+    15.75
+   ],
+   "n_in": [
+    0,
+    0,
+    -1
+   ]
+  },
+  {
+   "name": "stringer bottom Y-3.6",
+   "kind": "stringer",
+   "face": "bottom",
+   "a": [
+    41.0,
+    -3.6,
+    0.25
+   ],
+   "b": [
+    86.0,
+    -3.6,
+    0.25
+   ],
+   "n_in": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "name": "stringer -Y side Z3",
+   "kind": "stringer",
+   "face": "-Y",
+   "a": [
+    3.95,
+    -9.75,
+    3.0
+   ],
+   "b": [
+    86.0,
+    -9.75,
+    3.0
+   ],
+   "n_in": [
+    0,
+    1,
+    0
+   ]
+  },
+  {
+   "name": "stringer -Y side Z13",
+   "kind": "stringer",
+   "face": "-Y",
+   "a": [
+    3.95,
+    -9.75,
+    13.0
+   ],
+   "b": [
+    86.0,
+    -9.75,
+    13.0
+   ],
+   "n_in": [
+    0,
+    1,
+    0
+   ]
+  },
+  {
+   "name": "stringer lid Y+3.6",
+   "kind": "stringer",
+   "face": "top",
+   "a": [
+    41.0,
+    3.6,
+    15.75
+   ],
+   "b": [
+    86.0,
+    3.6,
+    15.75
+   ],
+   "n_in": [
+    0,
+    0,
+    -1
+   ]
+  },
+  {
+   "name": "stringer bottom Y+3.6",
+   "kind": "stringer",
+   "face": "bottom",
+   "a": [
+    41.0,
+    3.6,
+    0.25
+   ],
+   "b": [
+    86.0,
+    3.6,
+    0.25
+   ],
+   "n_in": [
+    0,
+    0,
+    1
+   ]
+  },
+  {
+   "name": "stringer +Y side Z3",
+   "kind": "stringer",
+   "face": "+Y",
+   "a": [
+    3.95,
+    9.75,
+    3.0
+   ],
+   "b": [
+    86.0,
+    9.75,
+    3.0
+   ],
+   "n_in": [
+    0,
+    -1,
+    0
+   ]
+  },
+  {
+   "name": "stringer +Y side Z13",
+   "kind": "stringer",
+   "face": "+Y",
+   "a": [
+    3.95,
+    9.75,
+    13.0
+   ],
+   "b": [
+    86.0,
+    9.75,
+    13.0
+   ],
+   "n_in": [
+    0,
+    -1,
+    0
+   ]
+  }
+ ],
+ "interference_pcb_centred": [],
+ "interference_pcb_at_-Y": [],
+ "interference_pcb_at_+Y": [],
+ "skin_walls": [
+  {
+   "groove": "frame A X10.2 (top)",
+   "metal_under_mm": 1.182,
+   "clearance_to_openings_mm": 1.501
+  },
+  {
+   "groove": "frame A X10.2 (bottom)",
+   "metal_under_mm": 1.197,
+   "clearance_to_openings_mm": 1.195
+  },
+  {
+   "groove": "frame B X30.1",
+   "metal_under_mm": 1.11,
+   "clearance_to_openings_mm": 1.096
+  },
+  {
+   "groove": "frame C X41 (upper half)",
+   "metal_under_mm": 1.182,
+   "clearance_to_openings_mm": 1.54
+  },
+  {
+   "groove": "frame C X41 (lower half)",
+   "metal_under_mm": 1.182,
+   "clearance_to_openings_mm": 1.54
+  },
+  {
+   "groove": "frame D X56 (upper half)",
+   "metal_under_mm": 1.182,
+   "clearance_to_openings_mm": 16.275
+  },
+  {
+   "groove": "frame D X56 (lower half)",
+   "metal_under_mm": 1.182,
+   "clearance_to_openings_mm": 16.275
+  },
+  {
+   "groove": "frame E X71 (upper half)",
+   "metal_under_mm": 1.182,
+   "clearance_to_openings_mm": 16.153
+  },
+  {
+   "groove": "frame E X71 (lower half)",
+   "metal_under_mm": 1.182,
+   "clearance_to_openings_mm": 16.153
+  },
+  {
+   "groove": "frame F X86 (upper half)",
+   "metal_under_mm": 1.182,
+   "clearance_to_openings_mm": 1.188
+  },
+  {
+   "groove": "frame F X86 (lower half)",
+   "metal_under_mm": 1.182,
+   "clearance_to_openings_mm": 1.188
+  },
+  {
+   "groove": "stringer lid Y-3.6",
+   "metal_under_mm": 1.24,
+   "clearance_to_openings_mm": 1.54
+  },
+  {
+   "groove": "stringer bottom Y-3.6",
+   "metal_under_mm": 1.25,
+   "clearance_to_openings_mm": 1.188
+  },
+  {
+   "groove": "stringer -Y side Z3",
+   "metal_under_mm": 1.195,
+   "clearance_to_openings_mm": 0.945
+  },
+  {
+   "groove": "stringer -Y side Z13",
+   "metal_under_mm": 1.25,
+   "clearance_to_openings_mm": 1.755
+  },
+  {
+   "groove": "stringer lid Y+3.6",
+   "metal_under_mm": 1.24,
+   "clearance_to_openings_mm": 1.54
+  },
+  {
+   "groove": "stringer bottom Y+3.6",
+   "metal_under_mm": 1.25,
+   "clearance_to_openings_mm": 1.188
+  },
+  {
+   "groove": "stringer +Y side Z3",
+   "metal_under_mm": 1.25,
+   "clearance_to_openings_mm": 2.545
+  },
+  {
+   "groove": "stringer +Y side Z13",
+   "metal_under_mm": 1.25,
+   "clearance_to_openings_mm": 1.05
+  },
+  {
+   "groove": "V-ring X3.95",
+   "metal_under_mm": null,
+   "clearance_to_openings_mm": 1.373
+  }
+ ],
+ "skin_min_metal_under_mm": 1.11,
+ "skin_min_clearance_to_openings_mm": 0.945,
+ "insertion_path": [],
+ "cap_stroke": {
+  "main (SW1) / PCB at -Y wall": {
+   "free_play_mm": 0.3,
+   "actuator_reached_within_mm": 0.35,
+   "pressed_to_mm": 0.55,
+   "other_contacts": []
+  },
+  "main (SW1) / PCB centred": {
+   "free_play_mm": 0.3,
+   "actuator_reached_within_mm": 0.35,
+   "pressed_to_mm": 0.55,
+   "other_contacts": []
+  },
+  "main (SW1) / PCB at +Y wall": {
+   "free_play_mm": 0.3,
+   "actuator_reached_within_mm": 0.35,
+   "pressed_to_mm": 0.55,
+   "other_contacts": []
+  },
+  "next (SW2) / PCB at -Y wall": {
+   "free_play_mm": 0.3,
+   "actuator_reached_within_mm": 0.35,
+   "pressed_to_mm": 0.55,
+   "other_contacts": []
+  },
+  "next (SW2) / PCB centred": {
+   "free_play_mm": 0.3,
+   "actuator_reached_within_mm": 0.35,
+   "pressed_to_mm": 0.55,
+   "other_contacts": []
+  },
+  "next (SW2) / PCB at +Y wall": {
+   "free_play_mm": 0.3,
+   "actuator_reached_within_mm": 0.35,
+   "pressed_to_mm": 0.55,
+   "other_contacts": []
+  },
+  "previous (SW3) / PCB at -Y wall": {
+   "free_play_mm": 0.3,
+   "actuator_reached_within_mm": 0.35,
+   "pressed_to_mm": 0.55,
+   "other_contacts": []
+  },
+  "previous (SW3) / PCB centred": {
+   "free_play_mm": 0.3,
+   "actuator_reached_within_mm": 0.35,
+   "pressed_to_mm": 0.55,
+   "other_contacts": []
+  },
+  "previous (SW3) / PCB at +Y wall": {
+   "free_play_mm": 0.3,
+   "actuator_reached_within_mm": 0.35,
+   "pressed_to_mm": 0.55,
+   "other_contacts": []
+  }
+ },
+ "interference_part_to_part": [],
+ "cap_tolerance_stack": {
+  "nominal_free_play_mm": 0.3,
+  "items_mm": {
+   "resin tube step Z 2.4 / printed seat": 0.1,
+   "switch height (actuator tip)": 0.1,
+   "floor ledge / PCB ledge Z": 0.05,
+   "cap length (turned)": 0.05
+  },
+  "worst_case_min_mm": 0.0,
+  "worst_case_max_mm": 0.6,
+  "rss_min_mm": 0.142,
+  "preload_possible": false,
+  "note": "main cap seat is the resin tube step (+/-0.10); slide caps sit on the floor face (+/-0.05, no resin step)"
+ },
+ "led_to_tube_gap_mm": {
+  "LED3": 0.15,
+  "LED4": 0.15,
+  "SW1 body to tube bore": 0.97,
+  "tube top to PCB": 1.0
+ },
+ "holddown": {
+  "model": "Mindlin plate FR-4 0.8 mm, E 20000 MPa, nu 0.14, grid 0.273 x 0.275 mm, free edges; unilateral ledge supports (+Y ledge X >= 12.9, -Y ledge X >= 19.6); pads = linear springs; S2 knob stop 0.225 mm above rest",
+  "pad_E_scale": 1.0,
+  "pad_gap_extra_mm": 0.0,
+  "can": {
+   "pad": "can pad (thermal pad)",
+   "box_mm": [
+    22.1,
+    30.9,
+    -7.6,
+    4.8
+   ],
+   "area_mm2": 108.3,
+   "free_thickness_mm": 1.0,
+   "compressed_mm": 0.8,
+   "compression_pct": 20.0,
+   "E_MPa": 1.0,
+   "stiffness_N_per_mm": 108.26,
+   "preload_N": 21.65
+  },
+  "sw2": {
+   "pad": "SW2 pad (silicone rubber sheet)",
+   "box_mm": [
+    15.65,
+    19.35,
+    0.05,
+    3.25
+   ],
+   "area_mm2": 11.6,
+   "free_thickness_mm": 1.0,
+   "compressed_mm": 0.8,
+   "compression_pct": 20.0,
+   "E_MPa": 5.3,
+   "stiffness_N_per_mm": 61.61,
+   "preload_N": 12.32
+  },
+  "rest_board_deflection_mm": -0.08,
+  "preload_total_N": 33.98,
+  "preload_target_N": 3.0,
+  "buttons": {
+   "SW2 next": {
+    "displacement_3N_mm": 0.0108,
+    "displacement_10N_mm": 0.0511,
+    "board_leaves_ledge_at_N": 8.0
+   },
+   "SW1 main": {
+    "displacement_3N_mm": 0.009,
+    "displacement_10N_mm": 0.0303,
+    "board_leaves_ledge_at_N": 6.0
+   },
+   "SW3 previous": {
+    "displacement_3N_mm": 0.0173,
+    "displacement_10N_mm": 0.1207,
+    "board_leaves_ledge_at_N": 2.0
+   }
+  },
+  "lift_limit_mm": 0.05,
+  "no_lift_below_N": 3.0,
+  "ok": false,
+  "note": "pad moduli are assumptions from the Shore hardness (Gent): thermal gap pad (Shore 00 70-80) 1.0 MPa, silicone rubber Shore A 70 5.3 MPa; PCB components add stiffness (ignored); J1 in the USB-C opening is not a support"
+ },
+ "holddown_soft_case": {
+  "model": "Mindlin plate FR-4 0.8 mm, E 20000 MPa, nu 0.14, grid 0.273 x 0.275 mm, free edges; unilateral ledge supports (+Y ledge X >= 12.9, -Y ledge X >= 19.6); pads = linear springs; S2 knob stop 0.225 mm above rest",
+  "pad_E_scale": 0.7,
+  "pad_gap_extra_mm": 0.1,
+  "can": {
+   "pad": "can pad (thermal pad)",
+   "box_mm": [
+    22.1,
+    30.9,
+    -7.6,
+    4.8
+   ],
+   "area_mm2": 108.3,
+   "free_thickness_mm": 1.0,
+   "compressed_mm": 0.9,
+   "compression_pct": 10.0,
+   "E_MPa": 0.7,
+   "stiffness_N_per_mm": 75.78,
+   "preload_N": 7.58
+  },
+  "sw2": {
+   "pad": "SW2 pad (silicone rubber sheet)",
+   "box_mm": [
+    15.65,
+    19.35,
+    0.05,
+    3.25
+   ],
+   "area_mm2": 11.6,
+   "free_thickness_mm": 1.0,
+   "compressed_mm": 0.9,
+   "compression_pct": 10.0,
+   "E_MPa": 3.71,
+   "stiffness_N_per_mm": 43.13,
+   "preload_N": 4.31
+  },
+  "rest_board_deflection_mm": -0.031,
+  "preload_total_N": 11.89,
+  "preload_target_N": 3.0,
+  "buttons": {
+   "SW2 next": {
+    "displacement_3N_mm": 0.0131,
+    "displacement_10N_mm": 0.1554,
+    "board_leaves_ledge_at_N": 3.0
+   },
+   "SW1 main": {
+    "displacement_3N_mm": 0.0096,
+    "displacement_10N_mm": 0.0781,
+    "board_leaves_ledge_at_N": 3.0
+   },
+   "SW3 previous": {
+    "displacement_3N_mm": 0.0326,
+    "displacement_10N_mm": 0.276,
+    "board_leaves_ledge_at_N": 3.0
+   }
+  },
+  "lift_limit_mm": 0.05,
+  "no_lift_below_N": 3.0,
+  "ok": false,
+  "note": "pad moduli are assumptions from the Shore hardness (Gent): thermal gap pad (Shore 00 70-80) 1.0 MPa, silicone rubber Shore A 70 5.3 MPa; PCB components add stiffness (ignored); J1 in the USB-C opening is not a support"
+ },
+ "holddown_hard_case": {
+  "model": "Mindlin plate FR-4 0.8 mm, E 20000 MPa, nu 0.14, grid 0.273 x 0.275 mm, free edges; unilateral ledge supports (+Y ledge X >= 12.9, -Y ledge X >= 19.6); pads = linear springs; S2 knob stop 0.225 mm above rest",
+  "pad_E_scale": 1.3,
+  "pad_gap_extra_mm": -0.1,
+  "can": {
+   "pad": "can pad (thermal pad)",
+   "box_mm": [
+    22.1,
+    30.9,
+    -7.6,
+    4.8
+   ],
+   "area_mm2": 108.3,
+   "free_thickness_mm": 1.0,
+   "compressed_mm": 0.7,
+   "compression_pct": 30.0,
+   "E_MPa": 1.3,
+   "stiffness_N_per_mm": 140.74,
+   "preload_N": 42.22
+  },
+  "sw2": {
+   "pad": "SW2 pad (silicone rubber sheet)",
+   "box_mm": [
+    15.65,
+    19.35,
+    0.05,
+    3.25
+   ],
+   "area_mm2": 11.6,
+   "free_thickness_mm": 1.0,
+   "compressed_mm": 0.7,
+   "compression_pct": 30.0,
+   "E_MPa": 6.89,
+   "stiffness_N_per_mm": 80.1,
+   "preload_N": 24.03
+  },
+  "rest_board_deflection_mm": -0.142,
+  "preload_total_N": 66.25,
+  "preload_target_N": 3.0,
+  "buttons": {
+   "SW2 next": {
+    "displacement_3N_mm": 0.0101,
+    "displacement_10N_mm": 0.0337,
+    "board_leaves_ledge_at_N": ">12"
+   },
+   "SW1 main": {
+    "displacement_3N_mm": 0.0084,
+    "displacement_10N_mm": 0.0281,
+    "board_leaves_ledge_at_N": 10.0
+   },
+   "SW3 previous": {
+    "displacement_3N_mm": 0.0161,
+    "displacement_10N_mm": 0.0695,
+    "board_leaves_ledge_at_N": 3.0
+   }
+  },
+  "lift_limit_mm": 0.05,
+  "no_lift_below_N": 3.0,
+  "ok": false,
+  "note": "pad moduli are assumptions from the Shore hardness (Gent): thermal gap pad (Shore 00 70-80) 1.0 MPa, silicone rubber Shore A 70 5.3 MPa; PCB components add stiffness (ignored); J1 in the USB-C opening is not a support"
+ }
+}

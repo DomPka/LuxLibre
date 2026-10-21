@@ -1,0 +1,533 @@
+{
+ "pcb_step": "cad/FlashKa_main_pcb.step",
+ "stand_ins": [
+  "U4: ESP32-C3-MINI-1 stand-in: module PCB + can, antenna overhang (build_dummies)",
+  "J1: USB-C receptacle stand-in 8.94 x 7.35 x 3.21 (build_dummies)",
+  "SW1: SW1 Alps SKRKAEE020 + actuator stand-in (build_dummies)",
+  "SW2: SW2 Alps SKRKAEE020 + actuator stand-in (build_dummies)",
+  "SW3: SW3 Alps SKRKAEE020 + actuator stand-in (build_dummies)",
+  "LED3: ring LED 3 stand-in (build_dummies)",
+  "LED4: ring LED 4 stand-in (build_dummies)",
+  "L1: inductor 4.0 x 4.0 x 2.0 stand-in at the KiCad position"
+ ],
+ "bbox": [
+  8.8,
+  38.2,
+  -8.25,
+  8.98,
+  5.99,
+  12.4
+ ],
+ "poses": {
+  "PCB centred": {
+   "collisions": [],
+   "clearance": {
+    "tray": [
+     0.211,
+     "J1"
+    ],
+    "lid": [
+     0.467,
+     "R25"
+    ],
+    "rf_window": [
+     1.9,
+     "U4"
+    ],
+    "antenna_spacer": [
+     0.15,
+     "PCB"
+    ],
+    "tube": [
+     0.15,
+     "LED3"
+    ],
+    "cap_main": [
+     0.3,
+     "SW1"
+    ],
+    "cap_slide_next": [
+     0.3,
+     "SW2"
+    ],
+    "cap_slide_prev": [
+     0.3,
+     "SW3"
+    ],
+    "spacer_ring": [
+     null,
+     null
+    ],
+    "cell1": [
+     2.64,
+     "U4"
+    ],
+    "cell2": [
+     1.1,
+     "U4"
+    ],
+    "laser": [
+     0.3,
+     "PCB"
+    ],
+    "window": [
+     null,
+     null
+    ],
+    "mcpcb": [
+     3.6,
+     "PCB"
+    ],
+    "led": [
+     null,
+     null
+    ]
+   }
+  },
+  "PCB at the -Y wall (-0.24)": {
+   "collisions": [
+    [
+     "PCB",
+     "tray",
+     0.0026,
+     [
+      10.15,
+      -8.48,
+      9.6
+     ]
+    ]
+   ],
+   "clearance": {
+    "tray": [
+     0.0,
+     "J1"
+    ],
+    "lid": [
+     0.41,
+     "R25"
+    ],
+    "rf_window": [
+     1.9,
+     "U4"
+    ],
+    "antenna_spacer": [
+     0.15,
+     "PCB"
+    ],
+    "tube": [
+     0.15,
+     "LED3"
+    ],
+    "cap_main": [
+     0.3,
+     "SW1"
+    ],
+    "cap_slide_next": [
+     0.3,
+     "SW2"
+    ],
+    "cap_slide_prev": [
+     0.3,
+     "SW3"
+    ],
+    "spacer_ring": [
+     null,
+     null
+    ],
+    "cell1": [
+     2.64,
+     "U4"
+    ],
+    "cell2": [
+     1.1,
+     "U4"
+    ],
+    "laser": [
+     0.3,
+     "PCB"
+    ],
+    "window": [
+     null,
+     null
+    ],
+    "mcpcb": [
+     3.6,
+     "PCB"
+    ],
+    "led": [
+     null,
+     null
+    ]
+   }
+  },
+  "PCB at the +Y wall (+0.24)": {
+   "collisions": [
+    [
+     "PCB",
+     "tray",
+     0.0026,
+     [
+      10.15,
+      8.48,
+      9.6
+     ]
+    ]
+   ],
+   "clearance": {
+    "tray": [
+     0.085,
+     "C10"
+    ],
+    "lid": [
+     0.62,
+     "R25"
+    ],
+    "rf_window": [
+     1.9,
+     "U4"
+    ],
+    "antenna_spacer": [
+     0.15,
+     "PCB"
+    ],
+    "tube": [
+     0.15,
+     "LED3"
+    ],
+    "cap_main": [
+     0.3,
+     "SW1"
+    ],
+    "cap_slide_next": [
+     0.3,
+     "SW2"
+    ],
+    "cap_slide_prev": [
+     0.3,
+     "SW3"
+    ],
+    "spacer_ring": [
+     null,
+     null
+    ],
+    "cell1": [
+     2.64,
+     "U4"
+    ],
+    "cell2": [
+     1.1,
+     "U4"
+    ],
+    "laser": [
+     0.3,
+     "PCB"
+    ],
+    "window": [
+     null,
+     null
+    ],
+    "mcpcb": [
+     3.6,
+     "PCB"
+    ],
+    "led": [
+     null,
+     null
+    ]
+   }
+  }
+ },
+ "free_travel": {
+  "+Y": {
+   "mm": 0.229,
+   "stopped_by": [
+    [
+     "PCB",
+     "tray"
+    ]
+   ]
+  },
+  "-Y": {
+   "mm": 0.229,
+   "stopped_by": [
+    [
+     "PCB",
+     "tray"
+    ]
+   ]
+  },
+  "+X (rear)": {
+   "mm": 0.149,
+   "stopped_by": [
+    [
+     "PCB",
+     "antenna_spacer"
+    ]
+   ]
+  },
+  "-X (front)": {
+   "mm": 0.261,
+   "stopped_by": [
+    [
+     "PCB",
+     "tray"
+    ]
+   ]
+  },
+  "+Z (up)": {
+   "mm": 0.393,
+   "stopped_by": [
+    [
+     "S2",
+     "tray"
+    ]
+   ]
+  }
+ },
+ "insertion": [
+  {
+   "angle": 9.0,
+   "hits": [
+    [
+     "J1",
+     "tray",
+     0.0019,
+     [
+      10.19,
+      -8.48,
+      10.06
+     ]
+    ]
+   ],
+   "info_hits": [],
+   "S2_to_tray": 0.215,
+   "components_to_tray": [
+    0.0,
+    "J1"
+   ]
+  },
+  {
+   "angle": 8.25,
+   "hits": [
+    [
+     "J1",
+     "tray",
+     0.0018,
+     [
+      10.19,
+      -8.48,
+      9.83
+     ]
+    ]
+   ],
+   "info_hits": [],
+   "S2_to_tray": 0.219,
+   "components_to_tray": [
+    0.0,
+    "J1"
+   ]
+  },
+  {
+   "angle": 7.5,
+   "hits": [
+    [
+     "J1",
+     "tray",
+     0.0016,
+     [
+      10.18,
+      -8.48,
+      9.64
+     ]
+    ]
+   ],
+   "info_hits": [],
+   "S2_to_tray": 0.222,
+   "components_to_tray": [
+    0.0,
+    "J1"
+   ]
+  },
+  {
+   "angle": 6.75,
+   "hits": [
+    [
+     "J1",
+     "tray",
+     0.0011,
+     [
+      10.18,
+      -8.48,
+      9.45
+     ]
+    ]
+   ],
+   "info_hits": [],
+   "S2_to_tray": 0.226,
+   "components_to_tray": [
+    0.0,
+    "J1"
+   ]
+  },
+  {
+   "angle": 6.0,
+   "hits": [],
+   "info_hits": [],
+   "S2_to_tray": 0.229,
+   "components_to_tray": [
+    0.0,
+    "J1"
+   ]
+  },
+  {
+   "angle": 5.25,
+   "hits": [],
+   "info_hits": [],
+   "S2_to_tray": 0.232,
+   "components_to_tray": [
+    0.0,
+    "J1"
+   ]
+  },
+  {
+   "angle": 4.5,
+   "hits": [],
+   "info_hits": [],
+   "S2_to_tray": 0.235,
+   "components_to_tray": [
+    0.0,
+    "J1"
+   ]
+  },
+  {
+   "angle": 3.75,
+   "hits": [],
+   "info_hits": [],
+   "S2_to_tray": 0.238,
+   "components_to_tray": [
+    0.022,
+    "J1"
+   ]
+  },
+  {
+   "angle": 3.0,
+   "hits": [],
+   "info_hits": [],
+   "S2_to_tray": 0.241,
+   "components_to_tray": [
+    0.057,
+    "J1"
+   ]
+  },
+  {
+   "angle": 2.25,
+   "hits": [],
+   "info_hits": [],
+   "S2_to_tray": 0.244,
+   "components_to_tray": [
+    0.093,
+    "J1"
+   ]
+  },
+  {
+   "angle": 1.5,
+   "hits": [],
+   "info_hits": [],
+   "S2_to_tray": 0.247,
+   "components_to_tray": [
+    0.131,
+    "J1"
+   ]
+  },
+  {
+   "angle": 0.75,
+   "hits": [],
+   "info_hits": [],
+   "S2_to_tray": 0.249,
+   "components_to_tray": [
+    0.17,
+    "J1"
+   ]
+  },
+  {
+   "angle": 0.0,
+   "hits": [],
+   "info_hits": [],
+   "S2_to_tray": 0.252,
+   "components_to_tray": [
+    0.211,
+    "J1"
+   ]
+  }
+ ],
+ "insertion_min_component_to_tray": [
+  0.0,
+  [
+   9.0,
+   "J1"
+  ]
+ ],
+ "min_clearance": {
+  "tray": [
+   0.0,
+   "J1",
+   "PCB at the -Y wall (-0.24)"
+  ],
+  "lid": [
+   0.41,
+   "R25",
+   "PCB at the -Y wall (-0.24)"
+  ],
+  "rf_window": [
+   1.9,
+   "U4",
+   "PCB centred"
+  ],
+  "antenna_spacer": [
+   0.15,
+   "PCB",
+   "PCB centred"
+  ],
+  "tube": [
+   0.15,
+   "LED3",
+   "PCB centred"
+  ],
+  "cap_main": [
+   0.3,
+   "SW1",
+   "PCB centred"
+  ],
+  "cap_slide_next": [
+   0.3,
+   "SW2",
+   "PCB centred"
+  ],
+  "cap_slide_prev": [
+   0.3,
+   "SW3",
+   "PCB centred"
+  ],
+  "cell1": [
+   2.64,
+   "U4",
+   "PCB centred"
+  ],
+  "cell2": [
+   1.1,
+   "U4",
+   "PCB centred"
+  ],
+  "laser": [
+   0.3,
+   "PCB",
+   "PCB centred"
+  ],
+  "mcpcb": [
+   3.6,
+   "PCB",
+   "PCB centred"
+  ]
+ },
+ "insertion_hits_over_generator_threshold": []
+}

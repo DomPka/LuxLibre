@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0
+# Line endings: text files are stored and checked out with LF line endings on every system, Windows included.
+* text=auto eol=lf
+
+# Binary files: no line-ending conversion, no text diff
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.pdf  binary
+*.xlsx binary
+*.zip  binary
+*.bin  binary
+*.elf  binary
+# 3D models: STEP is text and STL can be, but both are large generated files without a useful diff
+*.step binary
+*.stp  binary
+*.stl  binary
+
+# Large generated drawing files: stored as text, shown without a line-by-line diff
+*.dxf -diff
+
+# GitHub language statistics: generated files do not count
+# - the firmware installer pages embed esptool-js and the firmware image
+hardware/*/app/*-flasher.html linguist-generated
+# - production and order files are written by the design scripts
+hardware/*/production/** linguist-generated
+hardware/*/order_files/** linguist-generated
+# - register header generated from the chip maker's device description
+firmware/ports/attiny1616/tiny1x_io.h linguist-generated
+# (hardware/*/tools/web/node_modules/ is never committed: see .gitignore)

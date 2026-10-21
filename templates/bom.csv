@@ -1,0 +1,4 @@
+designator,qty,value,description,package,manufacturer,mpn,supplier,supplier_pn,unit_price,currency,alternative_mpn,dnp,notes
+R1,1,10k,"Resistor, thick film, 1 %",0603,<manufacturer>,<mpn>,LCSC,<C-number>,<price>,EUR,<alternative mpn>,no,"Example row: prefer the assembler's basic parts (DFM-2)"
+U1,1,CH32V003,"Microcontroller, 32-bit RISC-V",<package>,WCH,<mpn>,LCSC,<C-number>,<price>,EUR,<pin-compatible alternative or empty>,no,"Example row: MCU choice recorded in the design log; second source per DFM-6"
+D1,1,<LED type and bin>,"White LED, <CCT> K, CRI <...>",<package>,<manufacturer>,<mpn>,<supplier>,<supplier part number>,<price>,EUR,<alternative mpn>,no,"Example row: on a DTP copper MCPCB (LED-3); bin sets CCT/CRI (LED-4); hand-placed if not offered by the assembler"

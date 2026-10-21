@@ -1,0 +1,7 @@
+FlashKa Keychain v0.6 size comparison
+
+Length: v0.6 94.4 mm = 88 % of v0.4 (107.6 mm, 13.2 mm shorter); 1.56 x the A9 Pro (60.5 mm, 33.9 mm longer).
+Cross-section: v0.6 20 x 16 mm; v0.4 24 x 14 mm; A9 Pro round 15.5 mm.
+Envelope volume (L x W x H): v0.6 30.2 cm3; v0.4 36.2 cm3; A9 Pro 14.5 cm3 (its cylinder 11.4 cm3).
+Envelope volume ratio: v0.6 / v0.4 = 0.84 (16 % less); v0.6 / A9 Pro = 2.08 (vs its cylinder 2.65).
+A9 Pro: 60.5 x 15.5 mm (RovyVon size picture, retailer listings), shown as an outline.

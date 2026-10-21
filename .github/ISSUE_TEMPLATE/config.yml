@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Issue chooser: the templates and forms in this folder, a blank issue, and the links below.
+blank_issues_enabled: true
+contact_links:
+  - name: Safety notes
+    url: https://github.com/DomPka/LuxLibre/blob/main/SAFETY.md
+    about: Read them before you build, test or hand on a light. Safety problems are reported as issues with the label "safety".
+  - name: Design rules
+    url: https://github.com/DomPka/LuxLibre/blob/main/docs/design-rules.md
+    about: The rules every LuxLibre design is checked against. Name the rule ID (for example THM-1) in your issue.

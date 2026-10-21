@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+CONFIG_IDF_TARGET="esp32c3"
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_80=y
+CONFIG_FREERTOS_HZ=1000
+# console on USB-Serial-JTAG (the UART0 TX pin is the red LED)
+CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+CONFIG_BOOTLOADER_LOG_LEVEL_NONE=y
+CONFIG_LOG_DEFAULT_LEVEL_WARN=y
+# task watchdog watches the LuxLibre loop, not the idle task
+CONFIG_ESP_TASK_WDT_INIT=y
+CONFIG_ESP_TASK_WDT_TIMEOUT_S=3
+CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU0=n
+# a hung loop must restart the chip, not only print a warning (design rule DRV-8)
+CONFIG_ESP_TASK_WDT_PANIC=y
+# brown-out detector on (design rule DRV-8; also the ESP-IDF default)
+CONFIG_ESP_BROWNOUT_DET=y

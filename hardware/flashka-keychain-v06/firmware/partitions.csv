@@ -1,0 +1,9 @@
+# FlashKa Keychain v0.6 flash layout - ESP32-C3-MINI-1-N4 (4 MB), unchanged from v0.5.
+# Same layout as espflash's default table, written out so that the merged
+# image and the firmware agree on it. The firmware keeps its settings log in
+# the first 8 KiB of "nvs" and the paired computers (Bluetooth bonds) in the
+# next 8 KiB (found at run time from this table).
+# Name,   Type, SubType, Offset,  Size,     Flags
+nvs,      data, nvs,     0x9000,  0x6000,
+phy_init, data, phy,     0xf000,  0x1000,
+factory,  app,  factory, 0x10000, 0x3F0000,

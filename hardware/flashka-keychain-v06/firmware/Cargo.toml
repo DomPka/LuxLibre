@@ -1,0 +1,21 @@
+# FlashKa Keychain v0.6 firmware: one Cargo workspace with the two crates.
+#   flashka-core  hardware-independent logic, tested on the host (cargo test in flashka-core/)
+#   flashka-fw    the ESP32-C3 firmware (cargo build --release in flashka-fw/; target and
+#                 build-std come from flashka-fw/.cargo/config.toml)
+# A shared workspace makes the image independent of the folder it is built in: cargo then
+# hashes the crates' paths relative to this folder (see build.sh for the source paths).
+
+[workspace]
+members = ["flashka-core", "flashka-fw"]
+resolver = "3"
+
+# Profiles must be in the workspace root (cargo ignores them in member crates).
+[profile.release]
+opt-level = "s"
+lto = "fat"
+codegen-units = 1
+debug = false
+panic = "abort"
+
+[profile.dev]
+opt-level = "s"

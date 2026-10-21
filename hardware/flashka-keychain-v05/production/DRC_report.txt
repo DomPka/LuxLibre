@@ -1,0 +1,125 @@
+** Drc report for kicad/Aurora_main/Aurora_main.kicad_pcb **
+** Created on 2026-10-14 10:43:51 **
+
+** Found 33 DRC violations **
+[silk_overlap]: Silkscreen overlap
+    Rule: board setup constraints silk; Severity: warning
+    @(114.0500 mm, 97.3500 mm): Reference 'S2'
+    @(114.8100 mm, 97.7464 mm): Line on F.Silkscreen
+[silk_overlap]: Silkscreen overlap
+    Rule: board setup constraints silk; Severity: warning
+    @(-1.0500 mm, -1.1400 mm): Polygon on F.Silkscreen
+    @(121.2700 mm, 92.9536 mm): Line on F.Silkscreen
+[silk_overlap]: Silkscreen overlap
+    Rule: board setup constraints silk; Severity: warning
+    @(110.1000 mm, 96.6000 mm): Reference 'J3'
+    @(110.1000 mm, 96.8500 mm): Footprint Text 'LED+' of J3
+[silk_overlap]: Silkscreen overlap
+    Rule: board setup constraints silk; Severity: warning
+    @(124.9100 mm, 102.8400 mm): Line on B.Silkscreen
+    @(125.6000 mm, 102.8100 mm): Reference 'S1'
+[silk_overlap]: Silkscreen overlap
+    Rule: board setup constraints silk; Severity: warning
+    @(128.7000 mm, 101.0164 mm): Line on B.Silkscreen
+    @(128.5700 mm, 100.8000 mm): Footprint Text '-' of J2
+[silk_overlap]: Silkscreen overlap
+    Rule: board setup constraints silk; Severity: warning
+    @(114.6000 mm, 98.9550 mm): Reference 'J1'
+    @(114.1264 mm, 98.4800 mm): Line on B.Silkscreen
+[silk_overlap]: Silkscreen overlap
+    Rule: board setup constraints silk; Severity: warning
+    @(-1.0500 mm, 1.1400 mm): Polygon on B.Silkscreen
+    @(123.1864 mm, 95.5400 mm): Line on B.Silkscreen
+[silk_overlap]: Silkscreen overlap
+    Rule: board setup constraints silk; Severity: warning
+    @(115.8700 mm, 98.0800 mm): Reference 'J5'
+    @(116.2464 mm, 98.2200 mm): Line on B.Silkscreen
+[silk_overlap]: Silkscreen overlap
+    Rule: board setup constraints silk; Severity: warning
+    @(128.5200 mm, 99.3000 mm): Reference 'J2'
+    @(127.8622 mm, 99.1200 mm): Line on B.Silkscreen
+[silk_overlap]: Silkscreen overlap
+    Rule: board setup constraints silk; Severity: warning
+    @(128.5200 mm, 99.3000 mm): Reference 'J2'
+    @(127.8622 mm, 99.8400 mm): Line on B.Silkscreen
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; Severity: warning
+    @(114.0500 mm, 97.3500 mm): Reference 'S2'
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; Severity: warning
+    @(-1.0500 mm, 1.1400 mm): Polygon on B.Silkscreen
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; Severity: warning
+    @(128.5200 mm, 99.3000 mm): Reference 'J2'
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; Severity: warning
+    @(128.5700 mm, 100.8000 mm): Footprint Text '-' of J2
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; Severity: warning
+    @(128.5700 mm, 97.8000 mm): Footprint Text '+' of J2
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; Severity: warning
+    @(115.8700 mm, 98.0800 mm): Reference 'J5'
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; Severity: warning
+    @(114.6000 mm, 97.8800 mm): Footprint Text '+' of J5
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; Severity: warning
+    @(125.6000 mm, 102.8100 mm): Reference 'S1'
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; Severity: warning
+    @(114.6000 mm, 98.9550 mm): Reference 'J1'
+[text_height]: Text height out of range (board setup constraints silk text height min height 0.8000 mm; actual 0.6000 mm)
+    Rule: board setup constraints silk text height; Severity: warning
+    @(124.0000 mm, 107.6000 mm): PCB Text 'AURORA++ v0.5' on B.Silkscreen
+[text_height]: Text height out of range (board setup constraints silk text height min height 0.8000 mm; actual 0.6000 mm)
+    Rule: board setup constraints silk text height; Severity: warning
+    @(110.1000 mm, 96.6000 mm): Reference 'J3'
+[text_thickness]: Text thickness out of range (board setup constraints silk text thickness min thickness 0.0800 mm; actual 0.0750 mm)
+    Rule: board setup constraints silk text thickness; Severity: warning
+    @(110.1000 mm, 96.8500 mm): Footprint Text 'LED-' of J3
+[text_height]: Text height out of range (board setup constraints silk text height min height 0.8000 mm; actual 0.5000 mm)
+    Rule: board setup constraints silk text height; Severity: warning
+    @(110.1000 mm, 96.8500 mm): Footprint Text 'LED-' of J3
+[text_thickness]: Text thickness out of range (board setup constraints silk text thickness min thickness 0.0800 mm; actual 0.0750 mm)
+    Rule: board setup constraints silk text thickness; Severity: warning
+    @(110.1000 mm, 96.8500 mm): Footprint Text 'LED+' of J3
+[text_height]: Text height out of range (board setup constraints silk text height min height 0.8000 mm; actual 0.5000 mm)
+    Rule: board setup constraints silk text height; Severity: warning
+    @(110.1000 mm, 96.8500 mm): Footprint Text 'LED+' of J3
+[text_height]: Text height out of range (board setup constraints silk text height min height 0.8000 mm; actual 0.7000 mm)
+    Rule: board setup constraints silk text height; Severity: warning
+    @(117.1400 mm, 97.8800 mm): Footprint Text '-' of J5
+[text_height]: Text height out of range (board setup constraints silk text height min height 0.8000 mm; actual 0.7000 mm)
+    Rule: board setup constraints silk text height; Severity: warning
+    @(114.6000 mm, 97.8800 mm): Footprint Text '+' of J5
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; Severity: warning
+    @(132.8000 mm, 91.7500 mm): Line on Edge.Cuts
+    @(115.4500 mm, 92.4200 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; Severity: warning
+    @(132.8000 mm, 91.7500 mm): Line on Edge.Cuts
+    @(114.1500 mm, 91.1300 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; Severity: warning
+    @(132.8000 mm, 108.2500 mm): Line on Edge.Cuts
+    @(121.4500 mm, 94.6500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; Severity: warning
+    @(132.8000 mm, 108.2500 mm): Line on Edge.Cuts
+    @(121.4500 mm, 108.1500 mm): Line on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; Severity: warning
+    @(110.1000 mm, 108.2500 mm): Line on Edge.Cuts
+    @(119.3000 mm, 106.6000 mm): Line on B.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; Severity: warning
+    @(108.8000 mm, 106.9500 mm): Line on Edge.Cuts
+    @(109.9000 mm, 106.6000 mm): Line on B.Silkscreen
+
+** Found 0 unconnected pads **
+
+** Found 0 Footprint errors **
+
+** End of Report **

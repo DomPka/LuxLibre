@@ -1,0 +1,123 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Checks for the FlashKa Keychain v0.6 reference design (hardware/flashka-keychain-v06/), run on every push and
+# pull request that changes it. This workflow only tests and builds: it never commits, pushes, tags or opens
+# pull requests.
+name: flashka
+
+on:
+  push:
+    paths:
+      - "hardware/flashka-keychain-v06/**"
+      - ".github/workflows/flashka.yml"
+  pull_request:
+    paths:
+      - "hardware/flashka-keychain-v06/**"
+      - ".github/workflows/flashka.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  firmware-tests:
+    name: Firmware tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: hardware/flashka-keychain-v06/firmware/flashka-core
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Host tests of flashka-core
+        run: cargo test
+
+  firmware-build:
+    # Builds the merged image with firmware/build.sh and compares it with the published one in firmware/dist/.
+    # The build maps all machine-specific paths and fixes the build date, so the same compiler gives the same
+    # bytes. Allowed to fail: remove continue-on-error once this job has passed.
+    name: Firmware build (experimental)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: hardware/flashka-keychain-v06/firmware
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          # the published image was built with rustc 1.91.1
+          toolchain: "1.91.1"
+          components: rust-src
+      - name: Install espflash 4
+        run: |
+          sudo apt-get update && sudo apt-get install -y libudev-dev pkg-config
+          cargo install espflash --locked --version '^4'
+      - name: Build the merged image (build.sh)
+        env:
+          # use the rustup toolchain above (build.sh falls back to cargo and rustc on PATH)
+          FW_RUST_BIN: /nonexistent
+          # the host tests run in the job above
+          SKIP_TESTS: "1"
+        run: bash ./build.sh
+      - name: Compare with the published image
+        run: |
+          sha256sum dist/flashka-fw-v0.6.0-merged.bin
+          if git diff --quiet -- dist/; then
+            echo "The rebuilt image is identical to the published one."
+          else
+            echo "::warning::The rebuilt image differs from firmware/dist/flashka-fw-v0.6.0-merged.bin"
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: flashka-fw-image
+          path: hardware/flashka-keychain-v06/firmware/dist/
+          if-no-files-found: warn
+
+  web:
+    name: Web app and installer tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: hardware/flashka-keychain-v06/tools/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: hardware/flashka-keychain-v06/tools/web/package-lock.json
+      - name: Install packages
+        run: npm ci
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Type check, unit tests and browser tests
+        run: npm run test:all
+      - name: Upload screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-screenshots
+          path: hardware/flashka-keychain-v06/app/screenshots/
+
+  workbook:
+    name: Cost workbook check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: hardware/flashka-keychain-v06
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install openpyxl
+        run: python3 -m pip install openpyxl==3.1.5
+      # --check-only re-reads the committed workbook and compares it with the design files and an independent
+      # calculation; it does not write the workbook, so LibreOffice is not needed
+      - name: Check the workbook against the design files
+        run: python3 tools/parts_list.py --check-only

@@ -1,0 +1,337 @@
+Aurora++ housing v0.5 drawings (2026-10-14): every number written on the sheets against its value in P
+(305 entries, 225 distinct; 'shown' = value as printed, tolerance 6e-4)
+
+
+== AUR-H-01 1/2
+sheet        what                                               shown  P expression                                   P value  ok
+---------------------------------------------------------------------------------------------------------------------------------
+AUR-H-01 1/2 front taps from the front face                         7  screw_x_front                                        7  ok   [top]
+AUR-H-01 1/2 rear taps from the front taps                       83.2  X_screw_back-screw_x_front                        83.2  ok   [top]
+AUR-H-01 1/2 rear taps from the tail face                         4.2  L-X_screw_back                                     4.2  ok   [top]
+AUR-H-01 1/2 head block length                                    8.5  L_head                                             8.5  ok   [top, secD, table]
+AUR-H-01 1/2 PCB zone / ledge length                             24.3  X_pcb1-L_head                                     24.3  ok   [top]
+AUR-H-01 1/2 antenna zone + cell bay                             54.2  X_batt1-X_pcb1                                    54.2  ok   [top]
+AUR-H-01 1/2 tail (front wall + slot + end wall)                  7.4  L_tail                                             7.4  ok   [top]
+AUR-H-01 1/2 overall length                                      94.4  L                                                 94.4  ok   [top]
+AUR-H-01 1/2 width                                                 20  W                                                   20  ok   [top, secB]
+AUR-H-01 1/2 tap spacing (front pair)                            12.6  2*screw_dy                                        12.6  ok   [top]
+AUR-H-01 1/2 thread depth                                         2.6  m16_drill-1.0                                      2.6  ok   [top, secC, table]
+AUR-H-01 1/2 tap drill                                           1.25  m16_tap                                           1.25  ok   [top, secC, table]
+AUR-H-01 1/2 tap drill depth                                      3.6  m16_drill                                          3.6  ok   [top, secC, table]
+AUR-H-01 1/2 corner relief diameter                               2.4  2*1.2 (hard-coded in build_tray)                   2.4  ok   [top]
+AUR-H-01 1/2 USB-C centre from the front face                    14.6  X_usb                                             14.6  ok   [side_m]
+AUR-H-01 1/2 S1 centre from the USB-C centre                       11  X_s1-X_usb                                          11  ok   [side_m]
+AUR-H-01 1/2 height                                                16  H                                                   16  ok   [side_m, side_p, secA, front]
+AUR-H-01 1/2 USB-C opening width                                 12.6  usb_open[0]                                       12.6  ok   [side_m, table]
+AUR-H-01 1/2 USB-C opening height                                 6.8  usb_open[1]                                        6.8  ok   [side_m, table]
+AUR-H-01 1/2 USB-C opening radius                                   2  usb_open[2]                                          2  ok   [side_m, table]
+AUR-H-01 1/2 USB-C centre Z                                     7.595  Z_pcb_bot-3.21/2                                 7.595  ok   [side_m, table]
+AUR-H-01 1/2 USB-C chamfer                                        0.3  usb_open_chamfer                                   0.3  ok   [side_m, table]
+AUR-H-01 1/2 S1 hole width                                        3.4  s1_hole[0]                                         3.4  ok   [side_m, table]
+AUR-H-01 1/2 S1 hole height                                       2.4  s1_hole[1]                                         2.4  ok   [side_m, table]
+AUR-H-01 1/2 S1 hole radius                                       0.8  s1_hole[2]                                         0.8  ok   [side_m, table]
+AUR-H-01 1/2 S1 centre Z                                         7.95  Z_pcb_bot-s1_act_z                                7.95  ok   [side_m, table]
+AUR-H-01 1/2 S2 slot centre from the front face                 14.05  X_s2                                             14.05  ok   [side_p]
+AUR-H-01 1/2 S2 slot width                                        3.2  s2_slot[0]                                         3.2  ok   [side_p, table]
+AUR-H-01 1/2 S2 slot height                                         2  s2_slot[1]                                           2  ok   [side_p, table]
+AUR-H-01 1/2 S2 slot radius                                       0.8  s2_slot[2]                                         0.8  ok   [side_p, table]
+AUR-H-01 1/2 S2 slot centre Z                                    10.7  Z_pcb_top+s2_knob_z                               10.7  ok   [side_p, table]
+AUR-H-01 1/2 window bore depth                                   5.35  D_w                                               5.35  ok   [secA, table]
+AUR-H-01 1/2 window bore diameter                                10.2  win_d+bore_clear                                  10.2  ok   [secA, front]
+AUR-H-01 1/2 cavity depth (floor to lid seat)                      13  Z_lid-floor                                         13  ok   [secA]
+AUR-H-01 1/2 PCB ledge height                                     9.2  Z_pcb_bot                                          9.2  ok   [secA, secB]
+AUR-H-01 1/2 laser axis from the +Y face                         4.15  W/2-Y_l                                           4.15  ok   [front, table]
+AUR-H-01 1/2 window axis to laser axis                          9.675  Y_l-Y_w                                          9.675  ok   [front]
+AUR-H-01 1/2 window axis from the control face                  6.175  W/2+Y_w                                          6.175  ok   [front, table]
+AUR-H-01 1/2 laser axis height                                    5.9  Z_las                                              5.9  ok   [front, secD]
+AUR-H-01 1/2 window axis height                                     8  Z_axis                                               8  ok   [front]
+AUR-H-01 1/2 laser bore diameter                                  6.1  las_d+las_clear                                    6.1  ok   [front, secC, secD]
+AUR-H-01 1/2 tap spacing                                         12.6  2*screw_dy                                        12.6  ok   [secC]
+AUR-H-01 1/2 LED wire hole diameter                               1.3  ledwire_d                                          1.3  ok   [secC]
+AUR-H-01 1/2 cavity width                                          17  2*(W/2-wall)                                        17  ok   [secB, table]
+AUR-H-01 1/2 trough width between the ledges                     15.4  2*(inner_half-ledge_w)                            15.4  ok   [secB]
+AUR-H-01 1/2 ledge width                                          0.8  ledge_w                                            0.8  ok   [secB, table]
+AUR-H-01 1/2 lid seat height                                     14.5  Z_lid                                             14.5  ok   [secB]
+AUR-H-01 1/2 M2 hole from the front face                          5.6  las_grub_x                                         5.6  ok   [secD]
+AUR-H-01 1/2 M2 tap drill                                         1.6  m2_tap                                             1.6  ok   [secD, table]
+AUR-H-01 1/2 M2 thread length                                    2.85  Z_las-las_d/2-las_clear/2                         2.85  ok   [secD]
+AUR-H-01 1/2 window bore dia                                     10.2  win_d+bore_clear                                  10.2  ok   [table]
+AUR-H-01 1/2 window axis Y                                     -3.825  Y_w                                             -3.825  ok   [table]
+AUR-H-01 1/2 window axis Z                                          8  Z_axis                                               8  ok   [table]
+AUR-H-01 1/2 groove width                                         1.4  wire_groove[0]                                     1.4  ok   [table]
+AUR-H-01 1/2 groove bottom radius                                 5.7  rb+gd-0.2                                          5.7  ok   [table]
+AUR-H-01 1/2 groove start X                                         3  x_led_board-0.6                                      3  ok   [table]
+AUR-H-01 1/2 groove end X                                        5.35  D_w                                               5.35  ok   [table]
+AUR-H-01 1/2 wire hole dia                                        1.3  ledwire_d                                          1.3  ok   [table]
+AUR-H-01 1/2 wire hole start X                                   5.35  D_w                                               5.35  ok   [table]
+AUR-H-01 1/2 wire hole end X                                      8.5  L_head                                             8.5  ok   [table]
+AUR-H-01 1/2 wire hole Z centre                                     8  Z_axis                                               8  ok   [table]
+AUR-H-01 1/2 wire hole Z offset                                   4.3  led_wire_dz                                        4.3  ok   [table]
+AUR-H-01 1/2 wire hole Y                                       -3.825  Y_w                                             -3.825  ok   [table]
+AUR-H-01 1/2 laser bore dia                                       6.1  las_d+las_clear                                    6.1  ok   [table]
+AUR-H-01 1/2 laser axis Y                                        5.85  Y_l                                               5.85  ok   [table]
+AUR-H-01 1/2 laser axis Z                                         5.9  Z_las                                              5.9  ok   [table]
+AUR-H-01 1/2 laser recess                                         0.3  las_recess                                         0.3  ok   [table]
+AUR-H-01 1/2 M2 hole X                                            5.6  las_grub_x                                         5.6  ok   [table]
+AUR-H-01 1/2 M2 hole Y                                           5.85  Y_l                                               5.85  ok   [table]
+AUR-H-01 1/2 M2 thread length                                    2.85  Z_las-rl                                          2.85  ok   [table]
+AUR-H-01 1/2 front tap X                                            7  screw_x_front                                        7  ok   [table]
+AUR-H-01 1/2 rear tap X                                          90.2  X_screw_back                                      90.2  ok   [table]
+AUR-H-01 1/2 tap Y                                                6.3  screw_dy                                           6.3  ok   [table]
+AUR-H-01 1/2 ledge height                                         9.2  Z_pcb_bot                                          9.2  ok   [table]
+AUR-H-01 1/2 ledge start X                                        8.5  L_head                                             8.5  ok   [table]
+AUR-H-01 1/2 ledge end X                                         32.8  X_pcb1                                            32.8  ok   [table]
+AUR-H-01 1/2 USB-C gap start                                      9.7  X_usb-4.9                                          9.7  ok   [table]
+AUR-H-01 1/2 USB-C gap end                                       19.6  X_usb+5.0                                         19.6  ok   [table]
+AUR-H-01 1/2 S1 gap start                                        22.4  X_s1-3.2                                          22.4  ok   [table]
+AUR-H-01 1/2 S1 gap end                                          28.8  X_s1+3.2                                          28.8  ok   [table]
+AUR-H-01 1/2 laser keepout X                                     12.9  las_keepout_x                                     12.9  ok   [table]
+AUR-H-01 1/2 USB-C X                                             14.6  X_usb                                             14.6  ok   [table]
+AUR-H-01 1/2 S1 X                                                25.6  X_s1                                              25.6  ok   [table]
+AUR-H-01 1/2 S2 X                                               14.05  X_s2                                             14.05  ok   [table]
+AUR-H-01 1/2 wall                                                 1.5  wall                                               1.5  ok   [table]
+AUR-H-01 1/2 floor Z                                              1.5  floor                                              1.5  ok   [table]
+AUR-H-01 1/2 lid seat Z                                          14.5  Z_lid                                             14.5  ok   [table]
+AUR-H-01 1/2 inner corner radius                                    2  inner_r                                              2  ok   [table, notes]
+AUR-H-01 1/2 trough width                                        15.4  2*(inner_half-ledge_w)                            15.4  ok   [table]
+AUR-H-01 1/2 relief dia                                           2.4  2*1.2 (hard-coded)                                 2.4  ok   [table]
+AUR-H-01 1/2 relief X                                          86.151  X_batt1-1.2/sqrt2                               86.151  ok   [table]
+AUR-H-01 1/2 relief Y                                           7.651  inner_half-1.2/sqrt2                             7.651  ok   [table]
+AUR-H-01 1/2 bore floor X                                        5.35  D_w                                               5.35  ok   [notes]
+AUR-H-01 1/2 wall window bore - control face                    1.075  min_walls                                        1.075  ok   [notes]
+AUR-H-01 1/2 wall laser bore - +Y face                            1.1  min_walls                                          1.1  ok   [notes]
+AUR-H-01 1/2 wall front tap - head back face                    0.875  min_walls                                        0.875  ok   [notes]
+AUR-H-01 1/2 wall front tap - bore                              1.025  min_walls                                        1.025  ok   [notes]
+AUR-H-01 1/2 wall tail front                                        1  min_walls                                            1  ok   [notes]
+AUR-H-01 1/2 wall thumb dish                                      0.9  texture_walls                                      0.9  ok   [notes]
+AUR-H-01 1/2 wall V-ring                                        0.825  texture_walls                                    0.825  ok   [notes]
+AUR-H-01 1/2 wall tail window                                   1.118  texture_walls                                    1.118  ok   [notes]
+AUR-H-01 1/2 pocket depth                                          13  Z_lid-floor                                         13  ok   [notes]
+AUR-H-01 1/2 section A-A plane                                 -3.825  Y_w                                             -3.825  ok   [notes]
+AUR-H-01 1/2 section D-D plane                                   5.85  Y_l                                               5.85  ok   [notes]
+AUR-H-01 1/2 section C-C plane                                      7  screw_x_front                                        7  ok   [notes]
+
+== AUR-H-01 2/2
+sheet        what                                               shown  P expression                                   P value  ok
+---------------------------------------------------------------------------------------------------------------------------------
+AUR-H-01 2/2 knurl panel start                                   40.5  knurl_x0                                          40.5  ok   [bottom]
+AUR-H-01 2/2 knurl panel length                                    41  knurl_x1-knurl_x0                                   41  ok   [bottom]
+AUR-H-01 2/2 knurl end to tail window                             6.5  max(X_lan-twin_x/2,X_batt1+twin_front_gap)-k       6.5  ok   [bottom]
+AUR-H-01 2/2 tail window length                                   5.2  X_lan+twin_x/2-max(X_lan-twin_x/2,X_batt1+tw       5.2  ok   [bottom, table]
+AUR-H-01 2/2 tail window to tail face                             1.2  L-(X_lan+twin_x/2)                                 1.2  ok   [bottom]
+AUR-H-01 2/2 marking field start                                    8  MARK_FIELD[0]                                        8  ok   [bottom]
+AUR-H-01 2/2 marking field length                                29.5  MARK_FIELD[1]-MARK_FIELD[0]                       29.5  ok   [bottom]
+AUR-H-01 2/2 knurl panel width                                   12.4  knurl_w                                           12.4  ok   [bottom, table]
+AUR-H-01 2/2 lanyard slot length                                  7.6  lan_slot_len                                       7.6  ok   [bottom, table]
+AUR-H-01 2/2 tail window width                                     14  twin_y                                              14  ok   [bottom, table]
+AUR-H-01 2/2 marking field width                                   15  2*MARK_FIELD[2]                                     15  ok   [bottom]
+AUR-H-01 2/2 side groove length                                    41  sgroove_x1-sgroove_x0                               41  ok   [side_m]
+AUR-H-01 2/2 side groove start                                   40.5  sgroove_x0                                        40.5  ok   [side_m]
+AUR-H-01 2/2 lower side groove height                             5.5  sgroove_z[0]                                       5.5  ok   [side_m]
+AUR-H-01 2/2 upper side groove height                            10.5  sgroove_z[1]                                      10.5  ok   [side_m]
+AUR-H-01 2/2 height                                                16  H                                                   16  ok   [side_m, tail]
+AUR-H-01 2/2 tail end face width                                   16  W-2*tail_facet                                      16  ok   [tail]
+AUR-H-01 2/2 width                                                 20  W                                                   20  ok   [tail]
+AUR-H-01 2/2 tail facet                                             2  tail_facet                                           2  ok   [tail, table]
+AUR-H-01 2/2 tail front wall                                        1  tail_front_wall                                      1  ok   [secF, table]
+AUR-H-01 2/2 lanyard slot width                                   4.4  lan_slot_w                                         4.4  ok   [secF, table]
+AUR-H-01 2/2 tail end wall                                          2  tail_end_wall                                        2  ok   [secF, table]
+AUR-H-01 2/2 tail window depth                                      1  twin_depth                                           1  ok   [secF, table]
+AUR-H-01 2/2 lid seat height                                     14.5  Z_lid                                             14.5  ok   [secF]
+AUR-H-01 2/2 V-ring rear flank width                             0.25  seam_depth                                        0.25  ok   [secV]
+AUR-H-01 2/2 V-ring apex from the front face                     3.95  lid_x0-seam_depth                                 3.95  ok   [secV]
+AUR-H-01 2/2 V-ring depth                                        0.25  seam_depth                                        0.25  ok   [secV, table]
+AUR-H-01 2/2 V-ring width                                         0.5  2*seam_depth                                       0.5  ok   [secV, table]
+AUR-H-01 2/2 knurl pitch (normal to the grooves)                  1.6  knurl_pitch                                        1.6  ok   [secK]
+AUR-H-01 2/2 knurl depth                                         0.35  knurl_depth                                       0.35  ok   [secK, table]
+AUR-H-01 2/2 dish radius                                            8  dish_r                                               8  ok   [secE, table]
+AUR-H-01 2/2 dish centre Z                                       7.95  Z_pcb_bot-s1_act_z                                7.95  ok   [secE, table]
+AUR-H-01 2/2 dish depth                                           0.6  dish_depth                                         0.6  ok   [secE, table]
+AUR-H-01 2/2 V-ring apex X                                       3.95  lid_x0-seam_depth                                 3.95  ok   [table]
+AUR-H-01 2/2 lid front edge X                                     4.2  lid_x0                                             4.2  ok   [table]
+AUR-H-01 2/2 lower side groove Z                                  5.5  sgroove_z[0]                                       5.5  ok   [table]
+AUR-H-01 2/2 upper side groove Z                                 10.5  sgroove_z[1]                                      10.5  ok   [table]
+AUR-H-01 2/2 side groove start X                                 40.5  sgroove_x0                                        40.5  ok   [table]
+AUR-H-01 2/2 side groove end X                                   81.5  sgroove_x1                                        81.5  ok   [table]
+AUR-H-01 2/2 side groove apex start X                            40.8  sgroove_x0+sgroove_depth                          40.8  ok   [table]
+AUR-H-01 2/2 side groove apex end X                              81.2  sgroove_x1-sgroove_depth                          81.2  ok   [table]
+AUR-H-01 2/2 side groove depth                                    0.3  sgroove_depth                                      0.3  ok   [table]
+AUR-H-01 2/2 side groove width                                    0.6  2*sgroove_depth                                    0.6  ok   [table]
+AUR-H-01 2/2 dish diameter on the wall                           6.08  2*sqrt(dish_r^2-(dish_r-dish_depth)^2)           6.079  ok   [table]
+AUR-H-01 2/2 dish centre X                                       25.6  X_s1                                              25.6  ok   [table]
+AUR-H-01 2/2 knurl panel start X                                 40.5  knurl_x0                                          40.5  ok   [table]
+AUR-H-01 2/2 knurl panel end X                                   81.5  knurl_x1                                          81.5  ok   [table]
+AUR-H-01 2/2 knurl corner radius                                    2  knurl_r                                              2  ok   [table]
+AUR-H-01 2/2 knurl frame depth                                   0.35  knurl_depth                                       0.35  ok   [table]
+AUR-H-01 2/2 knurl pitch                                          1.6  knurl_pitch                                        1.6  ok   [table]
+AUR-H-01 2/2 knurl groove spacing along X                       2.263  knurl_pitch*sqrt(2)                              2.263  ok   [table]
+AUR-H-01 2/2 knurl crossing X                                      61  (knurl_x0+knurl_x1)/2                               61  ok   [table]
+AUR-H-01 2/2 tail window start X                                   88  max(X_lan-twin_x/2,X_batt1+twin_front_gap)          88  ok   [table]
+AUR-H-01 2/2 tail window end X                                   93.2  X_lan+twin_x/2                                    93.2  ok   [table]
+AUR-H-01 2/2 tail window corner radius                            0.8  twin_r                                             0.8  ok   [table]
+AUR-H-01 2/2 tail window rear corner                              1.8  twin_corner                                        1.8  ok   [table]
+AUR-H-01 2/2 web window to bay corner                           1.118  texture_walls                                    1.118  ok   [table]
+AUR-H-01 2/2 bay end X                                             87  X_batt1                                             87  ok   [table]
+AUR-H-01 2/2 lanyard slot end radius                              2.2  lan_slot_w/2                                       2.2  ok   [table]
+AUR-H-01 2/2 lanyard slot centre X                               90.2  X_lan                                             90.2  ok   [table]
+AUR-H-01 2/2 lanyard slot chamfer                                0.35  lan_chamfer                                       0.35  ok   [table]
+AUR-H-01 2/2 tail face bevel                                      0.8  C_end                                              0.8  ok   [table]
+AUR-H-01 2/2 front face chamfer                                   0.2  C_front                                            0.2  ok   [table]
+AUR-H-01 2/2 marking field start X                                  8  MARK_FIELD[0]                                        8  ok   [table]
+AUR-H-01 2/2 marking field end X                                 37.5  MARK_FIELD[1]                                     37.5  ok   [table]
+AUR-H-01 2/2 marking field half width                             7.5  MARK_FIELD[2]                                      7.5  ok   [table]
+AUR-H-01 2/2 wall knurl floor                                    1.15  min_walls                                         1.15  ok   [notes]
+AUR-H-01 2/2 wall side grooves                                    1.2  min_walls                                          1.2  ok   [notes]
+AUR-H-01 2/2 wall thumb dish                                      0.9  texture_walls                                      0.9  ok   [notes]
+AUR-H-01 2/2 wall V-ring                                        0.825  texture_walls                                    0.825  ok   [notes]
+AUR-H-01 2/2 wall tail window                                   1.118  texture_walls                                    1.118  ok   [notes]
+
+== AUR-H-02 1/1
+sheet        what                                               shown  P expression                                   P value  ok
+---------------------------------------------------------------------------------------------------------------------------------
+AUR-H-02 1/1 front screws from the lid front edge                 2.8  screw_x_front-lid_x0                               2.8  ok   [top]
+AUR-H-02 1/1 screw spacing along X                               83.2  X_screw_back-screw_x_front                        83.2  ok   [top]
+AUR-H-02 1/1 rear screws to the lid end                           4.2  L-X_screw_back                                     4.2  ok   [top]
+AUR-H-02 1/1 RF opening from the lid front edge                  27.6  rfw_box[0]-lid_x0                                 27.6  ok   [top]
+AUR-H-02 1/1 RF opening length                                    6.9  rfw_box[1]-rfw_box[0]                              6.9  ok   [top, under, secG, table]
+AUR-H-02 1/1 knurl panel from the lid front edge                 36.3  knurl_x0-lid_x0                                   36.3  ok   [top]
+AUR-H-02 1/1 knurl panel length                                    41  knurl_x1-knurl_x0                                   41  ok   [top]
+AUR-H-02 1/1 lid length                                          90.2  L-lid_x0                                          90.2  ok   [top]
+AUR-H-02 1/1 screw spacing across                                12.6  2*screw_dy                                        12.6  ok   [top]
+AUR-H-02 1/1 RF opening width                                      14  rfw_y                                               14  ok   [top, under, table]
+AUR-H-02 1/1 knurl panel width                                   12.4  knurl_w                                           12.4  ok   [top, table]
+AUR-H-02 1/1 lanyard slot length                                  7.6  lan_slot_len                                       7.6  ok   [top, table]
+AUR-H-02 1/1 tail end width                                        16  W-2*tail_facet                                      16  ok   [top]
+AUR-H-02 1/1 RF pocket length                                     8.5  rfw_box[1]-rfw_box[0]+2*rfw_flange                 8.5  ok   [under, secG, table]
+AUR-H-02 1/1 RF pocket width                                     15.6  rfw_y+2*rfw_flange                                15.6  ok   [under, table]
+AUR-H-02 1/1 flat top width                                        16  W-2*R_edge                                          16  ok   [secJ, table]
+AUR-H-02 1/1 lid thickness                                        1.5  lid_t                                              1.5  ok   [secJ, table, notes]
+AUR-H-02 1/1 top edge radius                                        2  R_edge                                               2  ok   [secJ, table]
+AUR-H-02 1/1 RF pocket margin                                     0.8  rfw_flange                                         0.8  ok   [secG, table]
+AUR-H-02 1/1 RF pocket depth                                      0.6  rfw_flange_t                                       0.6  ok   [secG, table]
+AUR-H-02 1/1 screw hole diameter                                  1.8  m16_clear                                          1.8  ok   [secH, table]
+AUR-H-02 1/1 countersink diameter                                 3.3  m16_csk                                            3.3  ok   [secH, table]
+AUR-H-02 1/1 countersink depth                                   0.75  (m16_csk-m16_clear)/2                             0.75  ok   [secH, table]
+AUR-H-02 1/1 lid front edge X                                     4.2  lid_x0                                             4.2  ok   [table]
+AUR-H-02 1/1 lid end X                                           94.4  L                                                 94.4  ok   [table]
+AUR-H-02 1/1 tail facet                                             2  tail_facet                                           2  ok   [table]
+AUR-H-02 1/1 front screw X                                          7  screw_x_front                                        7  ok   [table]
+AUR-H-02 1/1 rear screw X                                        90.2  X_screw_back                                      90.2  ok   [table, notes]
+AUR-H-02 1/1 screw Y                                              6.3  screw_dy                                           6.3  ok   [table]
+AUR-H-02 1/1 RF opening corner radius                             1.5  rfw_r                                              1.5  ok   [table]
+AUR-H-02 1/1 RF opening start X                                  31.8  rfw_box[0]                                        31.8  ok   [table]
+AUR-H-02 1/1 RF opening end X                                    38.7  rfw_box[1]                                        38.7  ok   [table]
+AUR-H-02 1/1 RF pocket corner radius                              2.3  rfw_r+rfw_flange                                   2.3  ok   [table]
+AUR-H-02 1/1 lid underside Z                                     14.5  Z_lid                                             14.5  ok   [table]
+AUR-H-02 1/1 RF pocket ceiling Z                                 15.1  Z_lid+rfw_flange_t                                15.1  ok   [table]
+AUR-H-02 1/1 lid above the pocket                                 0.9  lid_t-rfw_flange_t                                 0.9  ok   [table, notes]
+AUR-H-02 1/1 lanyard slot width                                   4.4  lan_slot_w                                         4.4  ok   [table]
+AUR-H-02 1/1 lanyard slot end radius                              2.2  lan_slot_w/2                                       2.2  ok   [table]
+AUR-H-02 1/1 lanyard slot centre X                               90.2  X_lan                                             90.2  ok   [table]
+AUR-H-02 1/1 lanyard slot chamfer                                0.35  lan_chamfer                                       0.35  ok   [table]
+AUR-H-02 1/1 knurl panel start X                                 40.5  knurl_x0                                          40.5  ok   [table, notes]
+AUR-H-02 1/1 knurl panel end X                                   81.5  knurl_x1                                          81.5  ok   [table]
+AUR-H-02 1/1 knurl corner radius                                    2  knurl_r                                              2  ok   [table]
+AUR-H-02 1/1 knurl depth                                         0.35  knurl_depth                                       0.35  ok   [table]
+AUR-H-02 1/1 insert clearance                                    0.05  rfw_clear                                         0.05  ok   [table]
+AUR-H-02 1/1 countersink edge to edge radius                     0.05  (W/2-R_edge)-(screw_dy+m16_csk/2)                 0.05  ok   [notes]
+AUR-H-02 1/1 lid under the knurl                                 1.15  min_walls                                         1.15  ok   [notes]
+AUR-H-02 1/1 RF pocket end X                                     39.5  rfw_box[1]+rfw_flange                             39.5  ok   [notes]
+AUR-H-02 1/1 sliver csk - slot chamfer                            0.5  screw_dy-m16_csk/2-(lan_slot_len/2+lan_chamf       0.5  ok   [notes]
+
+numbers vs P: 225 distinct entries, 0 mismatches
+
+Cross-check against the STEP solids (ray probes): value of P / drawing against the solid
+
+what                                                                                 P/drawing     solid     diff  
+-------------------------------------------------------------------------------------------------------------------
+tray length                                                                               94.4      94.4        0  ok
+tray width                                                                                  20        20        0  ok
+tray height (head block)                                                                    16        16        0  ok
+window bore diameter                                                                      10.2      10.2        0  ok
+window bore axis Y                                                                      -3.825    -3.825        0  ok
+wall window bore - control-side face                                                     1.075     1.075        0  ok
+window bore floor X (depth D_w)                                                           5.35      5.35        0  ok
+laser bore diameter (Z span)                                                               6.1       6.1        0  ok
+laser axis Z                                                                               5.9       5.9        0  ok
+M2 thread length = laser bore bottom Z                                                    2.85      2.85        0  ok
+laser bore diameter (Y span)                                                               6.1       6.1        0  ok
+laser axis Y                                                                              5.85      5.85        0  ok
+wall laser bore - laser-side face                                                          1.1       1.1        0  ok
+M2 tap drill diameter                                                                      1.6       1.6        0  ok
+M2 hole X                                                                                  5.6       5.6        0  ok
+PCB ledge height Z_pcb_bot                                                                 9.2       9.2        0  ok
+trough width between the ledges                                                           15.4      15.4        0  ok
+cavity width above the ledge                                                                17        17        0  ok
+floor thickness (bay)                                                                      1.5       1.5        0  ok
+lid seat height Z_lid                                                                     14.5      14.5        0  ok
+tap drill depth m16_drill                                                                  3.6       3.6        0  ok
+tap drill diameter m16_tap                                                                1.25      1.25        0  ok
+LED wire hole diameter (lower)                                                             1.3       1.3        0  ok
+LED wire hole Z (lower)                                                                    3.7       3.7        0  ok
+LED wire hole Z (upper)                                                                   12.3      12.3        0  ok
+LED wire groove bottom radius (lower)                                                      5.7       5.7        0  ok
+LED wire groove bottom radius (upper)                                                      5.7       5.7        0  ok
+wall wire groove (top) - lid seat (min_walls value)  [known: differs from P, see not       0.8       0.8        0  ok
+USB-C opening height                                                                       6.8       6.8        0  ok
+USB-C centre Z                                                                           7.595     7.595        0  ok
+USB-C opening width                                                                       12.6      12.6        0  ok
+USB-C centre X                                                                            14.6      14.6        0  ok
+S1 hole height                                                                             2.4       2.4        0  ok
+S1 centre Z                                                                               7.95      7.95        0  ok
+S1 hole width                                                                              3.4       3.4        0  ok
+S2 slot height                                                                               2         2        0  ok
+S2 slot centre Z                                                                          10.7      10.7        0  ok
+S2 slot width                                                                              3.2       3.2        0  ok
+S2 centre X                                                                              14.05     14.05        0  ok
+V-ring depth at the apex                                                                  0.25      0.25        0  ok
+V-ring: rear flank ends at lid_x0 (depth 0)                                                  0         0        0  ok
+side groove depth (lower)                                                                  0.3       0.3        0  ok
+side groove depth (upper)                                                                  0.3       0.3        0  ok
+side groove depth, +Y side                                                                 0.3       0.3        0  ok
+side groove width at the surface                                                           0.6     0.599   -0.001  ok
+side groove apex line length                                                              40.4    40.404    0.004  ok
+side wall under the side groove                                                            1.2       1.2        0  ok
+knurl depth at a crossing (centre)                                                        0.35      0.35        0  ok
+knurl depth at the next crossing (+ pitch x sqrt 2)                                       0.35      0.35        0  ok
+knurl: land half way between crossings (depth 0)                                             0         0        0  ok
+knurl frame groove depth (X start)                                                        0.35      0.35        0  ok
+knurl frame groove depth (X end)                                                          0.35      0.35        0  ok
+knurl frame groove depth (Y edge)                                                         0.35      0.35        0  ok
+floor under the knurl                                                                     1.15      1.15        0  ok
+thumb dish depth at Z 6.5 (sphere formula)                                               0.467     0.467        0  ok
+thumb dish depth at Z 9.5 (sphere formula)                                               0.448     0.448        0  ok
+thumb dish depth at Z 10.5 (sphere formula)                                              0.183     0.183        0  ok
+tail window start X                                                                         88        88        0  ok
+tail window end X                                                                         93.2      93.2        0  ok
+tail window width                                                                           14        14        0  ok
+tail window depth                                                                            1         1        0  ok
+lanyard slot width                                                                         4.4       4.4        0  ok
+lanyard slot centre X                                                                     90.2      90.2        0  ok
+tail front wall                                                                              1         1        0  ok
+tail end wall                                                                                2         2        0  ok
+lanyard slot length                                                                        7.6       7.6        0  ok
+tail facet                                                                                   2         2        0  ok
+tray slot chamfer C0.35 on the window floor: slot width 0.05 above the floor  [known         5         5        0  ok
+tail window rim chamfer C0.3: window length 0.05 above the bottom face  [known: diff       5.7       5.7        0  ok
+lid front edge X                                                                           4.2       4.2        0  ok
+lid end X                                                                                 94.4      94.4        0  ok
+lid thickness                                                                              1.5       1.5        0  ok
+lid top Z                                                                                   16        16        0  ok
+RF opening start X                                                                        31.8      31.8        0  ok
+RF opening length                                                                          6.9       6.9        0  ok
+RF opening width                                                                            14        14        0  ok
+RF pocket length                                                                           8.5       8.5        0  ok
+RF pocket width                                                                           15.6      15.6        0  ok
+RF pocket depth                                                                            0.6       0.6        0  ok
+lid above the RF pocket                                                                    0.9       0.9        0  ok
+lid above the pocket at its rear end, textured lid (knurl clear of the pocket)             0.9       0.9        0  ok
+screw hole diameter                                                                        1.8       1.8        0  ok
+countersink diameter 0.1 below the top                                                     3.1       3.1        0  ok
+lid slot width                                                                             4.4       4.4        0  ok
+lid slot length                                                                            7.6       7.6        0  ok
+lid slot chamfer: slot width 0.05 below the top                                              5         5        0  ok
+lid knurl depth (centre crossing)                                                         0.35      0.35        0  ok
+sliver between the rear countersink and the slot chamfer, 0.05 below the top               0.6       0.6        0  ok
+
+solid probes: 88, mismatches 0, known differences from P 0

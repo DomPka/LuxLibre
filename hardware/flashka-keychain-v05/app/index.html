@@ -1,0 +1,67 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0b7a86">
+<title>Aurora++ flashlight</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='12' width='17' height='8' rx='3' fill='%230b7a86'/%3E%3Cpath d='M23 8l5-3M23 16h6M23 24l5 3' stroke='%236366f1' stroke-width='2.4' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<!-- Aurora++ v0.5 start page: two links. Self-contained (no CDN, no fonts). Put this file in the same folder as
+     aurora-app.html and aurora-flasher.html (docs/web_apps.md explains how to publish the folder on GitHub Pages). -->
+<style>
+:root{
+  color-scheme:light dark;
+  --bg:#f2f5f9; --surface:#ffffff; --surface2:#e9eef4; --text:#121820; --muted:#4f5d6d;
+  --border:#cfd7e2; --accent:#0b7a86; --accent-ink:#ffffff; --accent-soft:#d3eef1;
+  --shadow:0 1px 2px rgba(15,23,42,.06),0 6px 18px rgba(15,23,42,.06);
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0c1116; --surface:#151b22; --surface2:#1f2832; --text:#e9eef4; --muted:#9eabbb;
+    --border:#2b3643; --accent:#46d3dc; --accent-ink:#031f23; --accent-soft:#10343a; --shadow:0 1px 2px rgba(0,0,0,.5)}
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow-wrap:anywhere}
+main{max-width:640px;margin:0 auto;padding:24px 16px calc(32px + env(safe-area-inset-bottom));padding-top:max(24px,env(safe-area-inset-top))}
+header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.logo{width:44px;height:44px;flex:none}
+h1{margin:0;font-size:1.6rem;line-height:1.1}
+header p{margin:2px 0 0;color:var(--muted)}
+.cards{display:flex;flex-direction:column;gap:14px}
+a.card{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:var(--shadow);min-height:48px}
+a.card:hover{border-color:var(--accent)}
+a.card:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+a.card h2{margin:0 0 4px;font-size:1.15rem;color:var(--accent)}
+a.card p{margin:0;color:var(--muted)}
+a.card .need{margin-top:8px;font-size:.88rem}
+.foot{margin-top:22px;color:var(--muted);font-size:.85rem}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+      <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2dd4a7"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs>
+      <rect x="3" y="12" width="17" height="8" rx="3" fill="url(#lg)"/>
+      <path d="M23 8l5-3M23 16h6M23 24l5 3" stroke="url(#lg)" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+    </svg>
+    <div><h1>Aurora++</h1><p>Keychain flashlight</p></div>
+  </header>
+  <div class="cards">
+    <a class="card" id="link-app" href="aurora-app.html">
+      <h2>Control the flashlight</h2>
+      <p>Switch the light on and off, choose the brightness and the profile, and see the battery - over Bluetooth, from your phone or computer. You can also try it without a flashlight (Demo mode).</p>
+      <p class="need">Chrome or Edge (Android, Windows, Mac, Linux, Chromebook); on iPhone and iPad the free "Bluefy" browser.</p>
+    </a>
+    <a class="card" id="link-flasher" href="aurora-flasher.html">
+      <h2>Install or update the firmware</h2>
+      <p>Put the firmware on the flashlight with a USB-C cable. Step by step, about a minute.</p>
+      <p class="need">A computer with Chrome or Edge. Phones cannot do this.</p>
+    </a>
+  </div>
+  <p class="foot">Both pages run entirely in your browser: nothing is uploaded. Each is a single file, so you can also save it and open it from your own computer.</p>
+</main>
+</body>
+</html>

@@ -1,0 +1,125 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Issue form: report on a FlashKa that someone built, completely or in part.
+name: Build report
+description: I built (part of) a FlashKa. What I ordered, what worked, what I measured, what went wrong.
+title: "Build report: "
+labels: ["build report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for building one. Measurements from real builds are the most valuable contribution to LuxLibre: no FlashKa had been built when the design was published, so every result counts, also a partial one.
+
+        Fill in what you did and leave the rest empty. The steps are in the build guide of your version, for example the [FlashKa v0.6 build guide](https://github.com/DomPka/LuxLibre/blob/main/hardware/flashka-keychain-v06/docs/build_guide_v0.6.md).
+
+  - type: dropdown
+    id: design
+    attributes:
+      label: Design version
+      options:
+        - FlashKa Keychain v0.6
+        - FlashKa Keychain v0.5
+        - Another version or a changed design (say which under "What worked")
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: built
+    attributes:
+      label: What you built
+      options:
+        - label: Main PCB (assembled by JLCPCB)
+        - label: Housing (tray and lid, JLCCNC)
+        - label: Caps (stainless steel, or resin from the print kit)
+        - label: Print kit (JLC3DP)
+        - label: Complete light, closed and working
+        - label: Firmware installed (web installer or espflash)
+
+  - type: textarea
+    id: orders
+    attributes:
+      label: Orders and shops
+      description: Which shops you ordered from, which files and options you chose, quantities, the price you paid and the delivery time. Say if a shop refused a file or changed something.
+      placeholder: |
+        JLCPCB (PCB and assembly):
+        JLCCNC (tray, lid, caps):
+        JLC3DP (print kit):
+        Bought parts (cells, laser module, ...):
+
+  - type: textarea
+    id: worked
+    attributes:
+      label: What worked
+      description: The steps and functions that worked as the build guide describes.
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Measurements
+
+        Write each value with its unit and how you measured it (instrument, cell voltage, temperature). Leave a field empty if you did not measure it.
+
+  - type: input
+    id: led-current
+    attributes:
+      label: Main LED current
+      description: At the highest level and in turbo, in A, with the cell voltage ([DRV-2](https://github.com/DomPka/LuxLibre/blob/main/docs/design-rules.md#drv-2)).
+      placeholder: "A at V cell voltage, measured with ..."
+
+  - type: input
+    id: laser-power
+    attributes:
+      label: Laser power measured
+      description: Optical power in mW and the meter you used ([LAS-3](https://github.com/DomPka/LuxLibre/blob/main/docs/design-rules.md#las-3)). LuxLibre allows only Class 1 and Class 2 lasers, at most 1 mW ([LAS-1](https://github.com/DomPka/LuxLibre/blob/main/docs/design-rules.md#las-1)); do not use a module that measures more.
+      placeholder: "mW, measured with ..."
+
+  - type: input
+    id: ring
+    attributes:
+      label: Light ring brightness
+      description: How the RGB ring around the main button looks in daylight and in the dark (too dim, right, too bright), or a measurement.
+
+  - type: input
+    id: standby
+    attributes:
+      label: Standby current
+      description: Current drawn from the cells while the light is off (deep sleep), in µA, and how you measured it ([BAT-6](https://github.com/DomPka/LuxLibre/blob/main/docs/design-rules.md#bat-6)).
+      placeholder: "µA, measured with ..."
+
+  - type: textarea
+    id: presenter
+    attributes:
+      label: Presenter mode per system
+      description: For each computer, phone or tablet you paired - system and version, program, whether pairing worked, which keys worked, whether it reconnected after sleep.
+      placeholder: |
+        Windows, PowerPoint:
+        macOS, Keynote (arrow key set):
+        Android:
+        iPhone or iPad:
+        Linux (BlueZ), LibreOffice Impress:
+
+  - type: textarea
+    id: other
+    attributes:
+      label: Other measurements
+      description: For example runtime, charging current, the hottest surface temperature in turbo ([THM-1](https://github.com/DomPka/LuxLibre/blob/main/docs/design-rules.md#thm-1)), Bluetooth range or mass. A full test report ([templates/test-report.md](https://github.com/DomPka/LuxLibre/blob/main/templates/test-report.md)) is welcome as an attachment.
+
+  - type: textarea
+    id: problems
+    attributes:
+      label: Problems
+      description: What went wrong, at which step of the build guide, how you solved it, and what the design or the guide should change.
+
+  - type: textarea
+    id: photos
+    attributes:
+      label: Photos and files
+      description: Drag photos, screenshots, logs or measurement files here. Remove personal data first, such as addresses on parcels and faces.
+
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety
+      description: Problems with heat, cells, charging or the laser are handled first ([SAFETY.md](https://github.com/DomPka/LuxLibre/blob/main/SAFETY.md)).
+      options:
+        - label: This report describes a safety problem (the maintainers add the label "safety")

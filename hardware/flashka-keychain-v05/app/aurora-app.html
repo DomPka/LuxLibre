@@ -1,0 +1,1814 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0b7a86">
+<title>Aurora++ flashlight control</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='12' width='17' height='8' rx='3' fill='%230b7a86'/%3E%3Cpath d='M23 8l5-3M23 16h6M23 24l5 3' stroke='%236366f1' stroke-width='2.4' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<!--
+  Aurora++ v0.5 control app - ONE self-contained file (no CDN, no external fonts).
+  Talks to the flashlight over Web Bluetooth using docs/ble_protocol.md (protocol version 1).
+  The three <script> blocks at the end are, in order:
+    1. aurora-protocol : packet encoder/decoder, ranges, error mapping (pure functions; unit-tested in Node)
+    2. aurora-sim      : the JavaScript "demo flashlight" (uses the same encoder/decoder; unit-tested in Node)
+    3. aurora-app      : the user interface and the Web Bluetooth link
+-->
+<style>
+:root{
+  color-scheme:light dark;
+  --bg:#f2f5f9; --surface:#ffffff; --surface2:#e9eef4; --text:#121820; --muted:#4f5d6d;
+  --border:#cfd7e2; --accent:#0b7a86; --accent-ink:#ffffff; --accent-soft:#d3eef1;
+  --ok:#14753f; --ok-soft:#dcf3e5; --warn:#7a4a00; --warn-soft:#fff0cc; --bad:#b3261e; --bad-soft:#fde4e1;
+  --turbo:#b83c08; --turbo-soft:#ffe6d6; --demo:#5b34c4; --demo-soft:#ece6fb;
+  --shadow:0 1px 2px rgba(15,23,42,.06),0 6px 18px rgba(15,23,42,.06);
+  --radius:16px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0c1116; --surface:#151b22; --surface2:#1f2832; --text:#e9eef4; --muted:#9eabbb;
+    --border:#2b3643; --accent:#46d3dc; --accent-ink:#031f23; --accent-soft:#10343a;
+    --ok:#5fd493; --ok-soft:#12301f; --warn:#f2b552; --warn-soft:#38290c; --bad:#ff8a80; --bad-soft:#3b1714;
+    --turbo:#ff9d66; --turbo-soft:#3a1f10; --demo:#b9a4ff; --demo-soft:#2a2046;
+    --shadow:0 1px 2px rgba(0,0,0,.5);
+  }
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow-wrap:anywhere}
+h1,h2,h3,p,ul,ol,dl,dd{margin:0}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--accent)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:8px;top:-60px;background:var(--accent);color:var(--accent-ink);padding:10px 14px;border-radius:10px;z-index:50}
+.skip:focus{top:8px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}
+
+/* ---------- header ---------- */
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top));background:var(--bg);border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:10px;flex:none}
+.logo{width:34px;height:34px;flex:none}
+.brand h1{font-size:1.15rem;line-height:1.1;letter-spacing:.2px;white-space:nowrap}
+.brand p{font-size:.78rem;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:var(--surface2);border:1px solid var(--border);font-size:.85rem;font-weight:600;min-width:0;flex:0 1 auto;overflow-wrap:normal}
+@media (max-width:430px){.brand p{display:none}}
+.pill span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill .dot{width:10px;height:10px;border-radius:50%;background:var(--muted);flex:none}
+body[data-conn="connected"] .pill .dot{background:var(--ok);box-shadow:0 0 0 3px var(--ok-soft)}
+body[data-conn="connecting"] .pill .dot{background:var(--warn);animation:pulse 1s infinite}
+body[data-conn="lost"] .pill .dot{background:var(--bad)}
+body[data-mode="demo"] .pill{background:var(--demo-soft);border-color:var(--demo);color:var(--demo)}
+body[data-mode="demo"] .pill .dot{background:var(--demo);box-shadow:0 0 0 3px var(--demo-soft)}
+body[data-conn="lost"] .pill{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+body[data-conn="lost"] .pill .dot{background:var(--bad);box-shadow:0 0 0 3px var(--bad-soft)}
+@keyframes pulse{50%{opacity:.35}}
+
+.wrap{max-width:1080px;margin:0 auto;padding:16px;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+.stack{display:flex;flex-direction:column;gap:14px}
+#view-main[inert]{opacity:.5;filter:grayscale(.7)}
+
+/* ---------- cards ---------- */
+.card,.editor,.banner{scroll-margin-top:76px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);min-width:0}
+.card h2{font-size:1.05rem;margin-bottom:10px}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.card-head h2{margin:0}
+.chip{font-size:.8rem;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--surface2);border:1px solid var(--border);white-space:nowrap}
+.chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.muted{color:var(--muted);font-size:.9rem}
+.small{font-size:.82rem}
+.field-title{font-size:.82rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px}
+
+/* ---------- buttons ---------- */
+.btn,.lvl,.prof,.chip,.pill{overflow-wrap:normal}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 18px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);font-weight:650;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.demo{background:var(--demo-soft);color:var(--demo);border-color:var(--demo)}
+.btn.danger{background:var(--bad-soft);color:var(--bad);border-color:var(--bad)}
+.btn.big{min-height:56px;font-size:1.05rem;padding:0 22px}
+.btn.slim{min-height:44px;padding:0 14px;font-size:.92rem}
+.btn:disabled,.btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+.btn.busy{position:relative;color:transparent!important}
+.btn.busy::after{content:"";position:absolute;width:20px;height:20px;border-radius:50%;border:3px solid var(--text);border-right-color:transparent;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.actions .btn{flex:1 1 220px}
+
+/* ---------- banners ---------- */
+.banner{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);font-size:.93rem}
+.banner b{font-weight:700}
+.banner .grow{flex:1 1 220px;min-width:0}
+.banner .demo-text{flex-basis:150px}
+.banner.warn{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.banner.bad{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.banner.demo{background:var(--demo-soft);border-color:var(--demo);color:var(--demo)}
+.banner.ok{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.banner .btn{min-height:44px}
+.lockbar{margin-bottom:12px}
+
+/* ---------- start view ---------- */
+.hero h2{font-size:1.35rem;margin-bottom:6px}
+.hero .lead{color:var(--muted);margin-bottom:14px}
+.steps{padding-left:0;list-style:none;counter-reset:s;display:flex;flex-direction:column;gap:10px}
+.steps li{counter-increment:s;position:relative;padding-left:44px;min-height:34px}
+.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:800;display:grid;place-items:center}
+.msg{margin-top:12px;min-height:1.2em;color:var(--muted)}
+.msg.err{color:var(--bad);font-weight:600}
+.support{margin-top:14px;padding:14px;border-radius:12px;border:1px solid var(--warn);background:var(--warn-soft);color:var(--text)}
+.support h3{font-size:1rem;margin-bottom:6px;color:var(--warn)}
+.support ul{padding-left:20px;display:flex;flex-direction:column;gap:6px;margin:8px 0}
+
+/* ---------- layout (main view) ---------- */
+.layout{display:flex;flex-direction:column;gap:14px}
+.col{display:contents}
+#card-status{order:1}#card-light{order:2}#card-profile{order:3}#card-tools{order:4}#card-demo{order:5}
+@media (max-width:400px){.levels{gap:6px}.lvl{font-size:.72rem}}
+@media (min-width:960px){
+  .layout{display:grid;grid-template-columns:minmax(320px,5fr) minmax(0,7fr);gap:16px;align-items:start}
+  .col{display:flex;flex-direction:column;gap:16px;min-width:0}
+  .layout .card{order:0}
+}
+
+/* ---------- battery / status ---------- */
+.battery{display:flex;align-items:flex-end;gap:14px}
+.big{font-size:4rem;line-height:.95;font-weight:800;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.big small{font-size:1.5rem;font-weight:700;margin-left:2px;color:var(--muted)}
+.bar{flex:1;height:22px;border-radius:7px;border:2px solid var(--muted);padding:2px;position:relative;margin-bottom:6px;min-width:60px}
+.bar::after{content:"";position:absolute;right:-7px;top:5px;width:4px;height:8px;border-radius:0 2px 2px 0;background:var(--muted)}
+.bar i{display:block;height:100%;width:0;border-radius:3px;background:var(--ok);transition:width .4s,background .4s}
+.bar.mid i{background:var(--warn)}
+.bar.low i{background:var(--bad)}
+.bar.charging i{background-image:repeating-linear-gradient(115deg,rgba(255,255,255,.35) 0 8px,transparent 8px 16px);background-size:32px 100%;animation:slide 1.2s linear infinite}
+@keyframes slide{to{background-position:32px 0}}
+.line{margin:10px 0 2px;font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.stat{background:var(--surface2);border-radius:12px;padding:10px 12px;min-width:0}
+.stat dt{font-size:.74rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.stat dd{font-size:1.25rem;font-weight:750;font-variant-numeric:tabular-nums;margin-top:2px}
+.stat dd small{font-size:.8rem;font-weight:600;color:var(--muted)}
+.badges{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.badge{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;border-radius:12px;font-size:.9rem;border:1px solid var(--border);background:var(--surface2)}
+.badge b{display:block;font-size:.92rem}
+.badge.warn{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.badge.turbo{background:var(--turbo-soft);border-color:var(--turbo);color:var(--turbo)}
+.badge.bad{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.badge.ok{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.badge svg{width:20px;height:20px;flex:none;margin-top:1px}
+.source{margin-top:12px}
+
+/* ---------- light controls ---------- */
+.power{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:76px;border-radius:18px;border:2px solid var(--border);background:var(--surface2);font-size:1.3rem;font-weight:800;cursor:pointer;transition:background .2s,box-shadow .2s;-webkit-tap-highlight-color:transparent}
+.power svg{width:30px;height:30px}
+.power[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:transparent;box-shadow:0 0 0 5px var(--accent-soft),0 8px 24px rgba(11,122,134,.35)}
+.power:disabled{opacity:.45;cursor:not-allowed}
+.levels{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.lvl{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:70px;padding:8px 2px;border-radius:14px;border:2px solid var(--border);background:var(--surface2);font-size:.78rem;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.lvl .bars{display:flex;align-items:flex-end;gap:2px;height:18px}
+.lvl .bars i{display:block;width:4px;border-radius:1px;background:currentColor;opacity:.22}
+.lvl .bars i:nth-child(1){height:5px}.lvl .bars i:nth-child(2){height:8px}.lvl .bars i:nth-child(3){height:11px}.lvl .bars i:nth-child(4){height:14px}.lvl .bars i:nth-child(5){height:18px}
+.lvl[data-n="0"] .bars i:nth-child(-n+1),.lvl[data-n="1"] .bars i:nth-child(-n+2),.lvl[data-n="2"] .bars i:nth-child(-n+3),.lvl[data-n="3"] .bars i:nth-child(-n+4),.lvl[data-n="4"] .bars i{opacity:1}
+.lvl[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.lvl[data-n="4"][aria-pressed="true"]{border-color:var(--turbo);background:var(--turbo-soft);color:var(--turbo)}
+.lvl.remembered{border-style:dashed;border-color:var(--accent)}
+.lvl:disabled{opacity:.45;cursor:not-allowed}
+.turbo-line{margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--turbo-soft);border:1px solid var(--turbo);color:var(--turbo);font-weight:600;font-size:.92rem}
+.meter{height:8px;border-radius:4px;background:rgba(127,127,127,.25);margin-top:8px;overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--turbo);transition:width .25s linear}
+.slider-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.slider-head label{font-size:.82rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.slider-head output{font-weight:800;font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:44px;background:transparent;margin:4px 0 0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--accent) 0 var(--split,100%),var(--turbo) var(--split,100%) 100%)}
+input[type=range]::-moz-range-track{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--accent) 0 var(--split,100%),var(--turbo) var(--split,100%) 100%)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;margin-top:-10px;border-radius:50%;background:var(--surface);border:4px solid var(--text);box-shadow:0 1px 4px rgba(0,0,0,.35)}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--surface);border:4px solid var(--text)}
+input[type=range]:disabled{opacity:.4;cursor:not-allowed}
+
+/* ---------- profiles ---------- */
+.profiles{display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:520px){.profiles{grid-template-columns:1fr 1fr}}
+.prof{text-align:left;display:flex;flex-direction:column;gap:3px;padding:12px 14px;min-height:88px;border-radius:14px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.prof b{font-size:1.02rem}
+.prof span{font-size:.88rem;color:var(--muted)}
+.prof small{font-size:.76rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.prof[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.prof[aria-pressed="true"] b::after{content:" - in use";font-weight:600;color:var(--accent);font-size:.82rem}
+.prof:disabled{opacity:.5;cursor:not-allowed}
+
+/* ---------- custom editor ---------- */
+.editor{margin-top:14px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+.editor>summary{list-style:none;cursor:pointer;padding:14px;min-height:48px;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.editor>summary::-webkit-details-marker{display:none}
+.editor>summary::after{content:"";width:10px;height:10px;border-right:3px solid currentColor;border-bottom:3px solid currentColor;transform:rotate(45deg);transition:transform .2s;margin-right:4px}
+.editor[open]>summary::after{transform:rotate(-135deg)}
+.editor-body{padding:0 14px 14px}
+.editor-note{margin-bottom:10px}
+.fields{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:520px){.fields{grid-template-columns:1fr 1fr}}
+.field label{display:block;font-weight:650;font-size:.92rem}
+.field .help{font-size:.78rem;color:var(--muted)}
+.field .inp{display:flex;align-items:center;gap:8px;margin-top:4px}
+.field input[type=number]{width:100%;min-width:0;min-height:48px;padding:0 12px;border-radius:10px;border:2px solid var(--border);background:var(--bg);font-size:1.05rem;font-variant-numeric:tabular-nums}
+.field input[type=number]:focus{border-color:var(--accent);outline:none}
+.field.invalid input{border-color:var(--bad)}
+.field .unit{min-width:2.4em;color:var(--muted);font-size:.9rem}
+.field .err{color:var(--bad);font-size:.8rem;font-weight:600;min-height:0}
+.field.changed input{border-color:var(--warn);background:var(--warn-soft)}
+.checks{display:flex;flex-direction:column;gap:8px;margin:14px 0}
+.check{display:flex;align-items:flex-start;gap:12px;min-height:44px;padding:6px 0;cursor:pointer}
+.check input{width:24px;height:24px;margin:0;flex:none;accent-color:var(--accent)}
+.editor-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.editor-actions .btn{flex:1 1 150px}
+.adjusted{margin-top:12px}
+
+/* ---------- settings rows ---------- */
+.row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 14px;padding:12px 0;border-top:1px solid var(--border)}
+.row:first-of-type{border-top:0;padding-top:0}
+.row>div{flex:1 1 200px;min-width:0}
+.row .btn{flex:0 0 auto;white-space:nowrap}
+.row b{display:block}
+.row p{font-size:.86rem;color:var(--muted);margin-top:2px}
+.switch{flex:none;position:relative;width:68px;height:44px;border-radius:22px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;padding:0;transition:background .2s}
+.switch span{position:absolute;top:3px;left:3px;width:34px;height:34px;border-radius:50%;background:var(--muted);transition:transform .2s,background .2s}
+.switch[aria-checked="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.switch[aria-checked="true"] span{transform:translateX(24px);background:var(--accent)}
+.switch:disabled{opacity:.45}
+
+/* ---------- demo tools ---------- */
+.demo-card{border:2px dashed var(--demo);background:var(--demo-soft)}
+.demo-card h2{color:var(--demo)}
+.demo-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:8px}
+@media (min-width:520px){.demo-grid.two{grid-template-columns:1fr 1fr}}
+.demo-card label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:600;font-size:.92rem;min-height:44px}
+.demo-card select{min-height:44px;border-radius:10px;border:1px solid var(--border);background:var(--surface);padding:0 8px}
+.demo-card input[type=range]{height:36px}
+
+/* ---------- footer / toasts ---------- */
+.foot{margin-top:18px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;justify-content:space-between;font-size:.85rem;color:var(--muted)}
+.foot .links{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.linkbtn{background:none;border:0;padding:10px 0;min-height:44px;color:var(--accent);text-decoration:underline;cursor:pointer;font-size:.85rem}
+#toasts{position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:8px;padding:0 12px;z-index:60;pointer-events:none}
+.toast{pointer-events:none;max-width:520px;width:100%;padding:12px 14px;border-radius:12px;background:#1b222b;color:#f2f6fa;border:1px solid #3a4553;box-shadow:0 8px 28px rgba(0,0,0,.35);font-size:.93rem;animation:rise .25s ease-out}
+.toast b{display:block}
+.toast.err{background:#4a1612;border-color:#ff8a80}
+.toast.ok{background:#10301f;border-color:#5fd493}
+@keyframes rise{from{transform:translateY(10px);opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body data-conn="idle" data-mode="">
+<a class="skip" href="#main">Skip to the controls</a>
+
+<header class="top">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+      <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2dd4a7"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs>
+      <rect x="3" y="12" width="17" height="8" rx="3" fill="url(#lg)"/>
+      <path d="M23 8l5-3M23 16h6M23 24l5 3" stroke="url(#lg)" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+    </svg>
+    <div><h1>Aurora++</h1><p>Flashlight control</p></div>
+  </div>
+  <div id="pill" class="pill" role="status" aria-live="polite"><span class="dot"></span><span id="pill-text">Not connected</span></div>
+</header>
+
+<main id="main" class="wrap stack">
+
+  <div id="banner-demo" class="banner demo" hidden>
+    <div class="grow demo-text"><b>Demo mode.</b> A simulated flashlight inside this page - nothing here talks to real hardware.</div>
+    <button id="btn-exit-demo" class="btn slim" type="button">Exit demo</button>
+  </div>
+
+  <div id="banner-lost" class="banner bad" role="alert" hidden>
+    <div class="grow"><b>Bluetooth connection lost.</b> <span id="lost-text">The flashlight went out of range or its Bluetooth window closed.</span></div>
+    <button id="btn-reconnect" class="btn primary slim" type="button">Reconnect</button>
+    <button id="btn-choose" class="btn slim" type="button">Choose another</button>
+  </div>
+
+  <!-- ===== start view (not connected) ===== -->
+  <section id="view-start" class="card hero">
+    <h2>Control your flashlight from this page</h2>
+    <p class="lead">Brightness, battery, profiles and settings - over Bluetooth, no app to install.</p>
+    <div id="support" class="support" hidden>
+      <h3 id="support-title">This browser cannot use Bluetooth</h3>
+      <p id="support-reason"></p>
+      <ul>
+        <li><b>Android, Windows, macOS, Linux, ChromeOS:</b> open this page in <b>Google Chrome</b> or <b>Microsoft Edge</b>.</li>
+        <li><b>iPhone and iPad:</b> install the free <b>Bluefy</b> browser from the App Store and open this page in it. Safari and Chrome on iPhone cannot do this.</li>
+        <li><b>Firefox and Safari</b> do not support Web Bluetooth at all.</li>
+      </ul>
+      <p>You can still look around with <b>Try demo mode</b> below.</p>
+    </div>
+    <ol id="steps" class="steps">
+      <li><b>Wake up the flashlight's Bluetooth.</b> Switch the light on - or, if it is off, click the button three times quickly. The small colour LED blinks blue.</li>
+      <li><b>Tap Connect</b> and choose the device whose name starts with <b>Aurora-</b> in the list your browser shows.</li>
+    </ol>
+    <div class="actions">
+      <button id="btn-connect" class="btn primary big" type="button">Connect to flashlight</button>
+      <button id="btn-demo" class="btn demo big" type="button">Try demo mode</button>
+    </div>
+    <p id="start-msg" class="msg" role="status" aria-live="polite"></p>
+  </section>
+
+  <!-- ===== main view (connected / lost) ===== -->
+  <div id="view-main" class="layout" hidden>
+    <div class="col col-a">
+
+      <section id="card-status" class="card" aria-label="Battery and status">
+        <div class="battery">
+          <div class="big" aria-label="Battery level"><span id="bat-pct">--</span><small>%</small></div>
+          <div id="bat-bar" class="bar" aria-hidden="true"><i id="bat-fill"></i></div>
+        </div>
+        <p id="bat-line" class="line">Reading the flashlight...</p>
+        <dl class="stats">
+          <div class="stat"><dt>Battery voltage</dt><dd id="st-volt">--</dd></div>
+          <div class="stat"><dt>Temperature</dt><dd id="st-temp">--</dd></div>
+          <div class="stat"><dt>LED current</dt><dd id="st-led">--</dd></div>
+          <div class="stat"><dt>Runtime left</dt><dd id="st-run">--</dd></div>
+          <div class="stat"><dt>Turbo timer</dt><dd id="st-turbo">--</dd></div>
+          <div class="stat"><dt>Profile</dt><dd id="st-prof">--</dd></div>
+        </dl>
+        <div id="badges" class="badges" aria-live="polite"></div>
+        <p id="source-line" class="muted source"></p>
+      </section>
+
+      <section id="card-tools" class="card" aria-label="Settings">
+        <h2>Settings</h2>
+        <div class="row">
+          <div><b id="lbl-lockout">Lock the flashlight</b><p>Stops it switching on by accident, for example in a bag. To unlock, turn this off here or click the button four times.</p></div>
+          <button id="sw-lockout" class="switch" type="button" role="switch" aria-checked="false" aria-labelledby="lbl-lockout"><span></span></button>
+        </div>
+        <div class="row">
+          <div><b>Find my flashlight</b><p>The small colour LED blinks cyan three times.</p></div>
+          <button id="btn-identify" class="btn" type="button">Blink</button>
+        </div>
+        <div class="row">
+          <div><b>Keep Bluetooth on</b><p>To save power the flashlight switches Bluetooth off after a while. This keeps it available for a few more minutes. Tap again to extend.</p></div>
+          <button id="btn-keepalive" class="btn" type="button">Keep on</button>
+        </div>
+      </section>
+
+      <section id="card-demo" class="card demo-card" aria-label="Demo tools" hidden>
+        <h2>Demo tools</h2>
+        <p class="muted">These act like things you would do to a real flashlight. They only exist in demo mode.</p>
+        <div class="demo-grid two">
+          <button id="demo-button" class="btn demo" type="button">Press the flashlight button</button>
+          <button id="demo-drop" class="btn demo" type="button">Lose Bluetooth connection</button>
+        </div>
+        <div class="demo-grid">
+          <label>USB cable plugged in <input id="demo-usb" type="checkbox" style="width:24px;height:24px"></label>
+          <label>Hot day (45 &deg;C air) <input id="demo-hot" type="checkbox" style="width:24px;height:24px"></label>
+          <label>Battery charge <output id="demo-soc-out">78%</output></label>
+          <input id="demo-soc" type="range" min="0" max="100" value="78" aria-label="Battery charge">
+          <label>Battery drain speed
+            <select id="demo-speed"><option value="1">Real time</option><option value="20">20 x faster</option><option value="120">120 x faster</option></select>
+          </label>
+        </div>
+      </section>
+    </div>
+
+    <div class="col col-b">
+
+      <section id="card-light" class="card" aria-label="Light">
+        <div class="card-head"><h2>Light</h2><span id="light-chip" class="chip">Off</span></div>
+        <div id="banner-lock" class="banner warn lockbar" role="status" hidden>
+          <div class="grow"><b>App locked for <span id="lock-s">3</span> s</b> - the button has priority.</div>
+        </div>
+        <button id="btn-power" class="power" type="button" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 3v8"/><path d="M6.3 6.8a8 8 0 1 0 11.4 0"/></svg>
+          <span id="power-text">Turn on</span>
+        </button>
+        <div class="field-title" id="lbl-levels">Brightness level</div>
+        <div id="levels" class="levels" role="group" aria-labelledby="lbl-levels">
+          <button class="lvl" type="button" aria-pressed="false" data-level="0" data-n="0"><span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span>Moon</span></button>
+          <button class="lvl" type="button" aria-pressed="false" data-level="1" data-n="1"><span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span>Low</span></button>
+          <button class="lvl" type="button" aria-pressed="false" data-level="2" data-n="2"><span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span>Medium</span></button>
+          <button class="lvl" type="button" aria-pressed="false" data-level="3" data-n="3"><span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span>High</span></button>
+          <button class="lvl" type="button" aria-pressed="false" data-level="4" data-n="4"><span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span>Turbo</span></button>
+        </div>
+        <p id="level-note" class="muted small" style="margin-top:8px"></p>
+        <div id="turbo-line" class="turbo-line" hidden>
+          <span id="turbo-text">Turbo</span>
+          <div class="meter" aria-hidden="true"><i id="turbo-fill"></i></div>
+        </div>
+        <div class="slider-head" style="margin-top:18px"><label for="slider">Fine brightness</label><output id="slider-out" for="slider">-- mA</output></div>
+        <input id="slider" type="range" min="0" max="1000" step="1" value="0" aria-describedby="slider-hint">
+        <p id="slider-hint" class="muted small"></p>
+      </section>
+
+      <section id="card-profile" class="card" aria-label="Profile">
+        <div class="card-head"><h2>Profile</h2></div>
+        <p class="muted" style="margin-bottom:12px">A profile decides how bright each level is and how hard the battery and the LED are pushed.</p>
+        <div id="profiles" class="profiles" role="group" aria-label="Profile">
+          <button class="prof" type="button" aria-pressed="false" data-profile="0"><b>Extreme</b><span>Maximum light for short bursts. Gets warm and uses the battery fast.</span><small id="pdesc-0"></small></button>
+          <button class="prof" type="button" aria-pressed="false" data-profile="1"><b>Balanced</b><span>Good brightness and good battery life for everyday use.</span><small id="pdesc-1"></small></button>
+          <button class="prof" type="button" aria-pressed="false" data-profile="2"><b>Endurance</b><span>Longest battery life. The LED is never overdriven.</span><small id="pdesc-2"></small></button>
+          <button class="prof" type="button" aria-pressed="false" data-profile="3"><b>Custom</b><span>Your own levels and limits. Edit them below.</span><small id="pdesc-3"></small></button>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <div><b>Make it stick</b><p>The flashlight only remembers the profile and brightness level you picked after you save them.</p></div>
+          <button id="btn-save-sel" class="btn" type="button">Save to flashlight</button>
+        </div>
+
+        <details id="editor" class="editor">
+          <summary>Edit the Custom profile</summary>
+          <div class="editor-body">
+            <p id="editor-note" class="muted small editor-note"></p>
+            <div id="fields" class="fields"></div>
+            <div class="checks">
+              <label class="check"><input type="checkbox" id="fl-turbo"><span><b>Allow Turbo</b><br><span class="muted small">When off, Turbo is not available in this profile.</span></span></label>
+              <label class="check"><input type="checkbox" id="fl-remember"><span><b>Remember the last level</b><br><span class="muted small">When you switch the light on again it starts at the level you used last.</span></span></label>
+              <label class="check"><input type="checkbox" id="fl-battery"><span><b>Show the battery on the colour LED</b><br><span class="muted small">A short colour flash tells you the charge when you switch the light on.</span></span></label>
+            </div>
+            <div id="editor-summary" class="banner warn" hidden role="alert"></div>
+            <div id="adjusted" class="banner ok adjusted" hidden role="status"></div>
+            <div class="editor-actions">
+              <button id="btn-apply" class="btn" type="button">Apply (try it)</button>
+              <button id="btn-save" class="btn primary" type="button">Save to flashlight</button>
+              <button id="btn-reset-draft" class="btn slim" type="button">Start again from Balanced</button>
+            </div>
+            <p class="muted small" style="margin-top:8px"><b>Apply</b> switches the flashlight to your Custom profile right away. <b>Save to flashlight</b> also stores it, so it is still there after the battery was removed or the light was off for a long time.</p>
+          </div>
+        </details>
+      </section>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <span id="foot-device">Aurora++ control app 0.5.0 &middot; Bluetooth protocol v1</span>
+    <span class="links">
+      <a href="aurora-flasher.html">Update the firmware</a>
+      <button id="btn-disconnect" class="linkbtn" type="button" hidden>Disconnect</button>
+    </span>
+  </footer>
+</main>
+
+<div id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<script id="aurora-protocol">
+/* ==========================================================================
+   Aurora++ Bluetooth LE protocol, version 1  (docs/ble_protocol.md)
+   Pure functions only: no DOM, no Bluetooth. Everything is little-endian.
+   Exposed as the global AuroraProtocol (and as module.exports under Node,
+   which is how the unit tests in tools/web/test load exactly this code).
+   ========================================================================== */
+var AuroraProtocol = (function () {
+  'use strict';
+
+  /* ---- identifiers -------------------------------------------------------- */
+  var UUID = {
+    SERVICE: 'a7d40001-3c5e-4b8a-9f61-2d0c8e5b7a13',
+    STATUS:  'a7d40002-3c5e-4b8a-9f61-2d0c8e5b7a13',   /* read, notify, 18 bytes  */
+    COMMAND: 'a7d40003-3c5e-4b8a-9f61-2d0c8e5b7a13',   /* write with response, 1-3 bytes */
+    PROFILE: 'a7d40004-3c5e-4b8a-9f61-2d0c8e5b7a13',   /* read, write with response, 20 bytes */
+    INFO:    'a7d40005-3c5e-4b8a-9f61-2d0c8e5b7a13',   /* read, UTF-8, <= 20 bytes */
+    BATTERY_SERVICE: 'battery_service',                /* 0x180F */
+    BATTERY_LEVEL: 'battery_level'                     /* 0x2A19 */
+  };
+  var VERSION = 1, STATUS_LEN = 18, PROFILE_LEN = 20, FACTORY_RESET_KEY = 0xA5;
+  var KEEPALIVE_MAX_S = 600, APP_LOCK_S = 3;
+
+  var FLAG = { ON: 0x01, TURBO: 0x02, CHARGING: 0x04, CHARGE_DONE: 0x08, USB: 0x10, LOCKOUT: 0x20, THERMAL: 0x40, BATTERY_LIMIT: 0x80 };
+  var PFLAG = { TURBO_ALLOWED: 0x01, REMEMBER_LEVEL: 0x02, SHOW_BATTERY: 0x04 };
+  var LEVEL = { MOON: 0, LOW: 1, MEDIUM: 2, HIGH: 3, TURBO: 4, EXACT: 0xFF };
+  var LEVEL_NAMES = ['Moon', 'Low', 'Medium', 'High', 'Turbo'];
+  var PROFILE_NAMES = ['Extreme', 'Balanced', 'Endurance', 'Custom'];
+  var SOURCE = { NONE: 0, BUTTON: 1, APP: 2, AUTO: 3 };
+  var OP = { OFF: 0x01, ON: 0x02, LEVEL: 0x03, PROFILE: 0x04, OUTPUT_MA: 0x05, LOCKOUT: 0x06,
+             IDENTIFY: 0x07, SAVE: 0x08, KEEPALIVE: 0x09, FACTORY_RESET: 0x7F };
+  var ATT = { BUTTON_PRIORITY: 0x80, INVALID: 0x81, PROTECTION: 0x82, LOCKOUT: 0x83 };
+
+  /* ---- small helpers ------------------------------------------------------- */
+  function ProtocolError(message, attCode) {
+    var e = new Error(message);
+    e.name = 'ProtocolError';
+    e.attCode = attCode === undefined ? ATT.INVALID : attCode;
+    return e;
+  }
+
+  /* Accepts Uint8Array, DataView (what Web Bluetooth returns), ArrayBuffer or a plain array. */
+  function toBytes(v) {
+    if (ArrayBuffer.isView(v)) return new Uint8Array(v.buffer, v.byteOffset, v.byteLength);
+    if (Object.prototype.toString.call(v) === '[object ArrayBuffer]') return new Uint8Array(v);
+    if (Array.isArray(v)) return Uint8Array.from(v);
+    throw new TypeError('Expected bytes (Uint8Array, DataView, ArrayBuffer or array)');
+  }
+  function u16(b, o) { return b[o] | (b[o + 1] << 8); }
+  function i16(b, o) { var x = u16(b, o); return x & 0x8000 ? x - 0x10000 : x; }
+  function putU16(b, o, v) { b[o] = v & 0xFF; b[o + 1] = (v >> 8) & 0xFF; }
+  function hex2(n) { return (n < 16 ? '0' : '') + n.toString(16).toUpperCase(); }
+  function toHex(v) { return Array.prototype.map.call(toBytes(v), hex2).join(' '); }
+  function fromHex(s) {
+    var m = String(s).replace(/[^0-9a-fA-F]/g, '');
+    if (m.length % 2) throw new RangeError('odd number of hex digits');
+    var out = new Uint8Array(m.length / 2);
+    for (var i = 0; i < out.length; i++) out[i] = parseInt(m.substr(i * 2, 2), 16);
+    return out;
+  }
+  function intIn(v, lo, hi, what) {
+    if (typeof v !== 'number' || !isFinite(v) || Math.floor(v) !== v || v < lo || v > hi)
+      throw new RangeError(what + ' must be a whole number from ' + lo + ' to ' + hi + ' (got ' + v + ')');
+    return v;
+  }
+  function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+
+  /* ---- Status (18 bytes) --------------------------------------------------- */
+  function decodeStatus(input) {
+    var b = toBytes(input);
+    if (b.length < STATUS_LEN) throw ProtocolError('Status packet too short: ' + b.length + ' bytes, expected ' + STATUS_LEN);
+    var f = b[1], rt = u16(b, 15);
+    return {
+      version: b[0], versionOk: b[0] === VERSION,
+      flags: f,
+      on: !!(f & FLAG.ON), turbo: !!(f & FLAG.TURBO), charging: !!(f & FLAG.CHARGING), chargeDone: !!(f & FLAG.CHARGE_DONE),
+      usb: !!(f & FLAG.USB), lockout: !!(f & FLAG.LOCKOUT), thermalLimit: !!(f & FLAG.THERMAL), batteryLimit: !!(f & FLAG.BATTERY_LIMIT),
+      profile: b[2],
+      level: b[3], exact: b[3] === LEVEL.EXACT,
+      currentMa: u16(b, 4),
+      voltageMv: u16(b, 6),
+      soc: b[8],
+      tempDeci: i16(b, 9), tempC: i16(b, 9) / 10,
+      turboLeftS: u16(b, 11),
+      source: b[13],
+      appLockS: b[14],
+      runtimeMin: rt === 0xFFFF ? null : rt,
+      laser: b[17] !== 0
+    };
+  }
+  function encodeStatus(s) {
+    var b = new Uint8Array(STATUS_LEN);
+    var f = s.flags;
+    if (f === undefined) {
+      f = (s.on ? FLAG.ON : 0) | (s.turbo ? FLAG.TURBO : 0) | (s.charging ? FLAG.CHARGING : 0) | (s.chargeDone ? FLAG.CHARGE_DONE : 0) |
+          (s.usb ? FLAG.USB : 0) | (s.lockout ? FLAG.LOCKOUT : 0) | (s.thermalLimit ? FLAG.THERMAL : 0) | (s.batteryLimit ? FLAG.BATTERY_LIMIT : 0);
+    }
+    var tempDeci = s.tempDeci !== undefined ? s.tempDeci : Math.round(s.tempC * 10);
+    b[0] = s.version === undefined ? VERSION : intIn(s.version, 0, 255, 'version');
+    b[1] = intIn(f, 0, 255, 'flags');
+    b[2] = intIn(s.profile, 0, 255, 'profile');
+    b[3] = intIn(s.level, 0, 255, 'level');
+    putU16(b, 4, intIn(s.currentMa, 0, 65535, 'currentMa'));
+    putU16(b, 6, intIn(s.voltageMv, 0, 65535, 'voltageMv'));
+    b[8] = intIn(s.soc, 0, 255, 'soc');
+    putU16(b, 9, intIn(tempDeci, -32768, 32767, 'tempDeci') & 0xFFFF);
+    putU16(b, 11, intIn(s.turboLeftS, 0, 65535, 'turboLeftS'));
+    b[13] = intIn(s.source, 0, 255, 'source');
+    b[14] = intIn(s.appLockS, 0, 255, 'appLockS');
+    putU16(b, 15, s.runtimeMin === null || s.runtimeMin === undefined ? 0xFFFF : intIn(s.runtimeMin, 0, 65535, 'runtimeMin'));
+    b[17] = s.laser ? 1 : 0;
+    return b;
+  }
+
+  /* ---- Profile (20 bytes) -------------------------------------------------- */
+  /* Field names used throughout the app:
+     id, turboAllowed, rememberLevel, showBattery, moon, low, medium, high, turbo (mA),
+     turboTime (s), stepDown (mA), tempLimit (deg C), lvStep (10 mV steps above 3.00 V), cellLimit (mA) */
+  var PROFILE_KEYS = ['moon', 'low', 'medium', 'high', 'turbo', 'turboTime', 'stepDown', 'tempLimit', 'lvStep', 'cellLimit'];
+  var FIELD_NAMES = { moon: 'Moon', low: 'Low', medium: 'Medium', high: 'High', turbo: 'Turbo', turboTime: 'Turbo time',
+                      stepDown: 'Step-down', tempLimit: 'Temperature limit', lvStep: 'Low-battery step-down', cellLimit: 'Battery current limit' };
+
+  function decodeProfile(input) {
+    var b = toBytes(input);
+    if (b.length < PROFILE_LEN) throw ProtocolError('Profile packet too short: ' + b.length + ' bytes, expected ' + PROFILE_LEN);
+    return {
+      id: b[0],
+      turboAllowed: !!(b[1] & PFLAG.TURBO_ALLOWED), rememberLevel: !!(b[1] & PFLAG.REMEMBER_LEVEL), showBattery: !!(b[1] & PFLAG.SHOW_BATTERY),
+      moon: u16(b, 2), low: u16(b, 4), medium: u16(b, 6), high: u16(b, 8), turbo: u16(b, 10),
+      turboTime: u16(b, 12), stepDown: u16(b, 14),
+      tempLimit: b[16], lvStep: b[17], cellLimit: u16(b, 18)
+    };
+  }
+  function encodeProfile(p) {
+    var b = new Uint8Array(PROFILE_LEN);
+    b[0] = intIn(p.id, 0, 255, 'id');
+    b[1] = (p.turboAllowed ? PFLAG.TURBO_ALLOWED : 0) | (p.rememberLevel ? PFLAG.REMEMBER_LEVEL : 0) | (p.showBattery ? PFLAG.SHOW_BATTERY : 0);
+    putU16(b, 2, intIn(p.moon, 0, 65535, 'moon'));
+    putU16(b, 4, intIn(p.low, 0, 65535, 'low'));
+    putU16(b, 6, intIn(p.medium, 0, 65535, 'medium'));
+    putU16(b, 8, intIn(p.high, 0, 65535, 'high'));
+    putU16(b, 10, intIn(p.turbo, 0, 65535, 'turbo'));
+    putU16(b, 12, intIn(p.turboTime, 0, 65535, 'turboTime'));
+    putU16(b, 14, intIn(p.stepDown, 0, 65535, 'stepDown'));
+    b[16] = intIn(p.tempLimit, 0, 255, 'tempLimit');
+    b[17] = intIn(p.lvStep, 0, 255, 'lvStep');
+    putU16(b, 18, intIn(p.cellLimit, 0, 65535, 'cellLimit'));
+    return b;
+  }
+
+  /* Ranges from section 5 of the document. Some bounds depend on other fields. */
+  function profileBounds(p) {
+    /* A neighbour only sets a limit while its own value is valid. So one wrong number is flagged once,
+       not in every field that is measured against it. */
+    var b = {};
+    function good(k) { var v = p[k]; return Number.isInteger(v) && v >= b[k].min && v <= b[k].max; }
+    b.moon      = { min: 1, max: 50 };
+    b.low       = { min: good('moon') ? p.moon : 1, max: 300, minFrom: 'moon' };
+    b.medium    = { min: good('low') ? p.low : 1, max: 1000, minFrom: 'low' };
+    b.high      = { min: good('medium') ? p.medium : 1, max: 2000, minFrom: 'medium' };
+    b.turbo     = { min: good('high') ? p.high : 1, max: 3000, minFrom: 'high' };
+    b.turboTime = { min: 0, max: 300 };
+    b.stepDown  = { min: good('low') ? p.low : 1, max: good('high') ? p.high : 2000, minFrom: 'low', maxFrom: 'high' };
+    b.tempLimit = { min: 40, max: 70 };
+    b.lvStep    = { min: 10, max: 60 };
+    b.cellLimit = { min: 200, max: 3000 };
+    return b;
+  }
+  /* Returns { ok, errors: { field: message } } - used by the Custom profile editor. */
+  function validateProfile(p) {
+    var bounds = profileBounds(p), errors = {};
+    PROFILE_KEYS.forEach(function (k) {
+      var v = p[k], r = bounds[k];
+      if (!Number.isInteger(v)) { errors[k] = 'Enter a whole number.'; return; }
+      if (v < r.min || v > r.max) {
+        errors[k] = 'Use a value from ' + r.min + (r.minFrom ? ' (' + FIELD_NAMES[r.minFrom] + ')' : '') +
+                    ' to ' + r.max + (r.maxFrom ? ' (' + FIELD_NAMES[r.maxFrom] + ')' : '') + '.';
+      }
+    });
+    return { ok: Object.keys(errors).length === 0, errors: errors };
+  }
+  /* What the firmware is documented to do with out-of-range values: clamp each field in order. */
+  function clampProfile(p) {
+    var q = {}, k;
+    for (k in p) if (Object.prototype.hasOwnProperty.call(p, k)) q[k] = p[k];
+    q.moon = clamp(p.moon, 1, 50);
+    q.low = clamp(p.low, q.moon, 300);
+    q.medium = clamp(p.medium, q.low, 1000);
+    q.high = clamp(p.high, q.medium, 2000);
+    q.turbo = clamp(p.turbo, q.high, 3000);
+    q.turboTime = clamp(p.turboTime, 0, 300);
+    q.stepDown = clamp(p.stepDown, q.low, q.high);
+    q.tempLimit = clamp(p.tempLimit, 40, 70);
+    q.lvStep = clamp(p.lvStep, 10, 60);
+    q.cellLimit = clamp(p.cellLimit, 200, 3000);
+    return q;
+  }
+  function lvStepToVolts(step) { return (300 + step) / 100; }
+  function voltsToLvStep(v) { return Math.round(v * 100) - 300; }
+
+  /* Section 5.1. The document does not give the flag bits or the turbo/step-down values of
+     Endurance ("none"), so: Endurance has turbo = High, 0 s, step-down = High (assumption). */
+  var BUILTIN = [
+    { id: 0, turboAllowed: true, rememberLevel: true, showBattery: true, moon: 3, low: 40, medium: 250, high: 900, turbo: 2200, turboTime: 45, stepDown: 900, tempLimit: 55, lvStep: 30, cellLimit: 2600 },
+    { id: 1, turboAllowed: true, rememberLevel: true, showBattery: true, moon: 3, low: 30, medium: 200, high: 600, turbo: 1200, turboTime: 60, stepDown: 600, tempLimit: 50, lvStep: 35, cellLimit: 1600 },
+    { id: 2, turboAllowed: false, rememberLevel: true, showBattery: true, moon: 2, low: 15, medium: 100, high: 300, turbo: 300, turboTime: 0, stepDown: 300, tempLimit: 45, lvStep: 40, cellLimit: 800 }
+  ];
+  function builtinProfile(id) {
+    if (id === 3) { var c = Object.assign({}, BUILTIN[1]); c.id = 3; return c; }   /* Custom default = Balanced */
+    return Object.assign({}, BUILTIN[id]);
+  }
+  /* Turbo exists only when the flag is set, the time limit is above 0 and the turbo current is above High
+     (otherwise "turbo = High"). Same rule as the firmware. */
+  function hasTurbo(p) { return !!p.turboAllowed && p.turboTime > 0 && p.turbo > p.high; }
+  /* "Moon 3 - Low 40 ..." one-liner for the profile cards. */
+  function describeProfile(p) {
+    var s = 'Moon ' + p.moon + ' · Low ' + p.low + ' · Medium ' + p.medium + ' · High ' + p.high + ' mA';
+    s += hasTurbo(p) ? ' · Turbo ' + p.turbo + ' mA for ' + p.turboTime + ' s' : ' · no extra Turbo';
+    return s;
+  }
+
+  /* ---- Commands (Command characteristic, write with response) ------------- */
+  var cmd = {
+    off: function () { return Uint8Array.of(OP.OFF); },
+    on: function () { return Uint8Array.of(OP.ON); },
+    level: function (n) { intIn(n, 0, 4, 'level'); return Uint8Array.of(OP.LEVEL, n); },
+    profile: function (n) { intIn(n, 0, 3, 'profile'); return Uint8Array.of(OP.PROFILE, n); },
+    outputMa: function (ma) { intIn(ma, 0, 65535, 'mA'); return Uint8Array.of(OP.OUTPUT_MA, ma & 0xFF, (ma >> 8) & 0xFF); },
+    lockout: function (on) { return Uint8Array.of(OP.LOCKOUT, on ? 1 : 0); },
+    identify: function () { return Uint8Array.of(OP.IDENTIFY); },
+    save: function () { return Uint8Array.of(OP.SAVE); },
+    /* AMBIGUITY in the document: the argument is listed as "u8 seconds" but the maximum is 600 s,
+       which does not fit in a byte. keepaliveShort() is the form the table literally describes (one byte, max 255,
+       and what the firmware core decodes: exact lengths); keepalive() sends a u16 (3 bytes, enough for 600).
+       keepaliveAttempts() gives the forms in the order to try: the literal one first, the wide one only when more
+       than 255 s are wanted and the firmware refused the short form. */
+    keepalive: function (s) { intIn(s, 0, KEEPALIVE_MAX_S, 'seconds'); return Uint8Array.of(OP.KEEPALIVE, s & 0xFF, (s >> 8) & 0xFF); },
+    keepaliveShort: function (s) { intIn(s, 0, 255, 'seconds'); return Uint8Array.of(OP.KEEPALIVE, s); },
+    keepaliveAttempts: function (s) {
+      intIn(s, 0, KEEPALIVE_MAX_S, 'seconds');
+      var list = [{ bytes: cmd.keepaliveShort(Math.min(s, 255)), seconds: Math.min(s, 255) }];
+      if (s > 255) list.push({ bytes: cmd.keepalive(s), seconds: s });
+      return list;
+    },
+    factoryReset: function () { return Uint8Array.of(OP.FACTORY_RESET, FACTORY_RESET_KEY); }
+  };
+
+  /* Used by the demo flashlight (and the tests) to read a command back. Throws ProtocolError(0x81). */
+  function decodeCommand(input) {
+    var b = toBytes(input);
+    function bad(m) { return ProtocolError(m, ATT.INVALID); }
+    if (b.length < 1 || b.length > 3) throw bad('A command is 1 to 3 bytes');
+    var op = b[0];
+    function need(n) { if (b.length !== n) throw bad('Wrong length for opcode 0x' + hex2(op)); }
+    switch (op) {
+      case OP.OFF: need(1); return { op: op, name: 'OFF' };
+      case OP.ON: need(1); return { op: op, name: 'ON' };
+      case OP.LEVEL: need(2); if (b[1] > 4) throw bad('Level must be 0 to 4'); return { op: op, name: 'LEVEL', level: b[1] };
+      case OP.PROFILE: need(2); if (b[1] > 3) throw bad('Profile must be 0 to 3'); return { op: op, name: 'PROFILE', profile: b[1] };
+      case OP.OUTPUT_MA: need(3); return { op: op, name: 'OUTPUT_MA', ma: u16(b, 1) };
+      case OP.LOCKOUT: need(2); if (b[1] > 1) throw bad('Lockout argument must be 0 or 1'); return { op: op, name: 'LOCKOUT', on: b[1] === 1 };
+      case OP.IDENTIFY: need(1); return { op: op, name: 'IDENTIFY' };
+      case OP.SAVE: need(1); return { op: op, name: 'SAVE' };
+      case OP.KEEPALIVE:
+        if (b.length === 2) return { op: op, name: 'KEEPALIVE', seconds: Math.min(b[1], KEEPALIVE_MAX_S), wide: false };
+        if (b.length === 3) return { op: op, name: 'KEEPALIVE', seconds: Math.min(u16(b, 1), KEEPALIVE_MAX_S), wide: true };
+        throw bad('KEEPALIVE takes one argument');
+      case OP.FACTORY_RESET: need(2); if (b[1] !== FACTORY_RESET_KEY) throw bad('FACTORY_RESET needs 0xA5'); return { op: op, name: 'FACTORY_RESET' };
+      default: throw bad('Unknown opcode 0x' + hex2(op));
+    }
+  }
+
+  /* ---- Errors -------------------------------------------------------------- */
+  /* An error that looks like what browsers throw for a refused write. */
+  function makeAttError(code) {
+    var msg = 'GATT operation failed: ATT error 0x' + hex2(code);
+    if (typeof DOMException === 'function') return new DOMException(msg, 'NetworkError');
+    var e = new Error(msg); e.name = 'NetworkError'; return e;
+  }
+
+  function attInRange(n) { return n >= 0x80 && n <= 0x83 && Math.floor(n) === n; }
+  function codeFromText(text) {
+    var t = String(text), m;
+    /* "0x80" .. "0x83", also "0x0080" and "0X83" (but not "0x8012") */
+    m = /\b0x0*(8[0-3])\b/i.exec(t);
+    if (m) return parseInt(m[1], 16);
+    /* decimal 128..131 right after a word like "ATT error", "error", "code", "status" */
+    m = /(?:\bATT\b|\bGATT\b|\berror\b|\berr\b|\bcode\b|\bstatus\b|\becode\b)[\s_:=#()\-]*(?:code|status|error)?[\s_:=#()\-]*(12[89]|13[01])(?![0-9a-fx])/i.exec(t);
+    if (m) return parseInt(m[1], 10);
+    /* "(128)" or "[129]" */
+    m = /[(\[]\s*(12[89]|13[01])\s*[)\]]/.exec(t);
+    if (m) return parseInt(m[1], 10);
+    return null;
+  }
+  /* Browsers differ a lot in how (and whether) they show an ATT application error code, so look in
+     several places: numeric properties, the message text, the name, and nested causes. */
+  function attErrorCode(err, depth) {
+    depth = depth || 0;
+    if (err === null || err === undefined || depth > 4) return null;
+    if (typeof err === 'number') return attInRange(err) ? err : null;
+    if (typeof err === 'string') return codeFromText(err);
+    if (typeof err !== 'object') return null;
+    var keys = ['attErrorCode', 'attCode', 'errorCode', 'gattStatus', 'status', 'code'], i, v, c;
+    for (i = 0; i < keys.length; i++) {
+      v = err[keys[i]];
+      if (typeof v === 'number' && attInRange(v)) return v;
+      if (typeof v === 'string' && v.length < 80) { c = codeFromText(v); if (c !== null) return c; }
+    }
+    var texts = [err.message, err.name, err.description, err.reason];
+    for (i = 0; i < texts.length; i++) {
+      if (typeof texts[i] === 'string') { c = codeFromText(texts[i]); if (c !== null) return c; }
+    }
+    var nested = [err.cause, err.error, err.originalError];
+    for (i = 0; i < nested.length; i++) {
+      c = attErrorCode(nested[i], depth + 1);
+      if (c !== null) return c;
+    }
+    return null;
+  }
+  function isDisconnectError(err) {
+    var t = err && (String(err.message || '') + ' ' + String(err.name || ''));
+    return !!t && /not connected|disconnected|no longer in range|connection (?:was )?lost|device is no longer|invalidstate/i.test(t);
+  }
+
+  var FRIENDLY = {};
+  FRIENDLY[ATT.BUTTON_PRIORITY] = { kind: 'priority', title: 'The button has priority',
+    message: 'The flashlight\'s button was just used, so the app is paused for about 3 seconds. Wait a moment and try again.' };
+  FRIENDLY[ATT.INVALID] = { kind: 'invalid', title: 'The flashlight did not accept that',
+    message: 'It rejected the command or one of the numbers as invalid. Check the values and try again.' };
+  FRIENDLY[ATT.PROTECTION] = { kind: 'protection', title: 'Refused to protect the flashlight',
+    message: 'The battery is nearly empty or the flashlight is too hot. Charge it or let it cool down, then try again.' };
+  FRIENDLY[ATT.LOCKOUT] = { kind: 'lockout', title: 'The flashlight is locked',
+    message: 'Lockout is on, so the light cannot be switched on. Turn off "Lock the flashlight" in Settings, or click the button four times.' };
+
+  /* err: whatever the browser threw. status: the last decoded Status (or null), used only when the
+     browser does not reveal the ATT code. Returns { code, kind, title, message, guessed }. */
+  function explainError(err, status) {
+    var code = attErrorCode(err);
+    if (code !== null) { var f = FRIENDLY[code]; return { code: code, kind: f.kind, title: f.title, message: f.message, guessed: false }; }
+    if (isDisconnectError(err)) {
+      return { code: null, kind: 'disconnected', title: 'Not connected', message: 'The Bluetooth connection to the flashlight was lost. Tap Reconnect.', guessed: false };
+    }
+    if (status) {
+      var g = null;
+      if (status.appLockS > 0) g = ATT.BUTTON_PRIORITY;
+      else if (status.lockout) g = ATT.LOCKOUT;
+      else if (status.thermalLimit || status.batteryLimit || status.soc <= 3) g = ATT.PROTECTION;
+      if (g !== null) {
+        var h = FRIENDLY[g];
+        return { code: g, kind: h.kind, title: h.title, message: h.message + ' (Your browser does not say why the flashlight refused, so this is the most likely reason.)', guessed: true };
+      }
+    }
+    var raw = err && err.message ? String(err.message) : String(err);
+    return { code: null, kind: 'unknown', title: 'The flashlight did not accept that',
+      message: 'The command failed. Try again; if it keeps failing, disconnect and connect again. (' + raw + ')', guessed: false };
+  }
+
+  /* ---- Fine-brightness slider: logarithmic, 1 mA .. max mA, positions 0..1000 --------- */
+  function sliderToMa(pos, maxMa) {
+    maxMa = Math.max(2, maxMa);
+    return clamp(Math.round(Math.pow(maxMa, clamp(pos, 0, 1000) / 1000)), 1, maxMa);
+  }
+  function maToSlider(ma, maxMa) {
+    maxMa = Math.max(2, maxMa);
+    return clamp(Math.round(1000 * Math.log(clamp(ma, 1, maxMa)) / Math.log(maxMa)), 0, 1000);
+  }
+
+  /* ---- Formatting ---------------------------------------------------------- */
+  function formatRuntime(min) {
+    if (min === null || min === undefined) return '–';
+    if (min >= 6000) return '100+ h';
+    var h = Math.floor(min / 60), m = min % 60;
+    if (h === 0) return m + ' min';
+    return m === 0 ? h + ' h' : h + ' h ' + m + ' min';
+  }
+  function formatClock(s) { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60); }
+  function formatVolts(mv) { return (mv / 1000).toFixed(2) + ' V'; }
+  function formatTemp(c) { return c.toFixed(1) + ' °C'; }
+
+  var api = {
+    UUID: UUID, VERSION: VERSION, STATUS_LEN: STATUS_LEN, PROFILE_LEN: PROFILE_LEN, KEEPALIVE_MAX_S: KEEPALIVE_MAX_S, APP_LOCK_S: APP_LOCK_S,
+    FLAG: FLAG, PFLAG: PFLAG, LEVEL: LEVEL, LEVEL_NAMES: LEVEL_NAMES, PROFILE_NAMES: PROFILE_NAMES, SOURCE: SOURCE, OP: OP, ATT: ATT,
+    PROFILE_KEYS: PROFILE_KEYS, FIELD_NAMES: FIELD_NAMES, BUILTIN: BUILTIN,
+    ProtocolError: ProtocolError, toBytes: toBytes, toHex: toHex, fromHex: fromHex, clamp: clamp,
+    decodeStatus: decodeStatus, encodeStatus: encodeStatus,
+    decodeProfile: decodeProfile, encodeProfile: encodeProfile, profileBounds: profileBounds, validateProfile: validateProfile, clampProfile: clampProfile,
+    lvStepToVolts: lvStepToVolts, voltsToLvStep: voltsToLvStep, builtinProfile: builtinProfile, describeProfile: describeProfile, hasTurbo: hasTurbo,
+    cmd: cmd, decodeCommand: decodeCommand,
+    makeAttError: makeAttError, attErrorCode: attErrorCode, explainError: explainError, isDisconnectError: isDisconnectError,
+    sliderToMa: sliderToMa, maToSlider: maToSlider,
+    formatRuntime: formatRuntime, formatClock: formatClock, formatVolts: formatVolts, formatTemp: formatTemp
+  };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  return api;
+})();
+</script>
+<script id="aurora-sim">
+/* ==========================================================================
+   Demo flashlight: a small physical model of the Aurora++ that speaks the real
+   packet format. It uses AuroraProtocol.encodeStatus / decodeCommand / decodeProfile,
+   so the app's demo mode runs exactly the same encoder/decoder code as the
+   Bluetooth link does. Time is explicit (advance(seconds)) so tests are exact.
+   Model (all simplified, documented in docs/web_apps.md):
+   - two LP601646 cells in parallel, about 800 mAh, open-circuit curve + 0.15 ohm
+   - LED forward voltage 2.75 V + 0.15 V/A, buck efficiency 0.9 (document section 6)
+   - board temperature: first order, 7.5 K/W to the air, 70 s time constant
+   - protection: temperature, low voltage, cell current (section 6)
+   - button priority: 3 s app lock after every button action (section 4)
+   ========================================================================== */
+var AuroraSim = (function (P) {
+  'use strict';
+  var CAP_MAH = 800, R_INT = 0.15, BASE_MA = 8, CHARGE_MA = 280, RTH = 7.5, TAU = 70;
+  var OCV = [[0, 3.00], [3, 3.30], [10, 3.55], [20, 3.66], [40, 3.76], [60, 3.87], [80, 4.00], [100, 4.19]];
+
+  function ocv(soc) {
+    var i;
+    soc = P.clamp(soc, 0, 100);
+    for (i = 1; i < OCV.length; i++) {
+      if (soc <= OCV[i][0]) {
+        var a = OCV[i - 1], b = OCV[i];
+        return a[1] + (b[1] - a[1]) * (soc - a[0]) / (b[0] - a[0]);
+      }
+    }
+    return OCV[OCV.length - 1][1];
+  }
+  function ledVf(ma) { return 2.75 + 0.15 * ma / 1000; }
+  function batteryMa(ledMa, vbat) { return ledMa > 0 ? ledVf(ledMa) * ledMa / (0.9 * vbat) : 0; }   /* V_LED*I / (0.9*V_BAT) */
+  function att(code) { return P.makeAttError(code); }
+
+  function createFlashlight(opts) {
+    opts = opts || {};
+    var api = { name: opts.name || 'Aurora-A7D4', onStatus: null, onBattery: null, onDisconnect: null };
+    var st = {
+      t: 0,
+      on: false, level: 2, mem: 2, exactMa: null,
+      profileId: 1, custom: P.builtinProfile(3), saved: null,
+      lockout: false, usb: false, chargeDone: false,
+      remMah: CAP_MAH * (opts.soc !== undefined ? opts.soc : 78) / 100,
+      ambient: 24, tempC: 26,
+      turboActive: false, turboLeft: 0,
+      source: P.SOURCE.NONE, appLock: 0,
+      lvSteps: 0, lvTimer: 0, lvOff: false,
+      laser: false, keepalive: 0, speed: 1, identifyCount: 0, rebootT: -1,
+      vLoaded: 4.0, out: { req: 0, ma: 0, thermal: false, batt: false },
+      lastKey: '', lastEmitT: -99, lastSoc: -1
+    };
+    st.vLoaded = ocv(100 * st.remMah / CAP_MAH);
+
+    function params() { return st.profileId === 3 ? st.custom : P.builtinProfile(st.profileId); }
+    function soc() { return 100 * st.remMah / CAP_MAH; }
+    function turboEffective(p) { return P.hasTurbo(p); }
+    function levelMa(p, n) { return [p.moon, p.low, p.medium, p.high, p.turbo][n]; }
+    function maxExact(p) { return turboEffective(p) ? p.turbo : p.high; }
+
+    function requestMa(p) {
+      if (!st.on) return 0;
+      if (st.exactMa !== null) {
+        var r = Math.min(st.exactMa, maxExact(p));
+        if (turboEffective(p) && r > p.stepDown && !st.turboActive) r = p.stepDown;
+        return r;
+      }
+      if (st.level === 4) {
+        if (!turboEffective(p)) return p.high;
+        return st.turboActive ? p.turbo : p.stepDown;
+      }
+      return levelMa(p, st.level);
+    }
+
+    /* the LED current after every limit (section 6) */
+    function computeOutput(p) {
+      var o = { req: 0, ma: 0, thermal: false, batt: false };
+      if (!st.on) return o;
+      var req = requestMa(p), cap = req, T = st.tempC;
+      if (T > 80) cap = 0;
+      else if (T > 70) cap = Math.min(cap, p.moon);
+      else if (T > p.tempLimit) {
+        var f = Math.min(1, (T - p.tempLimit) / 15);        /* linear, 15 deg C above the limit -> Low */
+        if (cap > p.low) cap = Math.round(cap - (cap - p.low) * f);
+      }
+      if (cap < req) o.thermal = true;
+      var before = cap;
+      if (st.vLoaded < 3.10) cap = Math.min(cap, p.moon);
+      else if (st.lvSteps > 0) cap = Math.min(cap, [p.moon, p.low, p.medium, p.high, p.turbo][Math.max(0, 4 - st.lvSteps)]);
+      var vb = Math.max(3.0, st.vLoaded);
+      if (batteryMa(cap, vb) > p.cellLimit) {                /* bisect the largest current whose battery side stays inside the limit */
+        var lo = 0, hi = cap, i;
+        for (i = 0; i < 24; i++) { var mid = (lo + hi) / 2; if (batteryMa(mid, vb) > p.cellLimit) hi = mid; else lo = mid; }
+        cap = Math.floor(lo);
+      }
+      if (cap < before) o.batt = true;
+      o.req = req; o.ma = Math.max(0, Math.round(cap));
+      return o;
+    }
+    function charging(ma) { return st.usb && !st.chargeDone && st.tempC >= 0 && st.tempC <= 45 && ma <= 500 && soc() < 100; }
+    function chargeCurrent() { var s = soc(); return s <= 80 ? CHARGE_MA : CHARGE_MA * (1 - 0.8 * (s - 80) / 20); }
+
+    function step(dt) {
+      st.t += dt;
+      st.appLock = Math.max(0, st.appLock - dt);
+      var p = params();
+      if (st.turboActive) {
+        st.turboLeft -= dt;
+        if (st.turboLeft <= 0) { st.turboActive = false; st.turboLeft = 0; st.source = P.SOURCE.AUTO; }
+      }
+      var stepV = P.lvStepToVolts(p.lvStep);
+      if (st.on && st.vLoaded < stepV) {
+        st.lvTimer += dt;
+        if (st.lvTimer >= 5 && st.lvSteps < 4) { st.lvSteps++; st.lvTimer = 0; st.source = P.SOURCE.AUTO; }
+      } else if (st.vLoaded > stepV + 0.05) { st.lvSteps = 0; st.lvTimer = 0; }
+
+      var out = computeOutput(p);
+      var chg = charging(out.ma), vOc = ocv(soc());
+      var base = st.usb ? 0 : BASE_MA;                           /* with USB plugged in the electronics run from USB */
+      var draw = batteryMa(out.ma, vOc) + base, k;
+      for (k = 0; k < 2; k++) {                                  /* the sag changes the current: iterate twice */
+        st.vLoaded = vOc - draw / 1000 * R_INT + (chg ? 0.08 : 0);
+        draw = batteryMa(out.ma, Math.max(2.5, st.vLoaded)) + base;
+      }
+      st.remMah = P.clamp(st.remMah - draw * dt / 3600 * st.speed + (chg ? chargeCurrent() * dt / 3600 * st.speed : 0), 0, CAP_MAH);
+      if (st.usb && st.remMah >= CAP_MAH - 1e-6) st.chargeDone = true;
+      if (st.chargeDone && soc() < 96) st.chargeDone = false;
+
+      var heat = 0.75 * ledVf(out.ma) * out.ma / 1000;           /* 25 % of the electrical power leaves as light */
+      st.tempC += (st.ambient + RTH * heat + (chg ? 1.5 : 0) - st.tempC) * (1 - Math.exp(-dt / TAU));
+
+      if (st.on && (st.tempC > 80 || (st.vLoaded < 3.0 && !st.usb))) {   /* protection switches the light off */
+        if (st.vLoaded < 3.0) st.lvOff = true;
+        st.on = false; st.exactMa = null; st.turboActive = false; st.turboLeft = 0; st.source = P.SOURCE.AUTO;
+      }
+      if (st.lvOff && (st.usb || ocv(soc()) > 3.30)) st.lvOff = false;
+      st.out = computeOutput(p);
+      if (st.rebootT >= 0) { st.rebootT -= dt; if (st.rebootT < 0 && api.onDisconnect) api.onDisconnect('reboot'); }
+    }
+
+    function buildStatus() {
+      var out = st.out, bat = batteryMa(out.ma, Math.max(3.0, st.vLoaded)) + BASE_MA, usable = Math.max(0, st.remMah - 0.05 * CAP_MAH);
+      return P.encodeStatus({
+        on: st.on, turbo: st.on && st.turboActive, charging: charging(out.ma), chargeDone: st.usb && st.chargeDone, usb: st.usb,
+        lockout: st.lockout, thermalLimit: st.on && out.thermal, batteryLimit: st.on && out.batt,
+        profile: st.profileId, level: st.exactMa !== null ? P.LEVEL.EXACT : st.level,
+        currentMa: out.ma, voltageMv: Math.round(st.vLoaded * 1000), soc: Math.round(P.clamp(soc(), 0, 100)),
+        tempDeci: Math.round(st.tempC * 10), turboLeftS: st.on && st.turboActive ? Math.ceil(st.turboLeft) : 0,
+        source: st.source, appLockS: Math.ceil(st.appLock - 1e-9) > 0 ? Math.ceil(st.appLock - 1e-9) : 0,
+        runtimeMin: st.on && out.ma > 0 ? Math.min(0xFFFE, Math.round(usable / bat * 60)) : null, laser: st.laser
+      });
+    }
+    function emit(force) {
+      st.out = computeOutput(params());
+      var bytes = buildStatus(), key = P.toHex(bytes);
+      if ((force || key !== st.lastKey || st.t - st.lastEmitT >= 2) && api.onStatus) { st.lastKey = key; st.lastEmitT = st.t; api.onStatus(bytes); }
+      else if (force || key !== st.lastKey) { st.lastKey = key; st.lastEmitT = st.t; }
+      if (bytes[8] !== st.lastSoc) { st.lastSoc = bytes[8]; if (api.onBattery) api.onBattery(bytes[8]); }
+    }
+
+    /* (re)start the turbo timer according to what is selected */
+    function applyOutputMode(p, fresh) {
+      var turboNow = false;
+      if (turboEffective(p)) {
+        if (st.exactMa !== null) turboNow = st.exactMa > p.stepDown;
+        else turboNow = st.level === 4;
+      }
+      if (turboNow) { if (fresh || !st.turboActive) { st.turboActive = true; st.turboLeft = p.turboTime; } }
+      else { st.turboActive = false; st.turboLeft = 0; }
+    }
+    function tooHotForTurbo(p) { return st.tempC > p.tempLimit - 5; }
+
+    function execute(bytes) {
+      var c;
+      try { c = P.decodeCommand(bytes); } catch (e) { throw att(e.attCode || P.ATT.INVALID); }
+      var p = params();
+      var switching = c.name === 'OFF' || c.name === 'ON' || c.name === 'LEVEL' || c.name === 'PROFILE' || c.name === 'OUTPUT_MA';
+      if (switching && st.appLock > 0) throw att(P.ATT.BUTTON_PRIORITY);
+      switch (c.name) {
+        case 'OFF': st.on = false; st.exactMa = null; applyOutputMode(p, true); break;
+        case 'ON':
+          if (st.lockout) throw att(P.ATT.LOCKOUT);
+          if (st.lvOff || st.tempC > 80) throw att(P.ATT.PROTECTION);
+          if (!st.on && st.exactMa === null && st.level === 4) st.level = st.mem;   /* Turbo is never remembered for the next switch-on */
+          st.on = true; applyOutputMode(p, true);
+          if (st.turboActive && tooHotForTurbo(p)) { st.turboActive = false; st.turboLeft = 0; }
+          break;
+        case 'LEVEL':
+          if (c.level === 4 && st.on && turboEffective(p) && tooHotForTurbo(p)) throw att(P.ATT.PROTECTION);
+          st.level = c.level; if (c.level < 4) st.mem = c.level; st.exactMa = null; applyOutputMode(p, true); break;
+        case 'PROFILE':
+          st.profileId = c.profile; p = params();
+          if (st.exactMa !== null) st.exactMa = Math.min(st.exactMa, maxExact(p));
+          applyOutputMode(p, true); break;
+        case 'OUTPUT_MA':
+          if (c.ma < 1) throw att(P.ATT.INVALID);
+          if (!st.on && st.lockout) throw att(P.ATT.LOCKOUT);
+          if (!st.on && (st.lvOff || st.tempC > 80)) throw att(P.ATT.PROTECTION);
+          st.exactMa = P.clamp(c.ma, 1, maxExact(p)); st.on = true; applyOutputMode(p, false); break;
+        case 'LOCKOUT': st.lockout = c.on; break;
+        case 'IDENTIFY': st.identifyCount++; break;
+        case 'SAVE': st.saved = { profileId: st.profileId, level: st.level, custom: Object.assign({}, st.custom) }; break;
+        case 'KEEPALIVE': st.keepalive = c.seconds; break;
+        case 'FACTORY_RESET':
+          st.profileId = 1; st.custom = P.builtinProfile(3); st.saved = null; st.level = 2; st.exactMa = null; st.on = false;
+          st.lockout = false; st.turboActive = false; st.turboLeft = 0; st.rebootT = 0.6; break;
+      }
+      if (switching || c.name === 'LOCKOUT') st.source = P.SOURCE.APP;
+      emit(true);
+    }
+
+    api.advance = function (sec) {
+      var left = sec, d;
+      while (left > 1e-9) { d = Math.min(0.25, left); step(d); left -= d; emit(false); }
+    };
+    api.readStatus = function () { st.out = computeOutput(params()); return buildStatus(); };
+    api.readProfile = function () { var p = params(); return P.encodeProfile(Object.assign({}, p, { id: st.profileId })); };
+    api.readInfo = function () { var s = 'Aurora++ fw 0.5.0', b = new Uint8Array(s.length), i; for (i = 0; i < s.length; i++) b[i] = s.charCodeAt(i); return b; };
+    api.readBattery = function () { return Uint8Array.of(Math.round(P.clamp(soc(), 0, 100))); };
+    api.writeCommand = function (bytes) { execute(bytes); };
+    api.writeProfile = function (bytes) {
+      var q;
+      try { q = P.decodeProfile(bytes); } catch (e) { throw att(P.ATT.INVALID); }
+      if (bytes.length !== P.PROFILE_LEN || q.id !== 3) throw att(P.ATT.INVALID);
+      q = P.clampProfile(q); q.id = 3;
+      st.custom = q; st.profileId = 3;
+      var p = params();
+      if (st.exactMa !== null) st.exactMa = Math.min(st.exactMa, maxExact(p));
+      applyOutputMode(p, false);
+      emit(true);
+    };
+
+    /* --- things that happen to a real flashlight --- */
+    api.pressButton = function () {
+      var p = params();
+      st.appLock = P.APP_LOCK_S; st.source = P.SOURCE.BUTTON; st.exactMa = null;
+      if (!st.lockout) {
+        if (st.on) { st.on = false; }
+        else if (!st.lvOff && st.tempC <= 80) { st.on = true; if (st.level === 4) st.level = st.mem; }
+        applyOutputMode(p, true);
+      }
+      emit(true);
+    };
+    api.setUsb = function (b) { st.usb = !!b; if (!st.usb) st.chargeDone = false; emit(true); };
+    api.setAmbient = function (c) { st.ambient = c; };
+    api.setSoc = function (pct) { st.remMah = CAP_MAH * P.clamp(pct, 0, 100) / 100; st.chargeDone = false; st.lvSteps = 0; st.vLoaded = ocv(pct); emit(true); };
+    api.setSpeed = function (x) { st.speed = Math.max(1, x); };
+    api.setLaser = function (b) { st.laser = !!b; emit(true); };
+    api.drop = function () { if (api.onDisconnect) api.onDisconnect('drop'); };
+    api.state = function () { return Object.assign({}, st, { socPct: soc(), params: params() }); };
+    emit(true);
+    return api;
+  }
+
+  var api = { createFlashlight: createFlashlight, ocv: ocv, ledVf: ledVf, batteryMa: batteryMa, CAP_MAH: CAP_MAH };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  return api;
+})(AuroraProtocol);
+</script>
+<script id="aurora-app">
+(function () {
+  'use strict';
+  var P = AuroraProtocol, Sim = AuroraSim;
+  var APP_VERSION = '0.5.0';
+
+  /* ---------------------------------------------------------------- helpers */
+  function $(id) { return document.getElementById(id); }
+  function qsa(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function now() { return performance.now(); }
+  function setText(id, text) { var e = $(id); if (e && e.textContent !== text) e.textContent = text; }
+  function setHidden(id, hidden) { var e = $(id); if (e && e.hidden !== hidden) e.hidden = hidden; }
+  function nameOfProfile(n) { return P.PROFILE_NAMES[n] || ('profile ' + n); }
+
+  function toast(text, kind, title) {
+    var box = $('toasts'), i, el;
+    for (i = 0; i < box.children.length; i++) if (box.children[i].textContent === (title || '') + text) return;
+    el = document.createElement('div');
+    el.className = 'toast' + (kind ? ' ' + kind : '');
+    if (title) { var b = document.createElement('b'); b.textContent = title; el.appendChild(b); }
+    el.appendChild(document.createTextNode(text));
+    box.appendChild(el);
+    while (box.children.length > 3) box.removeChild(box.firstChild);
+    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, kind === 'err' ? 8000 : 4000);
+  }
+
+  /* ------------------------------------------------------------------ state */
+  var S = {
+    conn: 'idle',            /* idle | connecting | connected | lost */
+    mode: '',                /* '' | ble | demo */
+    link: null, device: null, sim: null, demoTimer: null,
+    status: null, statusAt: 0, batteryPct: null,
+    profile: null,           /* decoded Profile characteristic = the ACTIVE profile */
+    name: '', info: '',
+    userClosed: false, reconnecting: false, autoTries: 0,
+    draft: null, draftDirty: false, changed: {},
+    lockedShown: null, versionWarned: false, cmdSeq: 0
+  };
+
+  /* ------------------------------------------------------ Web Bluetooth link */
+  function makeQueue() {            /* Web Bluetooth allows ONE GATT operation at a time */
+    var tail = Promise.resolve();
+    return function (fn) {
+      var run = tail.then(fn);
+      tail = run.then(function () {}, function () {});
+      return run;
+    };
+  }
+  function writeChar(ch, bytes) {
+    return typeof ch.writeValueWithResponse === 'function' ? ch.writeValueWithResponse(bytes) : ch.writeValue(bytes);
+  }
+  async function connectGatt(device) {
+    var lastErr, i;
+    for (i = 0; i < 3; i++) {
+      try { return await device.gatt.connect(); }
+      catch (e) { lastErr = e; await sleep(400 * (i + 1)); }
+    }
+    throw lastErr;
+  }
+  async function openBleLink(device) {
+    var server = await connectGatt(device), q = makeQueue();
+    var svc = await server.getPrimaryService(P.UUID.SERVICE);
+    var chStatus = await svc.getCharacteristic(P.UUID.STATUS);
+    var chCmd = await svc.getCharacteristic(P.UUID.COMMAND);
+    var chProf = await svc.getCharacteristic(P.UUID.PROFILE);
+    var chInfo = null, chBatt = null;
+    try { chInfo = await svc.getCharacteristic(P.UUID.INFO); } catch (e) { /* optional */ }
+    try {
+      var bsvc = await server.getPrimaryService(P.UUID.BATTERY_SERVICE);
+      chBatt = await bsvc.getCharacteristic(P.UUID.BATTERY_LEVEL);
+    } catch (e) { /* the Status packet carries the percentage as well */ }
+    var link = { kind: 'ble', name: device.name || 'Aurora', onStatus: null, onBattery: null, onDisconnect: null };
+    chStatus.addEventListener('characteristicvaluechanged', function (ev) { if (link.onStatus) link.onStatus(ev.target.value); });
+    await q(function () { return chStatus.startNotifications(); });
+    if (chBatt) {
+      chBatt.addEventListener('characteristicvaluechanged', function (ev) { if (link.onBattery) link.onBattery(ev.target.value.getUint8(0)); });
+      try { await q(function () { return chBatt.startNotifications(); }); } catch (e) { /* not fatal */ }
+    }
+    link.readStatus = function () { return q(function () { return chStatus.readValue(); }); };
+    link.readProfile = function () { return q(function () { return chProf.readValue(); }); };
+    link.readInfo = function () { return chInfo ? q(function () { return chInfo.readValue(); }) : Promise.reject(new Error('no info')); };
+    link.sendCommand = function (bytes) { return q(function () { return writeChar(chCmd, bytes); }); };
+    link.writeProfile = function (bytes) { return q(function () { return writeChar(chProf, bytes); }); };
+    link.disconnect = function () { try { if (device.gatt && device.gatt.connected) device.gatt.disconnect(); } catch (e) { /* ignore */ } };
+    if (!device.__auroraListener) {            /* add the disconnect listener once per device object */
+      device.__auroraListener = true;
+      device.addEventListener('gattserverdisconnected', function () {
+        if (S.device === device && S.link && S.link.kind === 'ble' && S.link.onDisconnect) S.link.onDisconnect('ble');
+      });
+    }
+    return link;
+  }
+
+  /* ------------------------------------------------------------ demo link */
+  function makeDemoLink(sim) {
+    var link = { kind: 'demo', name: sim.name, onStatus: null, onBattery: null, onDisconnect: null };
+    function lag() { return sleep(50 + Math.random() * 70); }       /* feels like Bluetooth */
+    sim.onStatus = function (b) { if (link.onStatus) link.onStatus(b); };
+    sim.onBattery = function (p) { if (link.onBattery) link.onBattery(p); };
+    sim.onDisconnect = function (why) { if (link.onDisconnect) link.onDisconnect(why); };
+    link.readStatus = async function () { await lag(); return sim.readStatus(); };
+    link.readProfile = async function () { await lag(); return sim.readProfile(); };
+    link.readInfo = async function () { await lag(); return sim.readInfo(); };
+    link.sendCommand = async function (bytes) { await lag(); sim.writeCommand(bytes); };
+    link.writeProfile = async function (bytes) { await lag(); sim.writeProfile(bytes); };
+    link.disconnect = function () { sim.onStatus = null; sim.onBattery = null; sim.onDisconnect = null; };
+    return link;
+  }
+  function startDemoTimer() {
+    stopDemoTimer();
+    var last = now();
+    S.demoTimer = setInterval(function () {
+      var t = now(), dt = Math.min(1, Math.max(0, (t - last) / 1000));
+      last = t;
+      if (S.sim) S.sim.advance(dt);
+    }, 250);
+  }
+  function stopDemoTimer() { if (S.demoTimer) { clearInterval(S.demoTimer); S.demoTimer = null; } }
+
+  /* ------------------------------------------------------------- sessions */
+  function onStatusBytes(raw) {
+    var st;
+    try { st = P.decodeStatus(raw); } catch (e) { if (window.console) console.warn('bad status packet', e); return; }
+    var prev = S.status;
+    S.status = st; S.statusAt = now(); S.batteryPct = st.soc;
+    if (!st.versionOk && !S.versionWarned) {
+      S.versionWarned = true;
+      toast('This flashlight speaks Bluetooth protocol version ' + st.version + ', this app speaks version ' + P.VERSION + '. Some controls may not work - update the app or the firmware.', 'err', 'Version mismatch');
+    }
+    if (prev && prev.profile !== st.profile && S.conn === 'connected') refreshProfile();
+    renderStatus();
+  }
+
+  async function startSession(link) {
+    S.link = link; S.mode = link.kind; S.name = link.name; S.userClosed = false;
+    link.onStatus = onStatusBytes;
+    link.onBattery = function (pct) { S.batteryPct = pct; renderBattery(); };
+    link.onDisconnect = function (why) { if (S.link === link) handleLost(why); };
+    var st = P.decodeStatus(await link.readStatus());
+    S.status = st; S.statusAt = now(); S.batteryPct = st.soc;
+    S.profile = P.decodeProfile(await link.readProfile());
+    S.conn = 'connected'; S.autoTries = 0;
+    link.readInfo().then(function (b) { S.info = new TextDecoder().decode(P.toBytes(b)).replace(/\0+$/, ''); renderFooter(); }, function () {});
+    if (!S.draftDirty) resetDraft();
+    renderAll();
+  }
+
+  function startError(e) {
+    var msg;
+    if (e && e.name === 'NotFoundError') {
+      msg = /adapter|bluetooth.*(off|disabled|unavailable)/i.test(e.message || '')
+        ? 'Bluetooth seems to be switched off on this device. Turn it on and try again.'
+        : (/cancel/i.test(e.message || '') ? 'No flashlight was chosen. Wake its Bluetooth (switch the light on, or triple-click the button) and tap Connect again.'
+                                            : 'No Aurora flashlight was found. Wake its Bluetooth (switch the light on, or triple-click the button), stay close and tap Connect again.');
+    } else if (e && (e.name === 'SecurityError' || e.name === 'NotAllowedError')) {
+      msg = 'Bluetooth is blocked for this page. Allow Bluetooth for it in the browser\'s site settings, then try again.';
+    } else {
+      msg = 'Could not connect: ' + ((e && e.message) || e) + '. Make sure the flashlight\'s Bluetooth is awake (switch the light on or triple-click the button), stay close, and try again.';
+    }
+    var m = $('start-msg'); m.textContent = msg; m.className = 'msg err';
+  }
+
+  async function connectDevice(device) {
+    S.device = device; S.mode = 'ble'; S.conn = 'connecting'; S.name = device.name || 'Aurora'; S.userClosed = false;
+    renderConn();
+    try {
+      await startSession(await openBleLink(device));
+    } catch (e) {
+      S.conn = 'idle'; S.mode = ''; renderConn(); startError(e);
+    }
+  }
+  async function onConnectClick() {
+    if (!hasBluetooth()) { showSupport(); return; }
+    var m = $('start-msg'); m.textContent = ''; m.className = 'msg';
+    var device;
+    try {
+      device = await navigator.bluetooth.requestDevice({ filters: [{ namePrefix: 'Aurora' }], optionalServices: [P.UUID.SERVICE, 'battery_service'] });
+    } catch (e) { startError(e); return; }
+    await connectDevice(device);
+  }
+
+  function startDemo() {
+    var sim = Sim.createFlashlight({ soc: 78 });
+    S.sim = sim; S.device = null; S.mode = 'demo'; S.conn = 'connecting'; S.name = sim.name; S.draftDirty = false;
+    renderConn();
+    startDemoTimer();
+    startSession(makeDemoLink(sim)).catch(function (e) { S.conn = 'idle'; S.mode = ''; renderConn(); startError(e); });
+  }
+  function leave() {                                /* back to the start screen */
+    S.userClosed = true; stopDemoTimer();
+    if (S.link) S.link.disconnect();
+    S.link = null; S.sim = null; S.status = null; S.profile = null; S.conn = 'idle'; S.mode = ''; S.info = '';
+    S.draftDirty = false; S.versionWarned = false;
+    renderConn();
+  }
+
+  function scheduleAutoReconnect() {                /* a real link gets two quiet tries (after 1.2 s, then 4 s later) */
+    if (S.mode !== 'ble' || S.userClosed || S.autoTries >= 2) return;
+    S.autoTries++;
+    setTimeout(function () { if (S.conn === 'lost' && !S.reconnecting && !S.userClosed) reconnect(false); }, S.autoTries === 1 ? 1200 : 4000);
+  }
+  function handleLost(why) {
+    if (S.conn !== 'connected') return;
+    S.conn = 'lost';
+    setText('lost-text', why === 'reboot' ? 'The flashlight restarted.' : 'The flashlight went out of range or its Bluetooth window closed. Wake it (switch the light on or triple-click the button) and tap Reconnect.');
+    renderConn();
+    scheduleAutoReconnect();
+  }
+  async function reconnect(manual) {
+    if (S.reconnecting) return;
+    S.reconnecting = true;
+    var btn = $('btn-reconnect'); btn.classList.add('busy');
+    try {
+      if (S.mode === 'demo' && S.sim) await startSession(makeDemoLink(S.sim));
+      else if (S.device) await startSession(await openBleLink(S.device));
+      else throw new Error('No device to reconnect to');
+      toast('Reconnected to ' + S.name + '.', 'ok');
+    } catch (e) {
+      S.conn = 'lost'; renderConn();
+      if (manual) toast('Could not reconnect: ' + ((e && e.message) || e) + '. Wake the flashlight (switch the light on or triple-click the button) and try again.', 'err', 'Still not connected');
+      else scheduleAutoReconnect();
+    } finally { S.reconnecting = false; btn.classList.remove('busy'); }
+  }
+  async function chooseAnother() {
+    var old = S.device; leave();
+    if (old && old.gatt && old.gatt.connected) { try { old.gatt.disconnect(); } catch (e) { /* ignore */ } }
+    onConnectClick();
+  }
+
+  /* -------------------------------------------------------------- commands */
+  function appLockLeft() { return S.status ? Math.max(0, S.status.appLockS - (now() - S.statusAt) / 1000) : 0; }
+  function turboLeft() { return S.status && S.status.turbo ? Math.max(0, S.status.turboLeftS - (now() - S.statusAt) / 1000) : 0; }
+  function blocked(code) {
+    var info = P.explainError({ attErrorCode: code }, null);
+    toast(info.message, 'err', info.title);
+  }
+  function reportError(e) {
+    var info = P.explainError(e, S.status);
+    if (info.kind === 'disconnected') { handleLost('write'); return; }
+    toast(info.message, 'err', info.title);
+  }
+  var refreshTimer = null;
+  function scheduleRefresh() {
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(async function () {
+      if (S.conn !== 'connected' || !S.link) return;
+      try { onStatusBytes(await S.link.readStatus()); } catch (e) { /* the disconnect event handles real losses */ }
+    }, 300);
+  }
+  async function send(bytes) {
+    if (S.conn !== 'connected') return false;
+    S.cmdSeq++;                                      /* lets a follow-up check notice that the user did something else meanwhile */
+    try { await S.link.sendCommand(bytes); scheduleRefresh(); return true; }
+    catch (e) { reportError(e); scheduleRefresh(); return false; }
+  }
+  function guard(action) {          /* checks the app already knows the answer to, before using Bluetooth */
+    var st = S.status;
+    if (!st) return false;
+    if (action === 'switch' && appLockLeft() > 0.05) { blocked(P.ATT.BUTTON_PRIORITY); return false; }
+    return true;
+  }
+
+  async function actPower() {
+    var st = S.status; if (!st || !guard('switch')) return;
+    if (!st.on && st.lockout) { blocked(P.ATT.LOCKOUT); return; }
+    var wasOn = st.on;
+    if (await send(wasOn ? P.cmd.off() : P.cmd.on())) {     /* show the new state at once; the next Status packet confirms it */
+      S.status = Object.assign({}, S.status, { on: !wasOn }); renderStatus();
+    }
+  }
+  async function actLevel(n) {
+    var st = S.status; if (!st || !guard('switch')) return;
+    if (!st.on && st.lockout) { blocked(P.ATT.LOCKOUT); return; }
+    /* The document does not say whether LEVEL switches the light on, so when it is off: set the level, then switch on. */
+    var ok = await send(P.cmd.level(n));
+    if (ok && !st.on) {
+      ok = await send(P.cmd.on());
+      if (ok) {
+        var seq = S.cmdSeq;
+        S.status = Object.assign({}, S.status, { on: true, level: n }); renderStatus();
+        /* Switching on may use the remembered level (Turbo is never remembered): look, and repeat LEVEL if it differs
+           - unless the user has already tapped something else in the meantime. */
+        try {
+          await sleep(120);
+          if (S.cmdSeq !== seq) return;
+          var raw = await S.link.readStatus();
+          if (S.cmdSeq !== seq) return;
+          onStatusBytes(raw);
+          if (S.status.on && !S.status.exact && S.status.level !== n) await send(P.cmd.level(n));
+        } catch (e) { /* the next Status packet corrects the display */ }
+      }
+    }
+  }
+  async function actProfile(n) {
+    if (!guard('switch')) return;
+    if (await send(P.cmd.profile(n))) {
+      S.status = Object.assign({}, S.status, { profile: n });
+      await refreshProfile();
+      if (n === 3) $('editor').open = true;
+    }
+  }
+  async function actLockout() {
+    var st = S.status; if (!st) return;
+    var want = !st.lockout;
+    if (await send(P.cmd.lockout(want))) {
+      S.status = Object.assign({}, S.status, { lockout: want }); renderStatus();
+      toast(want ? 'The flashlight is locked. Click its button four times, or switch this off, to unlock it.' : 'The flashlight is unlocked.', 'ok');
+    }
+  }
+  async function actIdentify() {
+    if (await send(P.cmd.identify())) toast('Look at your flashlight: the small colour LED blinks cyan three times.', 'ok', 'Blinking');
+  }
+  async function actKeepalive() {
+    if (S.conn !== 'connected') return;
+    var attempts = P.cmd.keepaliveAttempts(P.KEEPALIVE_MAX_S), i;
+    for (i = 0; i < attempts.length; i++) {
+      try {
+        await S.link.sendCommand(attempts[i].bytes);
+        var mins = Math.round(attempts[i].seconds / 60);
+        toast('Bluetooth stays available for about ' + mins + ' more minutes. Tap again at any time to extend it.', 'ok', 'Bluetooth kept on');
+        return;
+      } catch (e) {
+        var code = P.attErrorCode(e);
+        if (i + 1 < attempts.length && !P.isDisconnectError(e) && (code === null || code === P.ATT.INVALID)) continue;   /* try the 1-byte form */
+        reportError(e); return;
+      }
+    }
+  }
+  async function actSaveSelection() {
+    if (await send(P.cmd.save())) toast('The flashlight will remember the current profile and brightness level, also after it has been off for a long time.', 'ok', 'Saved to flashlight');
+  }
+  async function refreshProfile() {
+    if (!S.link || S.conn !== 'connected') return;
+    try {
+      S.profile = P.decodeProfile(await S.link.readProfile());
+      if (!S.draftDirty) resetDraft();
+      renderStatus();
+    } catch (e) { /* ignore: next status packet tries again */ }
+  }
+
+  /* --- fine brightness slider: throttled to ~5 writes per second --- */
+  var slider = { timer: null, last: 0, pending: null, dragging: false };
+  function sliderMax() { var p = S.profile; if (!p) return 3000; return P.hasTurbo(p) ? p.turbo : p.high; }
+  function onSliderInput() {
+    slider.dragging = true;
+    var ma = P.sliderToMa(+$('slider').value, sliderMax());
+    setText('slider-out', ma + ' mA');
+    slider.pending = ma;
+    if (!slider.timer) slider.timer = setTimeout(flushSlider, Math.max(0, 200 - (now() - slider.last)));
+  }
+  async function flushSlider() {
+    clearTimeout(slider.timer); slider.timer = null;
+    if (slider.pending === null) return;
+    var ma = slider.pending; slider.pending = null; slider.last = now();
+    if (!guard('switch')) { slider.dragging = false; renderStatus(); return; }
+    await send(P.cmd.outputMa(ma));
+  }
+  function onSliderChange() { flushSlider().then(function () { setTimeout(function () { slider.dragging = false; renderStatus(); }, 600); }); }
+
+  /* -------------------------------------------------- Custom profile editor */
+  var FIELDS = [
+    { key: 'moon', label: 'Moon (lowest light)', unit: 'mA', help: 'The dimmest light.' },
+    { key: 'low', label: 'Low', unit: 'mA' },
+    { key: 'medium', label: 'Medium', unit: 'mA' },
+    { key: 'high', label: 'High', unit: 'mA' },
+    { key: 'turbo', label: 'Turbo', unit: 'mA', help: 'The brightest light - only for a limited time.' },
+    { key: 'turboTime', label: 'Turbo time', unit: 's', help: '0 means Turbo is the same as High.' },
+    { key: 'stepDown', label: 'Step-down after Turbo', unit: 'mA', help: 'The light level once the Turbo time is over.' },
+    { key: 'tempLimit', label: 'Temperature limit', unit: '°C', help: 'Above this the light is dimmed.' },
+    { key: 'lvStep', label: 'Low-battery step-down', unit: 'V', help: 'Below this battery voltage the light steps down.', volts: true },
+    { key: 'cellLimit', label: 'Battery current limit', unit: 'mA', help: 'Protects the cells. Lower is gentler.' }
+  ];
+  function buildEditor() {
+    var host = $('fields');
+    FIELDS.forEach(function (f) {
+      var wrap = document.createElement('div'); wrap.className = 'field'; wrap.dataset.key = f.key;
+      var lab = document.createElement('label'); lab.htmlFor = 'f-' + f.key; lab.textContent = f.label;
+      var inp = document.createElement('div'); inp.className = 'inp';
+      var input = document.createElement('input');
+      input.type = 'number'; input.id = 'f-' + f.key; input.setAttribute('inputmode', f.volts ? 'decimal' : 'numeric'); input.step = f.volts ? '0.01' : '1';
+      input.setAttribute('aria-describedby', 'h-' + f.key + ' e-' + f.key);
+      var unit = document.createElement('span'); unit.className = 'unit'; unit.textContent = f.unit;
+      inp.appendChild(input); inp.appendChild(unit);
+      var help = document.createElement('div'); help.className = 'help'; help.id = 'h-' + f.key;
+      var err = document.createElement('div'); err.className = 'err'; err.id = 'e-' + f.key;
+      wrap.appendChild(lab); wrap.appendChild(inp); wrap.appendChild(help); wrap.appendChild(err);
+      host.appendChild(wrap);
+      input.addEventListener('input', function () {
+        var raw = input.value.trim(), v = raw === '' ? NaN : Number(raw);
+        S.draft[f.key] = f.volts ? (isFinite(v) ? P.voltsToLvStep(v) : NaN) : (isFinite(v) && Math.floor(v) === v ? v : NaN);
+        S.draftDirty = true; delete S.changed[f.key]; $('adjusted').hidden = true; validateDraft();
+      });
+    });
+    [['fl-turbo', 'turboAllowed'], ['fl-remember', 'rememberLevel'], ['fl-battery', 'showBattery']].forEach(function (pair) {
+      $(pair[0]).addEventListener('change', function () { S.draft[pair[1]] = $(pair[0]).checked; S.draftDirty = true; $('adjusted').hidden = true; validateDraft(); });
+    });
+  }
+  function resetDraft(fromBuiltin) {
+    var p = fromBuiltin ? P.builtinProfile(1) : (S.profile ? Object.assign({}, S.profile) : P.builtinProfile(3));
+    p.id = 3; S.draft = p; S.draftDirty = !!fromBuiltin; S.changed = {};
+    if (fromBuiltin) $('adjusted').hidden = true;
+    fillEditor();
+    var note = fromBuiltin ? 'Starting again from the Balanced values. Nothing is sent until you press Apply or Save.'
+      : (S.profile && S.profile.id === 3 ? 'These are the values your Custom profile uses right now.'
+         : 'Starting from the ' + nameOfProfile(S.profile ? S.profile.id : 1) + ' profile. When you press Apply, these values become your Custom profile and the flashlight switches to it.');
+    setText('editor-note', note);
+  }
+  function fillEditor() {
+    var d = S.draft;
+    FIELDS.forEach(function (f) {
+      var v = d[f.key], input = $('f-' + f.key);
+      input.value = Number.isInteger(v) ? (f.volts ? P.lvStepToVolts(v).toFixed(2) : String(v)) : '';
+    });
+    $('fl-turbo').checked = !!d.turboAllowed; $('fl-remember').checked = !!d.rememberLevel; $('fl-battery').checked = !!d.showBattery;
+    validateDraft();
+  }
+  function validateDraft() {
+    var d = S.draft, v = P.validateProfile(d), b = P.profileBounds(d), bad = 0;
+    FIELDS.forEach(function (f) {
+      var wrap = document.querySelector('.field[data-key="' + f.key + '"]'), r = b[f.key];
+      var lo = f.volts ? P.lvStepToVolts(r.min).toFixed(2) : r.min, hi = f.volts ? P.lvStepToVolts(r.max).toFixed(2) : r.max;
+      setText('h-' + f.key, (f.help ? f.help + ' ' : '') + 'Allowed: ' + lo + ' to ' + hi + ' ' + f.unit + '.');
+      var msg = v.errors[f.key] || '';
+      if (msg && f.volts) msg = 'Use a voltage from ' + lo + ' to ' + hi + ' V.';
+      setText('e-' + f.key, msg);
+      wrap.classList.toggle('invalid', !!msg);
+      wrap.classList.toggle('changed', !msg && !!S.changed[f.key]);
+      $('f-' + f.key).setAttribute('aria-invalid', msg ? 'true' : 'false');
+      if (msg) bad++;
+    });
+    var sum = $('editor-summary');
+    sum.hidden = bad === 0;
+    if (bad) sum.textContent = bad === 1 ? 'One value is outside its allowed range. Fix the field marked in red to continue.' : bad + ' values are outside their allowed ranges. Fix the fields marked in red to continue.';
+    var enabled = v.ok && S.conn === 'connected';
+    $('btn-apply').disabled = !enabled; $('btn-save').disabled = !enabled;
+  }
+  async function applyDraft() {
+    var v = P.validateProfile(S.draft);
+    if (!v.ok || S.conn !== 'connected') return false;
+    var sent = Object.assign({}, S.draft, { id: 3 });
+    try { await S.link.writeProfile(P.encodeProfile(sent)); }
+    catch (e) { reportError(e); return false; }
+    var back;
+    try { back = P.decodeProfile(await S.link.readProfile()); }          /* read back: this is what the flashlight really uses */
+    catch (e) { reportError(e); return false; }
+    S.profile = back;
+    var diffs = [];
+    P.PROFILE_KEYS.forEach(function (k) { if (back[k] !== sent[k]) diffs.push(k); });
+    ['turboAllowed', 'rememberLevel', 'showBattery'].forEach(function (k) { if (back[k] !== sent[k]) diffs.push(k); });
+    S.draft = Object.assign({}, back, { id: 3 }); S.draftDirty = false; S.changed = {};
+    diffs.forEach(function (k) { S.changed[k] = true; });
+    fillEditor();
+    var box = $('adjusted'); box.hidden = false;
+    if (diffs.length) {
+      var labels = diffs.map(function (k) {
+        var f = FIELDS.filter(function (x) { return x.key === k; })[0];
+        if (!f) return k;
+        var from = f.volts ? P.lvStepToVolts(sent[k]).toFixed(2) : sent[k], to = f.volts ? P.lvStepToVolts(back[k]).toFixed(2) : back[k];
+        return f.label + ' ' + from + ' → ' + to + ' ' + f.unit;
+      });
+      box.className = 'banner warn adjusted';
+      box.textContent = 'Applied - but the flashlight adjusted ' + diffs.length + (diffs.length === 1 ? ' value' : ' values') + ' to stay inside its safe range: ' + labels.join('; ') + '. The fields are now showing what it really uses.';
+    } else {
+      box.className = 'banner ok adjusted';
+      box.textContent = 'Applied. The flashlight now uses your Custom profile exactly as shown. Press Save to flashlight to keep it.';
+    }
+    S.status = Object.assign({}, S.status, { profile: 3 });
+    renderStatus(); scheduleRefresh();
+    return true;
+  }
+  async function saveDraft() {
+    var btn = $('btn-save'); btn.classList.add('busy');
+    try {
+      if (S.draftDirty || !(S.status && S.status.profile === 3)) { if (!(await applyDraft())) return; }
+      if (await send(P.cmd.save())) toast('The flashlight keeps your Custom profile, the profile in use and the brightness level.', 'ok', 'Saved to flashlight');
+    } finally { btn.classList.remove('busy'); }
+  }
+
+  /* ------------------------------------------------------------ rendering */
+  function hasBluetooth() { return !!(navigator.bluetooth && typeof navigator.bluetooth.requestDevice === 'function'); }
+  function supportReason() {
+    var ua = navigator.userAgent || '';
+    var ipad = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (!window.isSecureContext) return 'This page was opened in a way browsers do not trust for Bluetooth. It must be opened from an https:// address (or as a file on your own computer).';
+    if (ipad) return 'Browsers on iPhone and iPad - Safari and Chrome included - cannot use Web Bluetooth.';
+    if (/Firefox/.test(ua)) return 'Firefox does not support Web Bluetooth.';
+    if (/Safari/.test(ua) && !/Chrome|Chromium|Edg/.test(ua)) return 'Safari does not support Web Bluetooth.';
+    return 'This browser does not offer Web Bluetooth.';
+  }
+  function showSupport() {
+    setText('support-reason', supportReason());
+    $('support').hidden = false;
+    $('steps').hidden = true;
+    $('btn-connect').disabled = true;
+    $('btn-connect').textContent = 'Connect (not possible in this browser)';
+  }
+
+  function renderConn() {
+    var c = S.conn, body = document.body;
+    body.dataset.conn = c; body.dataset.mode = S.mode;
+    var label = { idle: 'Not connected', connecting: 'Connecting...', lost: 'Connection lost' }[c];
+    if (c === 'connected') label = S.mode === 'demo' ? 'Demo mode' : S.name;
+    if (c === 'lost') label = 'Connection lost';
+    setText('pill-text', label);
+    var inMain = c === 'connected' || c === 'lost';
+    setHidden('view-start', inMain || c === 'connecting' && S.mode === 'demo');
+    setHidden('view-main', !inMain);
+    setHidden('banner-lost', c !== 'lost');
+    setHidden('banner-demo', S.mode !== 'demo' || c === 'idle');
+    setHidden('card-demo', S.mode !== 'demo' || !inMain);
+    setHidden('btn-disconnect', c === 'idle');
+    $('btn-disconnect').textContent = S.mode === 'demo' ? 'Leave demo' : 'Disconnect';
+    $('view-main').inert = c === 'lost';
+    $('btn-connect').classList.toggle('busy', c === 'connecting' && S.mode === 'ble');
+    if (c === 'connecting' && S.mode === 'ble') setText('start-msg', 'Connecting to ' + S.name + '...');
+    renderFooter();
+    if (inMain) { renderStatus(); validateDraft(); }
+  }
+  function renderFooter() {
+    var t = 'Aurora++ control app ' + APP_VERSION + ' · Bluetooth protocol v' + P.VERSION;
+    if (S.conn === 'connected' || S.conn === 'lost') t = S.name + (S.info ? ' · ' + S.info : '') + ' · app ' + APP_VERSION + ' · protocol v' + P.VERSION;
+    setText('foot-device', t);
+  }
+  function renderAll() { renderConn(); }
+
+  function renderBattery() {
+    var st = S.status; if (!st) return;
+    var pct = S.batteryPct != null ? S.batteryPct : st.soc;
+    setText('bat-pct', String(pct));
+    $('bat-fill').style.width = Math.max(3, Math.min(100, pct)) + '%';
+    var bar = $('bat-bar');
+    bar.classList.toggle('low', pct < 20); bar.classList.toggle('mid', pct >= 20 && pct < 40); bar.classList.toggle('charging', st.charging);
+  }
+
+  var ICON = {
+    warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 21h20z"/><path d="M12 10v5M12 18v.5"/></svg>',
+    lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+    bolt: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>',
+    laser: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>'
+  };
+  function renderBadges(st) {
+    var list = [];
+    if (st.thermalLimit) list.push(['warn', 'warn', 'Too warm - light reduced', 'The flashlight is hot, so it is dimming the light to cool down. It gets brighter again when it has cooled.']);
+    if (st.batteryLimit) list.push(['warn', 'warn', 'Battery protection - light reduced', 'The battery is low or the load is high, so the flashlight is limiting the light to protect the battery.']);
+    if (st.lockout) list.push(['warn', 'lock', 'Locked', 'The button and this app cannot switch the light on. Turn the lock off in Settings, or click the button four times.']);
+    if (st.turbo) list.push(['turbo', 'bolt', 'Turbo boost running', 'Extra bright for a limited time, then the light steps down to protect the battery.']);
+    if (st.laser) list.push(['bad', 'laser', 'Laser is on', 'The laser is switched only with the flashlight\'s button, never from Bluetooth. Never point it at anyone\'s eyes.']);
+    var key = list.map(function (b) { return b[2]; }).join('|'), host = $('badges');
+    if (host.dataset.key === key) return;
+    host.dataset.key = key; host.textContent = '';
+    list.forEach(function (b) {
+      var d = document.createElement('div'); d.className = 'badge ' + b[0];
+      d.innerHTML = ICON[b[1]];
+      var t = document.createElement('div'), h = document.createElement('b');
+      h.textContent = b[2]; t.appendChild(h); t.appendChild(document.createTextNode(b[3]));
+      d.appendChild(t); host.appendChild(d);
+    });
+  }
+
+  function lowAndHighLevelMa(n) { var p = S.profile; return p ? [p.moon, p.low, p.medium, p.high, p.turbo][n] : 0; }
+  function renderStatus() {
+    var st = S.status; if (!st) return;
+    renderBattery();
+    var line = 'Running on battery';
+    if (st.chargeDone) line = 'Fully charged' + (st.usb ? ' - USB connected' : '');
+    else if (st.charging) line = 'Charging - USB connected';
+    else if (st.usb) line = 'USB connected - not charging right now';
+    setText('bat-line', line);
+    setText('st-volt', P.formatVolts(st.voltageMv));
+    setText('st-temp', P.formatTemp(st.tempC));
+    setText('st-led', st.currentMa + ' mA');
+    setText('st-run', st.on ? P.formatRuntime(st.runtimeMin) : '–');
+    setText('st-prof', nameOfProfile(st.profile));
+    renderBadges(st);
+    var src = ['nobody yet', 'the button', 'this app', 'the flashlight itself (protection or a timer)'][st.source];
+    setText('source-line', 'Last change made by: ' + (src || 'unknown'));
+
+    /* light card */
+    var levelName = st.exact ? 'custom ' + st.currentMa + ' mA' : P.LEVEL_NAMES[st.level] + (st.on ? ' · ' + st.currentMa + ' mA' : '');
+    var chip = $('light-chip');
+    setText('light-chip', st.on ? 'On · ' + levelName : 'Off');
+    chip.classList.toggle('on', st.on);
+    var pw = $('btn-power');
+    pw.setAttribute('aria-pressed', String(st.on));
+    setText('power-text', st.on ? 'Turn off' : 'Turn on');
+    qsa('.lvl').forEach(function (b) {
+      var n = +b.dataset.level;
+      b.setAttribute('aria-pressed', String(st.on && !st.exact && st.level === n));
+      b.classList.toggle('remembered', !st.on && !st.exact && st.level === n);
+    });
+    var note = '';
+    if (st.exact) note = 'Exact brightness from the slider (' + st.currentMa + ' mA). Pick a level to go back to the steps.';
+    else if (S.profile && st.level === 4 && !P.hasTurbo(S.profile)) note = 'In this profile Turbo is the same as High.';
+    else if (!st.on) note = 'The dashed level is the one the light starts at.';
+    setText('level-note', note);
+
+    /* slider */
+    var max = sliderMax(), sl = $('slider');
+    if (S.profile && P.hasTurbo(S.profile)) sl.style.setProperty('--split', (P.maToSlider(S.profile.stepDown, max) / 10) + '%');
+    else sl.style.setProperty('--split', '100%');
+    if (!slider.dragging) {
+      var ma = st.on ? st.currentMa : lowAndHighLevelMa(Math.min(st.level, 4));
+      sl.value = String(P.maToSlider(Math.max(1, ma || 1), max));
+      setText('slider-out', (st.on ? Math.max(1, st.currentMa) : (ma || 0)) + ' mA');
+    }
+    var hint = 'Drag to set the exact LED current. Left is the dimmest light, right the brightest.';
+    if (!st.on) hint = 'Switch the light on to use the slider.';
+    else if (S.profile && P.hasTurbo(S.profile)) hint = 'Orange part: above ' + S.profile.stepDown + ' mA the turbo timer runs (' + S.profile.turboTime + ' s), then the light steps down to ' + S.profile.stepDown + ' mA.';
+    setText('slider-hint', hint);
+
+    /* tools */
+    $('sw-lockout').setAttribute('aria-checked', String(st.lockout));
+    if (S.mode === 'demo') {
+      if (document.activeElement !== $('demo-soc')) { $('demo-soc').value = String(st.soc); setText('demo-soc-out', st.soc + '%'); }
+      if (document.activeElement !== $('demo-usb')) $('demo-usb').checked = st.usb;
+    }
+    renderProfileCards();
+    renderLock();
+  }
+
+  function renderLock() {
+    var st = S.status; if (!st) return;
+    var left = appLockLeft(), locked = left > 0.05;
+    setHidden('banner-lock', !locked);
+    if (locked) setText('lock-s', String(Math.max(1, Math.ceil(left))));
+    if (S.lockedShown !== locked) {
+      S.lockedShown = locked;
+      $('btn-power').disabled = locked;
+      qsa('.lvl').forEach(function (b) { b.disabled = locked; });
+      qsa('.prof').forEach(function (b) { b.disabled = locked; });
+    }
+    $('slider').disabled = locked || !st.on;
+  }
+  function renderTick() {
+    if (!S.status || (S.conn !== 'connected' && S.conn !== 'lost')) return;
+    renderLock();
+    var tl = turboLeft(), st = S.status, p = S.profile;
+    setText('st-turbo', st.turbo && tl > 0 ? P.formatClock(tl) : (st.turbo ? '0:00' : '–'));
+    var line = $('turbo-line');
+    line.hidden = !(st.turbo && tl > 0);
+    if (!line.hidden) {
+      setText('turbo-text', 'Turbo - ' + P.formatClock(tl) + ' left' + (p && p.stepDown ? ', then the light steps down to ' + p.stepDown + ' mA' : ''));
+      var total = p && p.turboTime > 0 ? p.turboTime : Math.max(tl, 1);
+      $('turbo-fill').style.width = Math.max(0, Math.min(100, 100 * tl / total)) + '%';
+    }
+  }
+
+  function renderProfileCards() {
+    var st = S.status;
+    qsa('.prof').forEach(function (b) {
+      var n = +b.dataset.profile;
+      b.setAttribute('aria-pressed', String(!!st && st.profile === n));
+      var small = $('pdesc-' + n), txt;
+      if (n < 3) txt = P.describeProfile(P.builtinProfile(n));
+      else txt = S.profile && S.profile.id === 3 ? P.describeProfile(S.profile) : 'Starts as a copy of Balanced';
+      if (small.textContent !== txt) small.textContent = txt;
+    });
+  }
+
+  /* ----------------------------------------------------------- demo tools */
+  function wireDemoTools() {
+    $('demo-button').addEventListener('click', function () { if (S.sim) S.sim.pressButton(); });
+    $('demo-drop').addEventListener('click', function () { if (S.sim) S.sim.drop(); });
+    $('demo-usb').addEventListener('change', function (e) { if (S.sim) S.sim.setUsb(e.target.checked); });
+    $('demo-hot').addEventListener('change', function (e) { if (S.sim) S.sim.setAmbient(e.target.checked ? 45 : 24); });
+    $('demo-soc').addEventListener('input', function (e) { setText('demo-soc-out', e.target.value + '%'); if (S.sim) S.sim.setSoc(+e.target.value); });
+    $('demo-speed').addEventListener('change', function (e) { if (S.sim) S.sim.setSpeed(+e.target.value); });
+  }
+
+  /* ----------------------------------------------------------------- init */
+  function init() {
+    buildEditor();
+    $('btn-connect').addEventListener('click', onConnectClick);
+    $('btn-demo').addEventListener('click', startDemo);
+    $('btn-exit-demo').addEventListener('click', leave);
+    $('btn-disconnect').addEventListener('click', leave);
+    $('btn-reconnect').addEventListener('click', function () { reconnect(true); });
+    $('btn-choose').addEventListener('click', chooseAnother);
+    $('btn-power').addEventListener('click', actPower);
+    qsa('.lvl').forEach(function (b) { b.addEventListener('click', function () { actLevel(+b.dataset.level); }); });
+    qsa('.prof').forEach(function (b) { b.addEventListener('click', function () { actProfile(+b.dataset.profile); }); });
+    $('slider').addEventListener('input', onSliderInput);
+    $('slider').addEventListener('change', onSliderChange);
+    $('sw-lockout').addEventListener('click', actLockout);
+    $('btn-identify').addEventListener('click', actIdentify);
+    $('btn-keepalive').addEventListener('click', actKeepalive);
+    $('btn-save-sel').addEventListener('click', actSaveSelection);
+    $('btn-apply').addEventListener('click', function () { var b = $('btn-apply'); b.classList.add('busy'); applyDraft().then(function () { b.classList.remove('busy'); }); });
+    $('btn-save').addEventListener('click', saveDraft);
+    $('btn-reset-draft').addEventListener('click', function () { resetDraft(true); });
+    wireDemoTools();
+    setInterval(renderTick, 250);
+    setInterval(function () {            /* safety net: if no Status packet arrived for a while, ask for one */
+      if (S.conn === 'connected' && S.link && S.mode === 'ble' && now() - S.statusAt > 6000) scheduleRefresh();
+    }, 3000);
+    if (!hasBluetooth()) showSupport();
+    else if (navigator.bluetooth.getAvailability) {
+      navigator.bluetooth.getAvailability().then(function (ok) {
+        if (!ok) setText('start-msg', 'Bluetooth looks switched off or missing on this device. Turn it on, then tap Connect.');
+      }, function () {});
+    }
+    renderConn();
+    window.__aurora = { state: S, protocol: P, get sim() { return S.sim; } };      /* handle for tests and curious people */
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+</body>
+</html>
