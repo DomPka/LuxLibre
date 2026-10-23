@@ -57,6 +57,91 @@ export function inspectImage(bytes) {
   return { ok: errors.length === 0, errors, warnings, merged, size, chipId };
 }
 
+/* ------------------------------------------------------------------------------------------------------------ *
+ * which FlashKa a firmware belongs to
+ * ------------------------------------------------------------------------------------------------------------ */
+
+/** The app descriptor of an ESP-IDF style app image: after the 24-byte image header and the 8-byte header of the
+ *  first segment, so at 0x10020 of a merged image. Magic 0xABCD5432, version at +16 (32 bytes), project at +48. */
+export const APP_DESC_OFFSET = APP_OFFSET + 0x20;
+export const APP_DESC_MAGIC = 0xabcd5432;
+
+/**
+ * The FlashKa main boards and the firmware that belongs to each (firmware/build.sh BOARD=v07 / v06). The v0.7
+ * firmware drives the LED up to 3.0 A with a different current scale: it must never go onto a v0.6 board, and the
+ * v0.6 firmware sets wrong currents on a v0.7 board.
+ * @typedef {{ id: 'v07' | 'v06', title: string, hint: string, firmware: string }} Board
+ * @type {Board[]}
+ */
+export const BOARDS = [
+  { id: 'v07', title: 'FlashKa v0.7', hint: 'three keys in the middle', firmware: '0.7' },
+  { id: 'v06', title: 'FlashKa v0.6', hint: 'stainless button', firmware: '0.6' }
+];
+
+/** @param {string} id @returns {Board | undefined} */
+export function boardById(id) {
+  return BOARDS.find((b) => b.id === id);
+}
+
+/** "FlashKa v0.7 (three keys in the middle)"; the id itself for an unknown board. @param {string} id */
+export function boardLabel(id) {
+  const b = boardById(id);
+  return b ? `${b.title} (${b.hint})` : id;
+}
+
+/**
+ * @typedef {Object} AppInfo
+ * @property {boolean} found     a valid app descriptor is there
+ * @property {string} version    e.g. "0.6.0" ("" when not found)
+ * @property {string} project    e.g. "flashka-fw"
+ * @property {'v07' | 'v06' | null} board   the FlashKa board this firmware is for, null when it is not FlashKa firmware
+ */
+
+/** @param {ArrayLike<number>} b @returns {string} printable text up to the first 0 byte */
+function cString(b) {
+  let s = '';
+  for (let i = 0; i < b.length && b[i] !== 0; i++) {
+    if (b[i] < 0x20 || b[i] > 0x7e) return '';
+    s += String.fromCharCode(b[i]);
+  }
+  return s;
+}
+
+/**
+ * Which board a firmware is for, from its app descriptor fields (FlashKa firmware only: project "flashka-fw").
+ * @param {string} project @param {string} version
+ * @returns {'v07' | 'v06' | null}
+ */
+export function boardOfFirmware(project, version) {
+  if (project !== 'flashka-fw') return null;
+  const b = BOARDS.find((x) => version.startsWith(x.firmware + '.'));
+  return b ? b.id : null;
+}
+
+/**
+ * Builds an AppInfo from the raw descriptor fields (the page reads them from the flashlight 4 bytes at a time).
+ * @param {number} magic @param {ArrayLike<number>} versionBytes @param {ArrayLike<number>} projectBytes
+ * @returns {AppInfo}
+ */
+export function appInfoFromFields(magic, versionBytes, projectBytes) {
+  if (magic >>> 0 !== APP_DESC_MAGIC) return { found: false, version: '', project: '', board: null };
+  const version = cString(versionBytes);
+  const project = cString(projectBytes);
+  return { found: true, version, project, board: boardOfFirmware(project, version) };
+}
+
+/**
+ * Reads the app descriptor of a merged image (version and project name of the firmware inside).
+ * @param {Uint8Array} bytes
+ * @returns {AppInfo}
+ */
+export function readAppDescriptor(bytes) {
+  const o = APP_DESC_OFFSET;
+  if (bytes.length < o + 96) return { found: false, version: '', project: '', board: null };
+  const magic = (bytes[o] | (bytes[o + 1] << 8) | (bytes[o + 2] << 16) | (bytes[o + 3] << 24)) >>> 0;
+  return appInfoFromFields(magic, bytes.subarray(o + 16, o + 48), bytes.subarray(o + 48, o + 80));
+}
+
 /**
  * Version number from a file name such as "flashka-fw-v0.6.0-merged.bin" (or "...-v0.6.0-rc1-merged.bin").
  * @param {string} name

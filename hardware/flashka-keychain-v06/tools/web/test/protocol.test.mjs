@@ -4,6 +4,9 @@
 // (little-endian, offsets as listed), not produced by the code under test.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { loadAppModules, plain } from './helpers/load-app.mjs';
 
 const { P } = loadAppModules();
@@ -255,6 +258,121 @@ test('clampProfile does what the document says the firmware does', () => {
   assert.equal(c.lvStep, 60);
   assert.equal(c.cellLimit, 200);
   assert.ok(P.validateProfile(c).ok);
+});
+
+/* ------------------------------------------------- boards: FlashKa v0.7 and v0.6 */
+// The firmware sources the app must agree with (flashka-core, feature board-v07 = FlashKa v0.7).
+const CORE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../firmware/flashka-core/src');
+const rs = (f) => fs.readFileSync(path.join(CORE, f), 'utf8');
+const num = (t) => Number(t.replace(/_/g, ''));
+/** The `#[cfg(feature = "board-v07")]` item that follows the attribute directly. */
+function v07Item(src, head) {
+  const i = src.search(new RegExp('#\\[cfg\\(feature = "board-v07"\\)\\]\\s*' + head));
+  assert.ok(i >= 0, 'v0.7 item not found: ' + head);
+  return src.slice(i, src.indexOf(';', i) + 1);
+}
+function firmwareProfileV07(name) {
+  const t = v07Item(rs('profile.rs'), 'pub const ' + name + ': Profile');
+  const f = (k) => { const m = new RegExp('\\b' + k + ':\\s*([0-9_]+)').exec(t); assert.ok(m, name + '.' + k); return num(m[1]); };
+  return {
+    turboAllowed: /FLAG_TURBO/.test(t), rememberLevel: /FLAG_MEMORY/.test(t), showBattery: /FLAG_SHOW_BATTERY/.test(t),
+    moon: f('moon_ma'), low: f('low_ma'), medium: f('medium_ma'), high: f('high_ma'), turbo: f('turbo_ma'),
+    turboTime: f('turbo_time_s'), stepDown: f('stepdown_ma'), tempLimit: f('temp_limit_c'), lvStep: f('lv_stepdown'),
+    cellLimit: f('cell_limit_ma')
+  };
+}
+
+test('the board comes from the Info text: firmware 0.7.x = FlashKa v0.7, 0.6.x = FlashKa v0.6, anything else = unknown', () => {
+  assert.equal(P.boardFromInfo('FlashKa fw 0.7.0'), 'v07');
+  assert.equal(P.boardFromInfo('FlashKa fw 0.7.12'), 'v07');
+  assert.equal(P.boardFromInfo('FlashKa fw 0.6.0'), 'v06');
+  assert.equal(P.boardFromInfo('Aurora++ fw 0.5.0'), null, 'a v0.5 light');
+  assert.equal(P.boardFromInfo('FlashKa fw 0.8.0'), null, 'an unknown future firmware gets the protocol numbers');
+  assert.equal(P.boardFromInfo('my FlashKa fw 0.7.0'), null);
+  assert.equal(P.boardFromInfo(''), null);
+  assert.equal(P.boardFromInfo(undefined), null);
+  // the Info texts the firmware really sends (board.rs)
+  const infos = [...rs('board.rs').matchAll(/pub const INFO_TEXT: &str = "([^"]+)";/g)].map((m) => m[1]);
+  assert.deepEqual(infos, ['FlashKa fw 0.6.0', 'FlashKa fw 0.7.0']);
+  assert.deepEqual(infos.map(P.boardFromInfo), ['v06', 'v07']);
+});
+
+test('FlashKa v0.7 built-in profiles are the firmware 0.7.0 tables (profile.rs, feature board-v07)', () => {
+  ['EXTREME', 'BALANCED', 'ENDURANCE'].forEach((name, id) => {
+    const want = firmwareProfileV07(name);
+    const got = plain(P.builtinProfile(id, 'v07'));
+    assert.equal(got.id, id, name);
+    Object.entries(want).forEach(([k, v]) => assert.equal(got[k], v, `${name}.${k}`));
+    assert.ok(P.validateProfile(got, 'v07').ok, `${name} passes the v0.7 range check`);
+    assert.ok(Math.max(got.moon, got.low, got.medium, got.high, got.turbo, got.stepDown) <= 2850, `${name}: nothing above 2850 mA`);
+  });
+  assert.equal(plain(P.builtinProfile(3, 'v07')).high, 1530, 'Custom starts as a copy of the v0.7 Balanced');
+  assert.equal(plain(P.builtinProfile(3, 'v07')).id, 3);
+  // without a board (or on v0.6) the tables of the protocol document stay
+  assert.equal(P.builtinProfile(1).turbo, 1200);
+  assert.equal(P.builtinProfile(1, 'v06').turbo, 1200);
+  assert.equal(P.builtinProfile(0, null).high, 900);
+});
+
+test('turbo limit per board: 2850 mA on FlashKa v0.7 (as the firmware), 3000 mA otherwise', () => {
+  const fw = num(/#\[cfg\(feature = "board-v07"\)\]\npub const TURBO_MAX_MA: u16 = ([0-9_]+);/.exec(rs('board.rs'))[1]);
+  assert.equal(fw, 2850);
+  assert.equal(P.turboMax('v07'), fw);
+  assert.equal(P.turboMax('v06'), 3000);
+  assert.equal(P.turboMax(null), 3000);
+  const v07 = (turbo) => P.validateProfile({ ...PV1, turbo }, 'v07');
+  assert.ok(v07(2850).ok);
+  assert.ok(!v07(2851).ok);
+  assert.match(v07(3000).errors.turbo, /to 2850\./);
+  assert.ok(P.validateProfile({ ...PV1, turbo: 3000 }, 'v06').ok);
+  assert.equal(P.profileBounds(PV1, 'v07').turbo.max, 2850);
+  assert.equal(P.profileBounds(PV1).turbo.max, 3000);
+  const wild = { ...PV1, high: 5000, turbo: 9999 };
+  assert.deepEqual([P.clampProfile(wild, 'v07').high, P.clampProfile(wild, 'v07').turbo], [2000, 2850]);
+  assert.equal(P.clampProfile(wild, 'v06').turbo, 3000);
+});
+
+test('FlashKa v0.7 lumens: the firmware LED model x the 87 % optic, same numbers as the firmware', () => {
+  const board = rs('board.rs');
+  const table = /pub const LED_LM_TABLE: \[\(u16, u16\); \d+\] =\s*\[([^\]]+)\];/.exec(board)[1];
+  const pairs = [...table.matchAll(/\(([0-9_]+),\s*([0-9_]+)\)/g)].map((m) => [num(m[1]), num(m[2])]);
+  assert.deepEqual(plain(P.LED_LM_V07), pairs);
+  assert.equal(num(/pub const OPTIC_PCT: u32 = ([0-9_]+);/.exec(board)[1]), 87);
+  // datasheet anchors (Tj 85 degC) and the values the firmware's own tests pin (board.rs)
+  assert.equal(P.ledLumensX10V07(1500), 6800);
+  assert.equal(P.ledLumensX10V07(3000), 11560);
+  assert.equal(P.ledLumensX10V07(65535), 11560);
+  assert.equal(P.frontLumens(3000, 'v07'), 1006);
+  assert.equal(P.frontLumens(2850, 'v07'), 966);
+  assert.equal(P.frontLumens(1500, 'v07'), 592);
+  assert.equal(P.frontLumens(1530, 'v07'), 601, 'v0.7 High: about 600 lm out of the front');
+  assert.equal(P.frontLumens(1800, 'v07'), 683);
+  assert.equal(P.frontLumens(500, 'v07'), 230);
+  // every mA gives what the firmware's integer formula gives
+  const fwX10 = (ma) => {
+    ma = Math.min(ma, pairs[pairs.length - 1][0]);
+    let i = 1; while (i < pairs.length - 1 && ma > pairs[i][0]) i++;
+    const [a0, l0] = pairs[i - 1], [a1, l1] = pairs[i];
+    return Math.floor((10 * l0 * (a1 - a0) + 10 * (l1 - l0) * (ma - a0) + Math.floor((a1 - a0) / 2)) / (a1 - a0));
+  };
+  for (let ma = 1; ma <= 3000; ma++) assert.equal(P.frontLumens(ma, 'v07'), Math.floor((fwX10(ma) * 87 + 500) / 1000), `${ma} mA`);
+  // no lumens for other boards, for off and for nonsense
+  assert.equal(P.frontLumens(1500, 'v06'), null);
+  assert.equal(P.frontLumens(1500, null), null);
+  assert.equal(P.frontLumens(0, 'v07'), null);
+  assert.equal(P.frontLumens(NaN, 'v07'), null);
+});
+
+test('profile one-liners: lumens of High and Turbo on FlashKa v0.7 only', () => {
+  assert.equal(P.describeProfile(P.builtinProfile(1, 'v07'), 'v07'),
+    'Moon 3 · Low 40 · Medium 250 · High 1530 mA (601 lm) · Turbo 2850 mA (966 lm) for 60 s');
+  assert.equal(P.describeProfile(P.builtinProfile(0, 'v07'), 'v07'),
+    'Moon 3 · Low 50 · Medium 400 · High 1800 mA (683 lm) · Turbo 2850 mA (966 lm) for 60 s');
+  assert.equal(P.describeProfile(P.builtinProfile(2, 'v07'), 'v07'),
+    'Moon 2 · Low 15 · Medium 100 · High 500 mA (230 lm) · no extra Turbo');
+  assert.equal(P.describeProfile(P.builtinProfile(1, 'v06'), 'v06'),
+    'Moon 3 · Low 30 · Medium 200 · High 600 mA · Turbo 1200 mA for 60 s');
+  assert.doesNotMatch(P.describeProfile(P.builtinProfile(0)), /lm/);
 });
 
 /* ------------------------------------------------------------------- Commands */

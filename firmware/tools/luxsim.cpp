@@ -7,7 +7,8 @@
 //   2C        two clicks            H1500   hold 1.5 s           CH3000  click, then hold 3 s
 //   W60000    wait 60 s             USB1 / USB0   plug / unplug USB     AMB40  ambient 40 degC
 // Options (any order):
-//   --preset keychain|18650   body and cell model (default keychain: ~30 g, 800 mAh)
+//   --preset keychain|18650|board   body and cell model (default keychain: ~30 g, 800 mAh; "board" =
+//                             the model in the board header, the default when it has one)
 //   --ambient C  --soc 0..1  --capacity mAh
 //   --imax A                  LED current at level 150
 //   --noise C  --step C       sensor noise (peak) and resolution, e.g. --step 1 for a coarse sensor
@@ -20,7 +21,9 @@
 //
 // Built with a real board header (make sim BOARD=<board>), the LED and driver model of that
 // board (LX_MAIN_MAX_MA, LX_LED_VF0_MV, LX_LED_RS_MOHM, LX_DRIVER_EFF_PCT) replaces the one of
-// the preset, so "--preset 18650" means "my board in an 18650-size body".
+// the preset, so "--preset 18650" means "my board in an 18650-size body". A header that also
+// describes its body, cell and LED flux (LX_SIM_..., LX_LED_LM_MA / LX_LED_LM, LX_OPTIC_PCT) is
+// simulated with that model by default ("--preset board").
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -49,14 +52,14 @@ static double num_arg(const std::string& name, const std::string& s) {
 }
 
 static void usage() {
-    std::printf("usage: luxsim [--preset keychain|18650] [--ambient C] [--soc 0..1] [--capacity mAh]\n"
+    std::printf("usage: luxsim [--preset keychain|18650|board] [--ambient C] [--soc 0..1] [--capacity mAh]\n"
                 "              [--imax A] [--noise C] [--step C]\n"
                 "              [--set NAME=VALUE]... [--csv FILE] [--extra MS] \"SCRIPT\"\n"
                 "script: 2C  H1500  CH3000  W60000  USB1  USB0  AMB40\n");
 }
 
 int main(int argc, char** argv) {
-    std::string preset = "keychain";
+    std::string preset = sim::board_has_model() ? "board" : "keychain";
     double ambient = NAN, soc = NAN, capacity = NAN, imax = NAN, noise = NAN, step = NAN;
     std::vector<std::pair<std::string, int>> sets;
     std::string csv, script;
@@ -69,7 +72,7 @@ int main(int argc, char** argv) {
         };
         if (a == "--preset") {
             preset = next();
-            if (preset != "18650" && preset != "keychain") { usage(); return 2; }
+            if (preset != "18650" && preset != "keychain" && preset != "board") { usage(); return 2; }
         } else if (a == "--ambient") ambient = num_arg(a, next());
         else if (a == "--soc") soc = num_arg(a, next());
         else if (a == "--capacity") capacity = num_arg(a, next());
@@ -96,7 +99,8 @@ int main(int argc, char** argv) {
         else script = a;
     }
 
-    sim::Config cfg = preset == "18650" ? sim::edc18650_preset() : sim::keychain_preset();
+    sim::Config cfg = preset == "18650" ? sim::edc18650_preset()
+                    : preset == "board" ? sim::board_preset() : sim::keychain_preset();
 #if !defined(LX_HOST_SIM_BOARD) && LX_MAIN_MAX_MA > 0
     cfg.i_max_a = LX_MAIN_MAX_MA / 1000.0;          // the LED model of the board header
     cfg.vf0 = LX_LED_VF0_MV / 1000.0;
@@ -157,6 +161,10 @@ int main(int argc, char** argv) {
     std::printf("peak sensor     %6.1f degC\n", peak_t);
     std::printf("final           level %u, %.0f lm, %.1f degC, %.2f V, %.0f %%\n", sim::level(), sim::lumens(),
                 sim::t_sensor(), sim::v_pack(), sim::soc() * 100.0);
+    if (cfg.optic < 1.0) {
+        std::printf("(lumens are at the LED; out of the front x %.2f: peak %.0f lm, final %.0f lm)\n", cfg.optic,
+                    peak_lm * cfg.optic, sim::lumens_front());
+    }
     if (!csv.empty()) {
         sim::write_csv(csv);
         std::printf("log written to %s\n", csv.c_str());

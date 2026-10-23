@@ -20,6 +20,15 @@ const uint16_t k_ocv[3][11] LX_FLASH = {
     {1400, 1340, 1320, 1300, 1280, 1260, 1250, 1240, 1220, 1180, 1000},
 };
 
+// A board can give its Li-ion cell's own curve (LX_BAT_OCV_MV in board.h, mV at 100, 90, ... 0 %)
+// when it differs from the typical one above, e.g. a 3.6 V-nominal 14500 cell.
+#ifdef LX_BAT_OCV_MV
+const uint16_t k_ocv_board[11] LX_FLASH = {LX_BAT_OCV_MV};
+#define LX_OCV_TABLE(chem) ((chem) == 0 ? k_ocv_board : k_ocv[chem])
+#else
+#define LX_OCV_TABLE(chem) (k_ocv[chem])
+#endif
+
 // Lowest cut-off per chemistry (LuxLibre rule, mV per cell): above the cells' datasheet
 // discharge limits with a margin. LVP_CUT and LVP_WARN can be set higher, never lower.
 const uint16_t k_cut_floor[3] LX_FLASH = {2700, 2000, 900};
@@ -60,11 +69,12 @@ uint16_t rest_cell_mv() {
 
 uint8_t percent() {
     uint8_t chem = (uint8_t)clamp<int16_t>(p(P_BAT_CHEM), 0, 2);
+    const uint16_t* ocv = LX_OCV_TABLE(chem);
     uint16_t v = rest_cell_mv();
-    if (v >= lx_flash_u16(&k_ocv[chem][0])) return 100;
+    if (v >= lx_flash_u16(&ocv[0])) return 100;
     for (uint8_t i = 1; i < 11; i++) {
-        uint16_t hi = lx_flash_u16(&k_ocv[chem][i - 1]);
-        uint16_t lo = lx_flash_u16(&k_ocv[chem][i]);
+        uint16_t hi = lx_flash_u16(&ocv[i - 1]);
+        uint16_t lo = lx_flash_u16(&ocv[i]);
         if (v >= lo) {
             // linear between the two points (10 % apart)
             uint16_t pct_hi = (uint16_t)(100 - 10 * (i - 1));

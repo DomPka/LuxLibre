@@ -1,0 +1,30 @@
+(version 1)
+
+(rule "Board_0-PTH hole to other copper (JLCPCB 0.28 mm)"
+  (constraint hole_clearance (min 0.28mm))
+  (condition "A.Type == 'Pad' && A.isPlated()"))
+
+(rule "Board_0-Via hole to plated-pad copper (JLCPCB via to copper 0.2 mm)"
+  # the rule above is meant for the plated hole; KiCad also applies it to a via's
+  # hole next to the pad's copper, where JLCPCB asks 0.2 mm. The pad hole itself
+  # stays >= 0.33 mm from via copper through the 0.45 mm hole-to-hole rule below.
+  (constraint hole_clearance (min 0.2mm))
+  (condition "A.Type == 'Pad' && A.isPlated() && B.Type == 'Via'"))
+
+(rule "Board_0-Via to pad hole (JLCPCB pad hole-to-hole 0.45 mm)"
+  (constraint hole_to_hole (min 0.45mm))
+  (condition "A.Type == 'Via' && B.Type == 'Pad'"))
+(rule "Board_1-PTH hole to other copper (JLCPCB 0.28 mm)"
+  (constraint hole_clearance (min 0.28mm))
+  (condition "A.Type == 'Pad' && A.isPlated()"))
+
+(rule "Board_1-Via hole to plated-pad copper (JLCPCB via to copper 0.2 mm)"
+  # the rule above is meant for the plated hole; KiCad also applies it to a via's
+  # hole next to the pad's copper, where JLCPCB asks 0.2 mm. The pad hole itself
+  # stays >= 0.33 mm from via copper through the 0.45 mm hole-to-hole rule below.
+  (constraint hole_clearance (min 0.2mm))
+  (condition "A.Type == 'Pad' && A.isPlated() && B.Type == 'Via'"))
+
+(rule "Board_1-Via to pad hole (JLCPCB pad hole-to-hole 0.45 mm)"
+  (constraint hole_to_hole (min 0.45mm))
+  (condition "A.Type == 'Via' && B.Type == 'Pad'"))

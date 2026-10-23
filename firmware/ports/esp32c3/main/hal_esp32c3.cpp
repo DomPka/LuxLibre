@@ -88,10 +88,10 @@ uint8_t g_store[LX_STORAGE_SIZE];
 TickType_t g_last_wake = 0;
 bool g_console = false;
 
-// charger: CHG_SET low = charge (~300 mA), high = off, floating = 10 mA trickle. The FlashKa
-// has no VBUS sense pin: while charging is off, CHG_SET is floated for one 100 ms period every
-// 5 s so that the TP4057 status pins show whether USB is plugged in - but only while the core
-// allows charging (cell temperature inside the window, design rule CHG-3).
+// charger: CHG_SET low = charge (~300 mA; v0.7: ~500 mA), high = off, floating = 10 mA trickle.
+// The FlashKa has no VBUS sense pin: while charging is off, CHG_SET is floated for one 100 ms
+// period every 5 s so that the TP4057 status pins show whether USB is plugged in - but only while
+// the core allows charging (cell temperature inside the window, design rule CHG-3).
 bool g_usb = false;
 uint8_t g_chg_status = hal::CHG_NONE;
 uint16_t g_probe_ctr = 0;

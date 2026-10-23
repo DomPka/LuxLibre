@@ -266,3 +266,52 @@ test('connect twice in a row and reconnect after disconnect', async () => {
   await r.backend.disconnect();
   assert.equal(r.port.isOpen, false);
 });
+
+/* ---------------------------------------------------------------- which firmware is on the flashlight now */
+
+test('connect reads the installed firmware (app descriptor at 0x10020): FlashKa v0.6 firmware is recognised', async () => {
+  const r = rig({ installedFirmware: { version: '0.6.0' } });
+  const info = await r.backend.connect();
+  assert.deepEqual(info.installed, { found: true, version: '0.6.0', project: 'flashka-fw', board: 'v06' });
+  assert.deepEqual(r.chip.reads, [{ addr: 0x10020, size: 96 }], 'one 96-byte read through the helper program');
+  assert.ok(r.chip.commands.includes(OP.READ_FLASH));
+  assert.match(r.text(), /Installed firmware: flashka-fw 0\.6\.0/);
+  /* the helper's trailing checksum packet must not confuse the install that follows */
+  const image = makeImage({ size: 120 * 1024, version: '0.7.0' });
+  await r.backend.install({ image });
+  assert.deepEqual(r.chip.flash.subarray(0, image.length), image);
+  assert.equal(r.chip.md5Requests[0].digest, nodeMd5(image));
+});
+
+test('connect: v0.7 firmware, other firmware and a blank flash', async () => {
+  let r = rig({ installedFirmware: { version: '0.7.0' } });
+  assert.equal((await r.backend.connect()).installed?.board, 'v07');
+  await r.backend.disconnect();
+  r = rig({ installedFirmware: { version: '0.3.0', project: 'luxlibre' } });
+  assert.deepEqual((await r.backend.connect()).installed, { found: true, version: '0.3.0', project: 'luxlibre', board: null });
+  await r.backend.disconnect();
+  r = rig();
+  const info = await r.backend.connect();
+  assert.deepEqual(info.installed, { found: false, version: '', project: '', board: null }, 'new or erased flashlight');
+  assert.match(r.text(), /Installed firmware: none found/);
+  await r.backend.disconnect();
+});
+
+test('connect: a helper that refuses READ_FLASH gives "unknown" (null) and installing still works', async () => {
+  const r = rig({ readFlashFails: true });
+  const info = await r.backend.connect();
+  assert.equal(info.installed, null);
+  assert.match(r.text(), /Could not read the installed firmware/);
+  const image = makeImage({ size: 100 * 1024 });
+  await r.backend.install({ image });
+  assert.deepEqual(r.chip.flash.subarray(0, image.length), image);
+});
+
+test('connect: a read that never ends fails the connection (port closed) instead of hanging', async () => {
+  const r = rig({ readFlashStalls: true }, {}, { readTimeoutMs: 300 });
+  const t0 = Date.now();
+  await assert.rejects(r.backend.connect(), /Reading the installed firmware took too long/);
+  assert.ok(Date.now() - t0 < 3000, 'fails after the time limit');
+  assert.equal(r.port.isOpen, false, 'port released, Connect can be pressed again');
+  assert.equal(r.backend.connected, false);
+});

@@ -208,6 +208,14 @@ pub struct Controller {
     presenter_low_since: Option<u64>,
     keys: KeyQueue,
     forget_request: bool,
+    /// v0.7 board: the thermal regulator (instead of the linear derating).
+    #[cfg(feature = "board-v07")]
+    thermal_reg: crate::thermal::ThermalReg,
+    /// v0.7: LED current through the same filter as the battery voltage (mA x 16), for the state
+    /// of charge: a single cell sags so much that the unfiltered current would make the percentage
+    /// jump for a second at every level change.
+    #[cfg(feature = "board-v07")]
+    soc_led_f16: i32,
 }
 
 impl Controller {
@@ -277,6 +285,10 @@ impl Controller {
             presenter_low_since: None,
             keys: KeyQueue::new(),
             forget_request: false,
+            #[cfg(feature = "board-v07")]
+            thermal_reg: crate::thermal::ThermalReg::new(),
+            #[cfg(feature = "board-v07")]
+            soc_led_f16: 0,
         }
     }
 
@@ -466,6 +478,11 @@ impl Controller {
         }
         self.chrg_low = s.chrg_low;
         self.stdby_low = s.stdby_low;
+        #[cfg(feature = "board-v07")]
+        {
+            self.soc_led_f16 += (self.led_ma as i32 * 16 - self.soc_led_f16) / 8;
+            self.update_thermal_reg();
+        }
     }
 
     /// Presenter mode: the computer's link is up and encrypted (`true`) or
@@ -1015,7 +1032,17 @@ impl Controller {
         }
         match self.temp {
             TempReading::Valid(t) => {
+                #[cfg(not(feature = "board-v07"))]
                 let c = protection::thermal_cap_ma(t, p.temp_limit_dc(), out, p.low_ma, p.moon_ma);
+                // v0.7: the regulator's limit; above 70 / 80 degC Moon / off as in the protocol
+                #[cfg(feature = "board-v07")]
+                let c = protection::thermal_cap_ma(
+                    t,
+                    THERMAL_OFF_DC,
+                    self.thermal_reg.cap_ma(out, p.low_ma),
+                    p.low_ma,
+                    p.moon_ma,
+                );
                 if c < out {
                     out = c;
                     thermal = true;
@@ -1122,10 +1149,14 @@ impl Controller {
         }
 
         // state of charge
+        #[cfg(not(feature = "board-v07"))]
+        let soc_led = out;
+        #[cfg(feature = "board-v07")]
+        let soc_led = ((self.soc_led_f16 + 8) / 16) as u16;
         self.soc.update(
             now,
             vbat,
-            out,
+            soc_led,
             ChargeInfo {
                 usb_present: usb,
                 fast_charging: self.charger.fast_charging(),
@@ -1253,11 +1284,17 @@ impl Controller {
         } else {
             RUNTIME_UNKNOWN
         };
+        #[cfg(not(feature = "board-v07"))]
+        let led_ma = self.led_ma;
+        // v0.7: the current the LED really gets - a sagging cell can leave the buck short of the
+        // request (turbo from a half-full cell)
+        #[cfg(feature = "board-v07")]
+        let led_ma = battery::deliverable_led_ma(self.led_ma, vbat);
         Status {
             flags,
             profile: self.settings.profile as u8,
             level,
-            led_ma: self.led_ma,
+            led_ma,
             vbat_mv: vbat,
             soc_pct: self.soc.percent(),
             temp_dc: self.temp.report_dc(),
@@ -1272,12 +1309,45 @@ impl Controller {
     }
 }
 
+/// v0.7 board: feed the thermal regulator ([`crate::thermal`]) with every temperature sample.
+#[cfg(feature = "board-v07")]
+impl Controller {
+    fn update_thermal_reg(&mut self) {
+        let p = self.profile();
+        let mut req = self.requested_ma();
+        if let Some(cap) = self.lv.cap() {
+            req = req.min(p.level_ma(cap));
+        }
+        match self.temp {
+            TempReading::Valid(_) => self.thermal_reg.update(self.temp_f16, p.temp_limit_dc(), req, p.low_ma),
+            _ => self.thermal_reg.invalidate(),
+        }
+    }
+
+    /// The regulator's filtered temperature (0.1 degC) and rate of rise (0.1 degC/s), for tests.
+    pub fn thermal_regulator(&self) -> (i32, i32) {
+        (self.thermal_reg.temperature_dc(), self.thermal_reg.rate_dc_per_s())
+    }
+}
+
 #[cfg(test)]
 #[allow(clippy::field_reassign_with_default)]
 mod tests {
     use super::*;
     use crate::hw::ntc_mv_at;
     use crate::protocol::opcode;
+
+    /// The default (Balanced) profile of the board the tests are built for. Tests that only need
+    /// "the default profile's current" read it here, so they run unchanged on both boards
+    /// (v0.6: 3 / 30 / 200 / 600 mA, turbo 1200 mA for 60 s, 50 degC; v0.7: 3 / 40 / 250 /
+    /// 1530 mA, turbo 2850 mA for 60 s, 50 degC).
+    const BAL: Profile = Profile::BALANCED;
+
+    /// OUTPUT_MA command bytes for a current.
+    fn output_ma(ma: u16) -> [u8; 3] {
+        let b = ma.to_le_bytes();
+        [opcode::OUTPUT_MA, b[0], b[1]]
+    }
 
     /// Simulated hardware around the controller.
     struct Sim {
@@ -1444,7 +1514,7 @@ mod tests {
         assert_eq!(s.out.led_ma, 0);
         s.clicks(1);
         assert_eq!(s.c.mode(), Mode::Level(Level::Low)); // default remembered level
-        assert_eq!(s.out.led_ma, 30);
+        assert_eq!(s.out.led_ma, BAL.low_ma); // v0.6: 30 mA
         assert_eq!(s.status().source, ControlSource::Button);
         // step to Medium with a hold, then off: Medium is remembered and saved
         s.press(500);
@@ -1487,10 +1557,11 @@ mod tests {
 
     #[test]
     fn double_click_turbo_with_timer_and_stepdown() {
-        let mut s = Sim::new(); // Balanced: 1200 mA for 60 s, then 600
+        let mut s = Sim::new(); // Balanced: 1200 mA (v0.7: 3000) for 60 s, then 600 (v0.7: 1530)
+        assert_eq!(BAL.turbo_time_s, 60);
         s.clicks(2);
         assert_eq!(s.c.mode(), Mode::Level(Level::Turbo));
-        assert_eq!(s.out.led_ma, 1_200);
+        assert_eq!(s.out.led_ma, BAL.turbo_ma);
         let st = s.status();
         assert_ne!(st.flags & sf::TURBO_ACTIVE, 0);
         assert_eq!(st.level, 4);
@@ -1498,7 +1569,7 @@ mod tests {
         s.run(30_000);
         assert!((29..=30).contains(&s.status().turbo_left_s));
         s.run(31_000);
-        assert_eq!(s.out.led_ma, 600);
+        assert_eq!(s.out.led_ma, BAL.stepdown_ma);
         let st = s.status();
         assert_eq!(st.flags & sf::TURBO_ACTIVE, 0);
         assert_eq!(st.turbo_left_s, 0);
@@ -1526,23 +1597,23 @@ mod tests {
         st.profile = ProfileId::Endurance;
         let mut s = Sim::with(st, BootInfo::default());
         s.clicks(2);
-        assert_eq!(s.out.led_ma, 300);
+        assert_eq!(s.out.led_ma, Profile::ENDURANCE.high_ma); // v0.6: 300 mA
         assert_eq!(s.status().level, Level::High as u8);
         assert_eq!(s.status().flags & sf::TURBO_ACTIVE, 0);
     }
 
     #[test]
     fn turbo_refused_near_temperature_limit() {
-        let mut s = Sim::new(); // limit 50 degC
-        s.temp_c = 46.0;
+        let mut s = Sim::new(); // limit 50 degC (both boards)
+        s.temp_c = BAL.temp_limit_c as f32 - 4.0; // v0.6: 46 degC
         s.run(2_000);
         s.clicks(2); // from off: High instead of turbo + red blink
         assert_eq!(s.c.mode(), Mode::Level(Level::High));
         s.run(3_100);
         assert_eq!(s.cmd(&[opcode::LEVEL, 4]), Err(CmdError::Protection));
-        assert_eq!(s.cmd(&[opcode::OUTPUT_MA, 0xb0, 0x04]), Err(CmdError::Protection)); // 1200 > stepdown
-        assert_eq!(s.cmd(&[opcode::OUTPUT_MA, 0x58, 0x02]), Ok(())); // 600 = stepdown is fine
-        s.temp_c = 40.0;
+        assert_eq!(s.cmd(&output_ma(BAL.turbo_ma)), Err(CmdError::Protection)); // turbo > stepdown
+        assert_eq!(s.cmd(&output_ma(BAL.stepdown_ma)), Ok(())); // stepdown is fine
+        s.temp_c = BAL.temp_limit_c as f32 - 10.0; // v0.6: 40 degC
         s.run(2_000);
         assert_eq!(s.cmd(&[opcode::LEVEL, 4]), Ok(()));
     }
@@ -1672,12 +1743,12 @@ mod tests {
         let mut s = Sim::new();
         s.run(100);
         assert_eq!(s.cmd(&[opcode::ON]), Ok(()));
-        assert_eq!(s.out.led_ma, 30);
+        assert_eq!(s.out.led_ma, BAL.low_ma);
         assert_eq!(s.status().source, ControlSource::App);
         assert_eq!(s.cmd(&[opcode::LEVEL, 3]), Ok(()));
-        assert_eq!(s.out.led_ma, 600);
+        assert_eq!(s.out.led_ma, BAL.high_ma);
         assert_eq!(s.cmd(&[opcode::PROFILE, 0]), Ok(()));
-        assert_eq!(s.out.led_ma, 900, "level re-applied with the new table");
+        assert_eq!(s.out.led_ma, Profile::EXTREME.high_ma, "level re-applied with the new table");
         assert_eq!(s.status().profile, 0);
         assert_eq!(s.cmd(&[opcode::OFF]), Ok(()));
         assert!(!s.c.is_on());
@@ -1709,12 +1780,12 @@ mod tests {
         let mut s = Sim::new();
         s.run(100);
         assert_eq!(s.cmd(&[opcode::OUTPUT_MA, 0x10, 0x27]), Ok(())); // 10000 mA
-        assert_eq!(s.c.mode(), Mode::Exact(1_200));
+        assert_eq!(s.c.mode(), Mode::Exact(BAL.turbo_ma)); // clamped to the turbo current
         assert_eq!(s.status().level, LEVEL_EXACT);
-        assert_eq!(s.out.led_ma, 1_200);
+        assert_eq!(s.out.led_ma, BAL.turbo_ma);
         assert_ne!(s.status().flags & sf::TURBO_ACTIVE, 0, "above step-down: turbo timer runs");
         s.run(61_000);
-        assert_eq!(s.out.led_ma, 600, "stepped down after the turbo time");
+        assert_eq!(s.out.led_ma, BAL.stepdown_ma, "stepped down after the turbo time");
         assert_eq!(s.cmd(&[opcode::OUTPUT_MA, 0, 0]), Err(CmdError::Invalid));
         assert_eq!(s.cmd(&[opcode::OUTPUT_MA, 77, 0]), Ok(()));
         assert_eq!(s.out.led_ma, 77);
@@ -1737,7 +1808,10 @@ mod tests {
         let back = s.c.profile_packet();
         assert_eq!(back[0], 3);
         let (_, rp) = Profile::decode_raw(&back);
+        #[cfg(not(feature = "board-v07"))]
         assert_eq!(rp.turbo_ma, 3_000);
+        #[cfg(feature = "board-v07")]
+        assert_eq!(rp.turbo_ma, 2_850, "v0.7: Custom turbo clamped to 2850 mA");
         assert_eq!(rp.temp_limit_c, 70);
         assert_eq!(s.status().profile, 3);
         // wrong id / length
@@ -1799,15 +1873,17 @@ mod tests {
 
     // -------------------------------------------------------------- protection
 
+    #[cfg(not(feature = "board-v07"))]
     #[test]
     fn thermal_derating_and_shutdown() {
         let mut s = Sim::new();
         s.run(100);
         s.cmd(&[opcode::LEVEL, 3]).unwrap(); // High 600, limit 50
-        s.temp_c = 57.5; // halfway into the 15 degC span
+        s.temp_c = BAL.temp_limit_c as f32 + 7.5; // halfway into the 15 degC span
         s.run(3_000);
         let ma = s.out.led_ma;
-        assert!((300..=330).contains(&ma), "{ma}");
+        let mid = (BAL.high_ma + BAL.low_ma) / 2; // v0.6: 315 mA
+        assert!((mid - 15..=mid + 15).contains(&ma), "{ma}");
         assert_ne!(s.status().flags & sf::THERMAL_LIMIT, 0);
         assert_eq!(s.status().source, ControlSource::Auto);
         s.temp_c = 72.0;
@@ -1823,26 +1899,82 @@ mod tests {
         assert_eq!(s.cmd(&[opcode::ON]), Ok(()));
     }
 
+    /// v0.7 board: the limit is the regulator's set point ([`crate::thermal`]). Within the band
+    /// just below it the current is held; above it the current falls (at once by the P part, then
+    /// steadily) down to Low, never below; Moon above 70 and off above 80 degC as on the v0.6.
+    #[cfg(feature = "board-v07")]
+    #[test]
+    fn thermal_regulation_and_shutdown() {
+        let mut s = Sim::new();
+        s.temp_c = BAL.temp_limit_c as f32 - 0.1; // 49.9 degC: within the band
+        s.run(30_000); // light off: the regulator's filters settle (no rate of rise left)
+        s.cmd(&[opcode::LEVEL, 3]).unwrap(); // High 1530 mA, limit 50 degC
+        s.run(60_000);
+        assert_eq!(s.out.led_ma, BAL.high_ma, "held within the band below the limit");
+        assert_eq!(s.status().flags & sf::THERMAL_LIMIT, 0);
+        s.temp_c = BAL.temp_limit_c as f32 + 1.0; // 1 degC too hot
+        s.run(3_000);
+        let ma = s.out.led_ma;
+        assert!(ma < BAL.high_ma - 300 && ma > BAL.low_ma, "{ma}");
+        assert_ne!(s.status().flags & sf::THERMAL_LIMIT, 0);
+        assert_eq!(s.status().source, ControlSource::Auto);
+        s.run(10_000); // (the sudden step of the reading looks like a fast rise for a few seconds)
+        let mut last = s.out.led_ma;
+        for _ in 0..60 {
+            s.run(1_000);
+            assert!(s.out.led_ma <= last, "falls steadily while too hot");
+            last = s.out.led_ma;
+        }
+        assert_eq!(s.out.led_ma, BAL.low_ma, "still too hot after a minute: Low, not less");
+        // a request at or below Low is never reduced (as on the v0.6)
+        s.cmd(&[opcode::LEVEL, 0]).unwrap();
+        s.run(5_000);
+        assert_eq!(s.out.led_ma, BAL.moon_ma);
+        s.cmd(&[opcode::LEVEL, 3]).unwrap();
+        s.temp_c = 72.0;
+        s.run(3_000);
+        assert_eq!(s.out.led_ma, 3, "Moon above 70");
+        s.temp_c = 82.0;
+        s.run(3_000);
+        assert!(!s.c.is_on(), "off above 80");
+        s.run(3_100);
+        assert_eq!(s.cmd(&[opcode::ON]), Err(CmdError::Protection));
+        s.temp_c = 74.0;
+        s.run(3_000);
+        assert_eq!(s.cmd(&[opcode::ON]), Ok(()));
+        // cool again: the full current comes back
+        s.temp_c = 30.0;
+        s.run(10_000);
+        s.cmd(&[opcode::LEVEL, 3]).unwrap();
+        s.run(1_000);
+        assert_eq!(s.out.led_ma, BAL.high_ma);
+        assert_eq!(s.status().flags & sf::THERMAL_LIMIT, 0);
+    }
+
     #[test]
     fn low_voltage_steps_moon_and_empty_latch() {
-        let mut s = Sim::new(); // Balanced: step-down 3.35 V
+        let mut s = Sim::new(); // Balanced: step-down 3.35 V (v0.7: 3.20 V)
         s.run(100);
         s.cmd(&[opcode::LEVEL, 3]).unwrap();
-        s.vbat = 3_300;
-        // the filtered voltage crosses 3.35 V about 1.9 s later
+        s.vbat = BAL.lv_stepdown_mv() - 50;
+        // the filtered voltage crosses the threshold about 2 s later
+        #[cfg(not(feature = "board-v07"))]
+        assert_eq!(BAL.lv_stepdown_mv(), 3_350);
+        #[cfg(feature = "board-v07")]
+        assert_eq!(BAL.lv_stepdown_mv(), 3_200);
         s.run(2_000);
-        assert_eq!(s.out.led_ma, 600);
+        assert_eq!(s.out.led_ma, BAL.high_ma);
         s.run(4_500);
-        assert_eq!(s.out.led_ma, 600, "not before 5 s below the threshold");
+        assert_eq!(s.out.led_ma, BAL.high_ma, "not before 5 s below the threshold");
         s.run(1_000);
-        assert_eq!(s.out.led_ma, 200, "one step after 5 s");
+        assert_eq!(s.out.led_ma, BAL.medium_ma, "one step after 5 s");
         assert_ne!(s.status().flags & sf::BATTERY_LIMIT, 0);
         assert_eq!(s.status().source, ControlSource::Auto);
         s.run(5_000);
-        assert_eq!(s.out.led_ma, 30, "next step 5 s later");
+        assert_eq!(s.out.led_ma, BAL.low_ma, "next step 5 s later");
         s.vbat = 3_050;
         s.run(3_000);
-        assert_eq!(s.out.led_ma, 3, "Moon below 3.10 V");
+        assert_eq!(s.out.led_ma, BAL.moon_ma, "Moon below 3.10 V");
         s.vbat = 2_950;
         s.run(4_000);
         assert!(!s.c.is_on(), "off below 3.00 V");
@@ -2054,11 +2186,16 @@ mod tests {
     fn runtime_estimate_when_on() {
         let mut s = Sim::build(Settings::default(), BootInfo::default(), 3_800); // 50 %
         s.run(1_000);
-        s.cmd(&[opcode::LEVEL, 3]).unwrap(); // 600 mA
+        s.cmd(&[opcode::LEVEL, 3]).unwrap(); // 600 mA (v0.7: 1530 mA)
         s.run(500);
         let st = s.status();
         // 400 mAh / (2.84 V*0.6 A/(0.9*3.8 V) + 20 mA) = 400 / 518 mA = 46 min
+        #[cfg(not(feature = "board-v07"))]
         assert!((40..=52).contains(&st.runtime_min), "{}", st.runtime_min);
+        // v0.7 (F15 curve: 3.8 V = 63 %): 1400 mAh x 63 % / (3.03 V*1.53 A/(0.87*3.8 V) + 20 mA)
+        // = 886 / 1422 mA = 37 min
+        #[cfg(feature = "board-v07")]
+        assert!((34..=41).contains(&st.runtime_min), "{}", st.runtime_min);
     }
 
     // -------------------------------------------------------------- v0.6: slide buttons in flashlight mode
@@ -2107,7 +2244,7 @@ mod tests {
         assert_eq!(s.c.mode(), Mode::Level(Level::Turbo), "› does nothing in turbo");
         s.slide_click(B::Prev);
         assert_eq!(s.c.mode(), Mode::Level(Level::High), "‹ goes to High");
-        assert_eq!(s.out.led_ma, 600);
+        assert_eq!(s.out.led_ma, BAL.high_ma);
     }
 
     #[test]
@@ -2527,5 +2664,74 @@ mod tests {
         s.pressed = false;
         s.run(100);
         assert_ne!(s.out.rgb, Rgb::RED);
+    }
+
+    // -------------------------------------------------------------- LED ceiling (both boards)
+
+    /// Random commands, Custom profiles with extreme values, button gestures, temperatures and
+    /// battery voltages: the LED current never exceeds the highest level of the board (v0.7:
+    /// 2850 mA) nor its hard ceiling (v0.7: 3000 mA), in the outputs, in Status, or as a PWM duty.
+    #[test]
+    fn never_above_the_led_ceiling() {
+        let ceiling = crate::hw::LED_MAX_MA;
+        let max_counts = crate::hw::led_duty_counts(u16::MAX);
+        let mut seed = 0x2545_f491_u32;
+        let mut rnd = move |n: u32| {
+            seed ^= seed << 13;
+            seed ^= seed >> 17;
+            seed ^= seed << 5;
+            seed % n
+        };
+        let mut peak = 0u16;
+        for round in 0..40 {
+            let mut s = Sim::new();
+            s.run(500);
+            for _ in 0..60 {
+                match rnd(9) {
+                    0 => {
+                        let lv = rnd(5) as u8;
+                        let _ = s.c.command(&[opcode::LEVEL, lv], s.t);
+                    }
+                    1 => {
+                        let ma = [1u16, 600, 2_999, 3_000, 3_001, 3_552, 4_000, u16::MAX][rnd(8) as usize];
+                        let _ = s.c.command(&output_ma(ma), s.t);
+                    }
+                    2 => {
+                        let _ = s.c.command(&[opcode::PROFILE, rnd(4) as u8], s.t);
+                    }
+                    3 => {
+                        // a Custom profile with random, often out-of-range values (the firmware clamps)
+                        let mut b = [0u8; crate::protocol::PROFILE_LEN];
+                        for x in b.iter_mut() {
+                            *x = rnd(256) as u8;
+                        }
+                        b[0] = 3;
+                        if rnd(2) == 0 {
+                            b[10..12].copy_from_slice(&u16::MAX.to_le_bytes()); // turbo
+                            b[8..10].copy_from_slice(&u16::MAX.to_le_bytes()); // high
+                            b[18..20].copy_from_slice(&u16::MAX.to_le_bytes()); // cell limit
+                        }
+                        let _ = s.c.profile_write(&b, s.t);
+                    }
+                    4 => s.clicks(1 + rnd(2) as usize),
+                    5 => s.press(500 + rnd(2_000) as u64),
+                    6 => s.temp_c = [20.0, 40.0, 48.0, 55.0, 69.0, 75.0][rnd(6) as usize],
+                    7 => s.vbat = [3_050, 3_400, 3_700, 4_200][rnd(4) as usize],
+                    _ => s.run(rnd(70_000) as u64),
+                }
+                s.run(200);
+                assert!(s.out.led_ma as u32 <= ceiling, "round {round}: {} mA", s.out.led_ma);
+                assert!(s.out.led_ma <= crate::board::TURBO_MAX_MA, "round {round}: {} mA", s.out.led_ma);
+                assert!(s.status().led_ma as u32 <= ceiling);
+                assert!(crate::hw::led_duty_counts(s.out.led_ma) <= max_counts);
+                peak = peak.max(s.out.led_ma);
+            }
+        }
+        // the random walk does reach the top: turbo, an exact request or a clamped Custom turbo
+        assert!(peak >= 2_200, "peak {peak}");
+        #[cfg(feature = "board-v07")]
+        assert_eq!(peak, crate::board::TURBO_MAX_MA, "the 2850 mA turbo is reached, never more");
+        #[cfg(feature = "board-v07")]
+        assert!((peak as u32) < ceiling);
     }
 }

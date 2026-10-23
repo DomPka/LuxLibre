@@ -59,9 +59,10 @@ uint8_t g_storage[LX_STORAGE_SIZE];
 std::string g_con_in, g_con_out;
 
 double ocv_cell(double soc) {
-    // typical NMC cell; the last few percent fall off steeply
+    // typical NMC cell; the last few percent fall off steeply (a board header may give its own curve)
     static const double s[] = {0.0, 0.03, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00};
-    static const double v[] = {2.70, 3.30, 3.45, 3.60, 3.70, 3.75, 3.79, 3.83, 3.88, 3.94, 4.00, 4.08, 4.20};
+    static const double nmc[] = {2.70, 3.30, 3.45, 3.60, 3.70, 3.75, 3.79, 3.83, 3.88, 3.94, 4.00, 4.08, 4.20};
+    const double* v = g_cfg.ocv_v.size() == 13 ? g_cfg.ocv_v.data() : nmc;
     soc = std::min(1.0, std::max(0.0, soc));
     for (int i = 1; i < 13; i++) {
         if (soc <= s[i]) return v[i - 1] + (v[i] - v[i - 1]) * (soc - s[i - 1]) / (s[i] - s[i - 1]);
@@ -93,9 +94,24 @@ void physics(double dt) {
     double ocv = ocv_cell(g_soc) * g_cfg.cells;
     double v = ocv;
     double i_bat = 0.0;
-    for (int k = 0; k < 3; k++) {   // terminal voltage depends on the current
-        i_bat = (p_in + p_laser) / std::max(v, 1.0) + 0.0003;
-        v = ocv - i_bat * g_cfg.r_int_ohm;
+    if (g_cfg.drop_ohm <= 0.0) {
+        for (int k = 0; k < 3; k++) {   // terminal voltage depends on the current
+            i_bat = (p_in + p_laser) / std::max(v, 1.0) + 0.0003;
+            v = ocv - i_bat * g_cfg.r_int_ohm;
+        }
+    } else {
+        // the battery sags with its current; at 100 % duty the driver cannot give the LED more
+        // than (V - vf0) / (rs + drop) and the battery current is then the LED current
+        double i_set = g_i_led;
+        for (int k = 0; k < 6; k++) {
+            g_i_led = i_set > 0 ? std::min(i_set, std::max(0.0, (v - g_cfg.vf0) / (g_cfg.rs + g_cfg.drop_ohm))) : 0.0;
+            v_led = g_i_led > 0 ? g_cfg.vf0 + g_cfg.rs * g_i_led : 0.0;
+            p_led = v_led * g_i_led;
+            double i_led_in = g_cfg.efficiency > 0 ? std::min(p_led / g_cfg.efficiency / std::max(v, 1.0), g_i_led) : 0.0;
+            p_in = i_led_in * std::max(v, 1.0);
+            i_bat = i_led_in + p_laser / std::max(v, 1.0) + 0.0003;
+            v = ocv - i_bat * g_cfg.r_int_ohm;
+        }
     }
     double i_chg = 0.0;
     if (g_usb && g_charge_en && g_soc < 0.995) i_chg = g_cfg.charge_a * (g_soc > 0.9 ? (1.0 - g_soc) * 10.0 : 1.0);
@@ -115,7 +131,8 @@ void physics(double dt) {
 void sample_log() {
     if (g_now >= g_next_log) {
         g_next_log = g_now + 100;
-        Sample s{g_now, lx::light::output_level(), g_i_led, lumens(), g_ts, g_tb, g_v_pack, g_soc, g_laser};
+        Sample s{g_now, lx::light::output_level(), g_i_led, lumens(), g_ts, g_tb, g_v_pack, g_soc, g_laser,
+                 lumens_front()};
         g_log.push_back(s);
     }
 }
@@ -149,6 +166,55 @@ Config keychain_preset() {
 #endif
     c.cells = LX_BAT_CELLS;
     c.sensor_noise_c = 0.2;         // NTC on a 12-bit ADC: a few counts of noise
+    return c;
+}
+
+bool board_has_model() {
+#ifdef LX_SIM_C_HEAD_MJ
+    return true;
+#else
+    return false;
+#endif
+}
+
+Config board_preset() {
+    Config c = keychain_preset();
+#ifdef LX_SIM_C_HEAD_MJ
+    // Body and cell of the board header (values in mJ/K, mK/W, mOhm, ms: integer macros).
+    c.capacity_mah = LX_SIM_CAPACITY_MAH;
+    c.r_int_ohm = LX_SIM_RINT_MOHM / 1000.0;
+    c.c_head = LX_SIM_C_HEAD_MJ / 1000.0;
+    c.c_body = LX_SIM_C_BODY_MJ / 1000.0;
+    c.r_head_body = LX_SIM_R_HEAD_BODY_MK / 1000.0;
+    c.r_body_amb = LX_SIM_R_BODY_AMB_MK / 1000.0;
+    c.sensor_tau_s = LX_SIM_SENSOR_TAU_MS / 1000.0;
+#endif
+#ifdef LX_LED_LM_MA
+    {
+        static const int ma[] = {LX_LED_LM_MA};
+        static const int lm[] = {LX_LED_LM};
+        static_assert(sizeof(ma) == sizeof(lm), "LX_LED_LM_MA and LX_LED_LM need the same number of points");
+        c.lm_table_a.clear();
+        c.lm_table_lm.clear();
+        for (size_t i = 0; i < sizeof(ma) / sizeof(ma[0]); i++) {
+            c.lm_table_a.push_back(ma[i] / 1000.0);
+            c.lm_table_lm.push_back(lm[i]);
+        }
+    }
+#endif
+#ifdef LX_OPTIC_PCT
+    c.optic = LX_OPTIC_PCT / 100.0;
+#endif
+#ifdef LX_SIM_DROP_MOHM
+    c.drop_ohm = LX_SIM_DROP_MOHM / 1000.0;
+#endif
+#ifdef LX_SIM_OCV_V
+    {
+        static const double v[] = {LX_SIM_OCV_V};
+        static_assert(sizeof(v) / sizeof(v[0]) == 13, "LX_SIM_OCV_V needs 13 points (0, 3, 5, 10, 20 ... 100 %)");
+        c.ocv_v.assign(v, v + 13);
+    }
+#endif
     return c;
 }
 
@@ -243,9 +309,19 @@ uint8_t level() { return lx::light::output_level(); }
 double led_a() { return g_i_led; }
 double lumens() {
     double i = g_i_led;
+    const std::vector<double>& ta = g_cfg.lm_table_a;
+    const std::vector<double>& tl = g_cfg.lm_table_lm;
+    if (ta.size() >= 2 && ta.size() == tl.size()) {
+        // rated flux of a real LED: straight lines between the points, the last slope beyond
+        size_t k = 1;
+        while (k + 1 < ta.size() && i > ta[k]) k++;
+        double lm = tl[k - 1] + (tl[k] - tl[k - 1]) * (i - ta[k - 1]) / (ta[k] - ta[k - 1]);
+        return i > 0 && lm > 0 ? lm : 0.0;
+    }
     double lm = i * g_cfg.lm_per_a * (1.0 - g_cfg.droop_per_a * i) * (1.0 - 0.003 * (g_th - 25.0));
     return lm > 0 ? lm : 0.0;
 }
+double lumens_front() { return lumens() * g_cfg.optic; }
 double t_head() { return g_th; }
 double t_body() { return g_tb; }
 double t_sensor() { return g_ts; }
@@ -270,10 +346,10 @@ const std::vector<Sample>& log() { return g_log; }
 void write_csv(const std::string& path) {
     FILE* f = fopen(path.c_str(), "w");
     if (!f) return;
-    fprintf(f, "t_s,level,led_A,lumens,T_sensor_C,T_body_C,V_pack,SoC_pct,laser\n");
+    fprintf(f, "t_s,level,led_A,lumens,T_sensor_C,T_body_C,V_pack,SoC_pct,laser,lumens_front\n");
     for (const Sample& s : g_log) {
-        fprintf(f, "%.1f,%u,%.3f,%.0f,%.2f,%.2f,%.3f,%.1f,%d\n", s.t / 1000.0, s.level, s.led_a, s.lumens,
-                s.t_sensor, s.t_body, s.v_pack, s.soc * 100.0, s.laser ? 1 : 0);
+        fprintf(f, "%.1f,%u,%.3f,%.0f,%.2f,%.2f,%.3f,%.1f,%d,%.0f\n", s.t / 1000.0, s.level, s.led_a, s.lumens,
+                s.t_sensor, s.t_body, s.v_pack, s.soc * 100.0, s.laser ? 1 : 0, s.lumens_front);
     }
     fclose(f);
 }

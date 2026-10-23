@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-//! ESP32-C3 pin map of the FlashKa Keychain v0.6 main board.
+//! ESP32-C3 pin map of the FlashKa Keychain v0.6 main board (the v0.7 board
+//! uses the same GPIOs: its changes are in the LED power stage and the cell,
+//! see `flashka_core::board`).
 //!
 //! Mirrors `GPIO_MAP` in `tools/kicad/flashka_parts.py` (the single source of
 //! truth for the hardware); unchanged from v0.5 except for the button net,
@@ -53,3 +55,44 @@ pub const PWM_FREQ_HZ: u32 = 9_765;
 
 /// LEDC duty value for 100 % at 13 bits.
 pub const PWM_FULL: u32 = 1 << 13;
+
+// Firmware version as a string literal (the boot log inlines it into its text, as the v0.6 image
+// did with `env!("CARGO_PKG_VERSION")`). Must equal flashka_core::board::FW_VERSION (checked below).
+#[cfg(not(feature = "board-v07"))]
+macro_rules! fw_version {
+    () => {
+        "0.6.0"
+    };
+}
+#[cfg(feature = "board-v07")]
+macro_rules! fw_version {
+    () => {
+        "0.7.0"
+    };
+}
+pub(crate) use fw_version;
+
+const _: () = {
+    let (a, b) = (fw_version!().as_bytes(), flashka_core::board::FW_VERSION.as_bytes());
+    assert!(a.len() == b.len(), "fw_version!() differs from flashka_core::board::FW_VERSION");
+    let mut i = 0;
+    while i < a.len() {
+        assert!(a[i] == b[i], "fw_version!() differs from flashka_core::board::FW_VERSION");
+        i += 1;
+    }
+};
+
+// App descriptor of the v0.7 image: the same as the v0.6 one (`esp_app_desc!()` in main.rs) with
+// the v0.7 firmware version instead of the crate version (0.6.0, kept for the v0.6 image).
+#[cfg(feature = "board-v07")]
+esp_bootloader_esp_idf::esp_app_desc!(
+    flashka_core::board::FW_VERSION,
+    env!("CARGO_PKG_NAME"),
+    esp_bootloader_esp_idf::BUILD_TIME,
+    esp_bootloader_esp_idf::BUILD_DATE,
+    esp_bootloader_esp_idf::ESP_IDF_COMPATIBLE_VERSION,
+    esp_bootloader_esp_idf::MMU_PAGE_SIZE,
+    0,
+    u16::MAX,
+    esp_bootloader_esp_idf::SECURE_VERSION
+);

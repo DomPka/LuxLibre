@@ -10,13 +10,14 @@ body:
       value: |
         Thank you for building one. Measurements from real builds are the most valuable contribution to LuxLibre: no FlashKa had been built when the design was published, so every result counts, also a partial one.
 
-        Fill in what you did and leave the rest empty. The steps are in the build guide of your version, for example the [FlashKa v0.6 build guide](https://github.com/DomPka/LuxLibre/blob/main/hardware/flashka-keychain-v06/docs/build_guide_v0.6.md).
+        Fill in what you did and leave the rest empty. The steps are in the build guide of your version, for example the [FlashKa v0.7 build guide](https://github.com/DomPka/LuxLibre/blob/main/hardware/flashka-keychain-v07/docs/build_guide_v0.7.md).
 
   - type: dropdown
     id: design
     attributes:
       label: Design version
       options:
+        - FlashKa Keychain v0.7
         - FlashKa Keychain v0.6
         - FlashKa Keychain v0.5
         - Another version or a changed design (say which under "What worked")
@@ -28,10 +29,13 @@ body:
     attributes:
       label: What you built
       options:
-        - label: Main PCB (assembled by JLCPCB)
+        - label: "Circuit boards, assembled by JLCPCB (v0.7: the panel with the main PCB and the key board)"
         - label: Housing (tray and lid, JLCCNC)
-        - label: Caps (stainless steel, or resin from the print kit)
-        - label: Print kit (JLC3DP)
+        - label: "v0.7: PMMA and POM-C machining kits (JLCCNC)"
+        - label: "v0.7: rubber side keys cast in the mould (resin or aluminium), with the stainless stiffener"
+        - label: "v0.7: head with the TIR optic and the LED board"
+        - label: "v0.6: caps (stainless steel, or resin from the print kit)"
+        - label: "v0.6: print kit (JLC3DP)"
         - label: Complete light, closed and working
         - label: Firmware installed (web installer or espflash)
 
@@ -42,9 +46,9 @@ body:
       description: Which shops you ordered from, which files and options you chose, quantities, the price you paid and the delivery time. Say if a shop refused a file or changed something.
       placeholder: |
         JLCPCB (PCB and assembly):
-        JLCCNC (tray, lid, caps):
-        JLC3DP (print kit):
-        Bought parts (cells, laser module, ...):
+        JLCCNC + JLC3DP (tray, lid, kits, resin mould; v0.6: caps):
+        Casting supplies (v0.7) or JLC3DP print kit (v0.6):
+        Bought parts (cells, LED board, TIR optic, laser module, ...):
 
   - type: textarea
     id: worked
@@ -63,7 +67,7 @@ body:
     id: led-current
     attributes:
       label: Main LED current
-      description: At the highest level and in turbo, in A, with the cell voltage ([DRV-2](https://github.com/DomPka/LuxLibre/blob/main/docs/design-rules.md#drv-2)).
+      description: At the highest level and in turbo, in A, with the cell voltage ([DRV-2](https://github.com/DomPka/LuxLibre/blob/main/docs/design-rules.md#drv-2)). On v0.7 also the battery current in turbo, with a hot light (the protection must not trip).
       placeholder: "A at V cell voltage, measured with ..."
 
   - type: input
@@ -77,7 +81,7 @@ body:
     id: ring
     attributes:
       label: Light ring brightness
-      description: How the RGB ring around the main button looks in daylight and in the dark (too dim, right, too bright), or a measurement.
+      description: How the RGB ring looks in daylight and in the dark (too dim, right, too bright), or a measurement. On v0.7 it is the frosted ring of the clear main key, on v0.6 the ring around the main button.
 
   - type: input
     id: standby
@@ -102,7 +106,7 @@ body:
     id: other
     attributes:
       label: Other measurements
-      description: For example runtime, charging current, the hottest surface temperature in turbo ([THM-1](https://github.com/DomPka/LuxLibre/blob/main/docs/design-rules.md#thm-1)), Bluetooth range or mass. A full test report ([templates/test-report.md](https://github.com/DomPka/LuxLibre/blob/main/templates/test-report.md)) is welcome as an attachment.
+      description: For example lumens and candela (at switch-on and after 30 s), runtime, charging current, the hottest surface temperature in turbo ([THM-1](https://github.com/DomPka/LuxLibre/blob/main/docs/design-rules.md#thm-1)), Bluetooth range or mass. A full test report ([templates/test-report.md](https://github.com/DomPka/LuxLibre/blob/main/templates/test-report.md)) is welcome as an attachment.
 
   - type: textarea
     id: problems

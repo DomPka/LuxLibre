@@ -52,7 +52,7 @@ the details are published. A fix is published with a GitHub security advisory an
 | FlashKa firmware: Bluetooth pairing and bonding (bonding: the light and a computer store a shared key so that they can reconnect) | pairing or bonding outside presenter mode; a device that is not paired reads or writes the encrypted keyboard characteristics; the stored keys of paired computers can be read or changed over the air |
 | FlashKa firmware: HID (human interface device: the light acting as a keyboard in presenter mode) | the light sends keys other than the documented ones, or sends keys because of a device that is not paired with it |
 | FlashKa firmware: control link of the app | the laser can be switched over Bluetooth (the design does not allow it); a Bluetooth window stays open longer than documented; packets that crash the light or make it skip a protection |
-| Web pages: control app, firmware installer, this project's GitHub Pages site | script injection, for example through a device name; the installer writes a different firmware image from the one it shows; a page sends data off the computer (the pages are made to upload nothing) |
+| Web pages: control app, firmware installer, this project's GitHub Pages site | script injection, for example through a device name; the installer writes a different firmware image from the one it shows, or an image made for the other FlashKa board; a page sends data off the computer (the pages are made to upload nothing) |
 | LuxLibre firmware (`firmware/`) | console input that crashes the firmware, damages its stored settings or sets a parameter outside its allowed range; any way around the thermal, low-voltage, laser or lockout protections |
 
 Out of scope:
@@ -83,8 +83,8 @@ These are documented choices, not vulnerabilities:
 - **"Just Works" pairing in presenter mode.** Presenter mode uses LE Secure Connections without a
   PIN, so pairing does not protect against an attacker who is active within range at that moment.
   Pair a computer where nobody else is trying to connect. If a light was lost and found again,
-  make it forget all computers (hold ‹ and › for 10 s; the ring blinks white three times) and pair
-  again.
+  make it forget all computers (hold both side keys for 10 s: ^ and v on a v0.7, ‹ and › on a
+  v0.6; the ring blinks white three times) and pair again.
 
 ## Supported versions
 
@@ -92,5 +92,6 @@ Security fixes are made for the newest release line only.
 
 | Version | Contains | Security fixes |
 |---|---|---|
-| 0.2.x | LuxLibre firmware 0.2; FlashKa Keychain v0.6 with its firmware, control app and installer 0.6 | yes |
+| 0.3.x | LuxLibre firmware 0.3; FlashKa Keychain v0.7 with FlashKa firmware 0.7.0 and control app 0.7.0; the installer holds firmware 0.7.0 (v0.7) and 0.6.0 (v0.6) | yes |
+| 0.2.x | LuxLibre firmware 0.2; FlashKa Keychain v0.6 with its firmware, control app and installer 0.6 | no |
 | 0.1.x | LuxLibre firmware 0.1; FlashKa Keychain v0.5 | no |

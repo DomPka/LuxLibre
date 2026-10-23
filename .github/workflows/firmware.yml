@@ -67,3 +67,4 @@ jobs:
           idf.py set-target esp32c3
           idf.py -DLX_BOARD=flashka-keychain-v05 build
           idf.py -B build-v06 -DLX_BOARD=flashka-keychain-v06 build
+          idf.py -B build-v07 -DLX_BOARD=flashka-keychain-v07 build

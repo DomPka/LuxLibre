@@ -1,17 +1,20 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Checks for the FlashKa Keychain v0.6 reference design (hardware/flashka-keychain-v06/), run on every push and
-# pull request that changes it. This workflow only tests and builds: it never commits, pushes, tags or opens
-# pull requests.
+# Checks for the FlashKa Keychain reference designs: v0.6 (hardware/flashka-keychain-v06/, which also holds the
+# firmware of both boards - 0.6.0 for v0.6, 0.7.0 for v0.7 - and the web pages) and v0.7
+# (hardware/flashka-keychain-v07/), run on every push and pull request that changes them. This workflow only tests
+# and builds: it never commits, pushes, tags or opens pull requests.
 name: flashka
 
 on:
   push:
     paths:
       - "hardware/flashka-keychain-v06/**"
+      - "hardware/flashka-keychain-v07/**"
       - ".github/workflows/flashka.yml"
   pull_request:
     paths:
       - "hardware/flashka-keychain-v06/**"
+      - "hardware/flashka-keychain-v07/**"
       - ".github/workflows/flashka.yml"
 
 permissions:
@@ -28,13 +31,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - name: Host tests of flashka-core
+      - name: Host tests of flashka-core (v0.6 board)
         run: cargo test
+      - name: Host tests of flashka-core (v0.7 board, incl. the thermal simulation)
+        run: cargo test --features board-v07
 
   firmware-build:
-    # Builds the merged image with firmware/build.sh and compares it with the published one in firmware/dist/.
-    # The build maps all machine-specific paths and fixes the build date, so the same compiler gives the same
-    # bytes. Allowed to fail: remove continue-on-error once this job has passed.
+    # Builds both merged images with firmware/build.sh (0.6.0 for the v0.6 board, 0.7.0 for the v0.7 board) and
+    # compares them with the published ones in firmware/dist/. The build maps all machine-specific paths and fixes
+    # the build date, so the same compiler gives the same bytes. Allowed to fail: remove continue-on-error once
+    # this job has passed.
     name: Firmware build (experimental)
     runs-on: ubuntu-24.04
     timeout-minutes: 45
@@ -46,27 +52,30 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
-          # the published image was built with rustc 1.91.1
+          # the published images were built with rustc 1.91.1
           toolchain: "1.91.1"
           components: rust-src
       - name: Install espflash 4
         run: |
           sudo apt-get update && sudo apt-get install -y libudev-dev pkg-config
           cargo install espflash --locked --version '^4'
-      - name: Build the merged image (build.sh)
+      - name: Build the merged images (build.sh, both boards)
         env:
           # use the rustup toolchain above (build.sh falls back to cargo and rustc on PATH)
           FW_RUST_BIN: /nonexistent
           # the host tests run in the job above
           SKIP_TESTS: "1"
-        run: bash ./build.sh
-      - name: Compare with the published image
         run: |
-          sha256sum dist/flashka-fw-v0.6.0-merged.bin
-          if git diff --quiet -- dist/; then
-            echo "The rebuilt image is identical to the published one."
+          BOARD=v06 bash ./build.sh
+          BOARD=v07 bash ./build.sh
+      - name: Compare with the published images
+        run: |
+          sha256sum dist/flashka-fw-v0.6.0-merged.bin dist/flashka-fw-v0.7.0-merged.bin
+          if git diff --quiet -- dist/ && [ -z "$(git status --porcelain -- dist/)" ]; then
+            echo "Both rebuilt images are identical to the published ones."
           else
-            echo "::warning::The rebuilt image differs from firmware/dist/flashka-fw-v0.6.0-merged.bin"
+            git status --short -- dist/
+            echo "::warning::A rebuilt image differs from firmware/dist/ (flashka-fw-v0.6.0 or flashka-fw-v0.7.0)"
             exit 1
           fi
       - uses: actions/upload-artifact@v4
@@ -104,7 +113,7 @@ jobs:
           path: hardware/flashka-keychain-v06/app/screenshots/
 
   workbook:
-    name: Cost workbook check
+    name: Cost workbook check (v0.6)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     defaults:
@@ -119,5 +128,25 @@ jobs:
         run: python3 -m pip install openpyxl==3.1.5
       # --check-only re-reads the committed workbook and compares it with the design files and an independent
       # calculation; it does not write the workbook, so LibreOffice is not needed
+      - name: Check the workbook against the design files
+        run: python3 tools/parts_list.py --check-only
+
+  workbook-v07:
+    name: Cost workbook check (v0.7)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: hardware/flashka-keychain-v07
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install openpyxl
+        run: python3 -m pip install openpyxl==3.1.5
+      # --check-only re-reads the committed workbook and compares it with both boards, the housing and mould
+      # files, the order files and an independent calculation; it does not write the workbook, so LibreOffice is
+      # not needed
       - name: Check the workbook against the design files
         run: python3 tools/parts_list.py --check-only

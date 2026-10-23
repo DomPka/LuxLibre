@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name "FlashKa")(type "KiCad")(uri "${KIPRJMOD}/FlashKa.pretty")(options "")(descr "FlashKa project footprints"))
+)

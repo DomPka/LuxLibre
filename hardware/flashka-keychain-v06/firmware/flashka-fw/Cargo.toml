@@ -40,3 +40,8 @@ embedded-io = "0.7"
 static_cell = "2"
 heapless = "0.9"
 critical-section = "1"
+
+# Board variant: no feature = FlashKa Keychain v0.6 (image flashka-fw-v0.6.0), `board-v07` = FlashKa
+# Keychain v0.7 (image flashka-fw-v0.7.0). build.sh selects it with BOARD=v06 / BOARD=v07.
+[features]
+board-v07 = ["flashka-core/board-v07"]

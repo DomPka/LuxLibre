@@ -3,11 +3,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { readFileSync, existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   inspectImage, versionFromFileName, formatBytes, base64ToBytes, bytesToBase64, sha256hex,
-  ESP_IMAGE_MAGIC, CHIP_ID_ESP32C3, PARTITION_TABLE_OFFSET, APP_OFFSET
+  ESP_IMAGE_MAGIC, CHIP_ID_ESP32C3, PARTITION_TABLE_OFFSET, APP_OFFSET,
+  APP_DESC_OFFSET, APP_DESC_MAGIC, BOARDS, boardById, boardLabel, boardOfFirmware, appInfoFromFields, readAppDescriptor
 } from '../flasher/image.js';
-import { makeImage } from './helpers/synthetic-image.mjs';
+import { makeImage, writeAppDescriptor } from './helpers/synthetic-image.mjs';
+
+const DIST = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'firmware', 'dist');
 
 test('constants match the ESP-IDF flash layout used by the firmware (partitions.csv)', () => {
   assert.equal(ESP_IMAGE_MAGIC, 0xe9);
@@ -86,4 +92,62 @@ test('base64 round trip, including large input and every byte value', () => {
 test('sha256hex matches Node crypto', async () => {
   const big = makeImage({ size: 200000 });
   assert.equal(await sha256hex(big), createHash('sha256').update(big).digest('hex'));
+});
+
+/* ---------------------------------------------------------------------------------------------------- boards */
+
+test('the two FlashKa boards and the firmware line of each', () => {
+  assert.deepEqual(BOARDS.map((b) => [b.id, b.title, b.hint, b.firmware]), [
+    ['v07', 'FlashKa v0.7', 'three keys in the middle', '0.7'],
+    ['v06', 'FlashKa v0.6', 'stainless button', '0.6']
+  ]);
+  assert.equal(boardById('v06')?.title, 'FlashKa v0.6');
+  assert.equal(boardById('v05'), undefined);
+  assert.equal(boardLabel('v07'), 'FlashKa v0.7 (three keys in the middle)');
+  assert.equal(boardLabel('v06'), 'FlashKa v0.6 (stainless button)');
+});
+
+test('which board a firmware is for: FlashKa firmware 0.7.x -> v0.7, 0.6.x -> v0.6, anything else -> none', () => {
+  assert.equal(boardOfFirmware('flashka-fw', '0.7.0'), 'v07');
+  assert.equal(boardOfFirmware('flashka-fw', '0.7.12'), 'v07');
+  assert.equal(boardOfFirmware('flashka-fw', '0.6.0'), 'v06');
+  assert.equal(boardOfFirmware('flashka-fw', '0.5.0'), null, 'v0.5 firmware is not for either board');
+  assert.equal(boardOfFirmware('flashka-fw', '0.70.0'), null, '0.70 is not 0.7');
+  assert.equal(boardOfFirmware('flashka-fw', ''), null);
+  assert.equal(boardOfFirmware('luxlibre', '0.7.0'), null, 'other firmware is never assigned a board');
+});
+
+test('app descriptor: read from a merged image at 0x10020 (magic, version at +16, project at +48)', () => {
+  assert.equal(APP_DESC_OFFSET, 0x10020);
+  assert.equal(APP_DESC_MAGIC, 0xabcd5432);
+  const v07 = readAppDescriptor(makeImage({ size: 200 * 1024, version: '0.7.0' }));
+  assert.deepEqual(v07, { found: true, version: '0.7.0', project: 'flashka-fw', board: 'v07' });
+  assert.deepEqual(readAppDescriptor(makeImage({ size: 200 * 1024, version: '0.6.0' })).board, 'v06');
+  assert.deepEqual(readAppDescriptor(makeImage({ size: 200 * 1024, version: '1.2.3', project: 'luxlibre' })),
+    { found: true, version: '1.2.3', project: 'luxlibre', board: null });
+  /* no descriptor: random bytes at 0x10020, a blank flash, a file that ends before it */
+  assert.equal(readAppDescriptor(makeImage({ size: 200 * 1024 })).found, false);
+  assert.equal(readAppDescriptor(new Uint8Array(0x20000).fill(0xff)).found, false);
+  assert.equal(readAppDescriptor(new Uint8Array(0x10040)).found, false);
+  /* the version and project fields are 32-byte C strings: unprintable bytes make the text unusable */
+  const odd = makeImage({ size: 200 * 1024, version: '0.7.0' });
+  odd[APP_DESC_OFFSET + 16 + 2] = 0x07;
+  assert.deepEqual(readAppDescriptor(odd), { found: true, version: '', project: 'flashka-fw', board: null });
+});
+
+test('app descriptor from raw fields (what the page reads back from the flashlight)', () => {
+  const buf = new Uint8Array(96);
+  writeAppDescriptor(buf, 0, '0.6.0');
+  const magic = (buf[0] | (buf[1] << 8) | (buf[2] << 16) | (buf[3] << 24)) >>> 0;
+  assert.deepEqual(appInfoFromFields(magic, buf.subarray(16, 48), buf.subarray(48, 80)), { found: true, version: '0.6.0', project: 'flashka-fw', board: 'v06' });
+  assert.deepEqual(appInfoFromFields(0xffffffff, buf.subarray(16, 48), buf.subarray(48, 80)), { found: false, version: '', project: '', board: null });
+});
+
+test('the published images name their own board (firmware/dist)', { skip: !existsSync(join(DIST, 'flashka-fw-v0.6.0-merged.bin')) }, () => {
+  const v06 = readAppDescriptor(new Uint8Array(readFileSync(join(DIST, 'flashka-fw-v0.6.0-merged.bin'))));
+  assert.deepEqual(v06, { found: true, version: '0.6.0', project: 'flashka-fw', board: 'v06' });
+  const p07 = join(DIST, 'flashka-fw-v0.7.0-merged.bin');
+  if (existsSync(p07)) {
+    assert.deepEqual(readAppDescriptor(new Uint8Array(readFileSync(p07))), { found: true, version: '0.7.0', project: 'flashka-fw', board: 'v07' });
+  }
 });

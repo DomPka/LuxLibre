@@ -1,13 +1,20 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: MIT OR Apache-2.0
-# Build the FlashKa Keychain v0.6 firmware and the merged flash image for address 0x0.
+# Build the FlashKa Keychain firmware and the merged flash image for address 0x0.
 #
-#   firmware/build.sh            host tests + release build + merged image
+#   firmware/build.sh                  v0.6 board: host tests + release build + merged image
+#   BOARD=v07 firmware/build.sh        v0.7 board (Cargo feature board-v07)
 #   SKIP_TESTS=1 firmware/build.sh
 #
 # Output (firmware/dist/):
 #   flashka-fw-v<version>-merged.bin   bootloader + partition table + app, write at 0x0
 #   flashka-fw-v<version>.elf          the release ELF (for espflash / debugging)
+# Each board has its own firmware version (FW_VERSION in flashka-core/src/board.rs), build
+# folder and build date:
+#   BOARD=v06 (default) -> 0.6.0, the image for FlashKa v0.6 boards (firmware/target/)
+#   BOARD=v07           -> 0.7.0, the image for FlashKa v0.7 boards (firmware/target/v07/;
+#                          LED ceiling 3.0 A, highest level 2850 mA)
+# Never write one board's image to the other board: the LED current scale differs.
 #
 # Toolchains (override with environment variables):
 #   FW_RUST_BIN   directory with the rustc/cargo used for the riscv32imc build
@@ -22,8 +29,27 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CORE="$HERE/flashka-core"
 FW="$HERE/flashka-fw"
 DIST="$HERE/dist"
-VERSION="$(sed -n 's/^version = "\(.*\)"/\1/p' "$FW/Cargo.toml" | head -n1)"
-ELF="$HERE/target/riscv32imc-unknown-none-elf/release/flashka-fw"   # the workspace target folder
+BOARD="${BOARD:-v06}"
+# Per board: Cargo features, target folder and the default build date (SOURCE_DATE_EPOCH, see
+# below). The v0.6 image keeps the folder and the date it was published with; the v0.7 image has
+# its own folder, so that building one board never reuses the other board's compiled date.
+case "$BOARD" in
+    v06) FEATURES=(); TARGET_DIR="$HERE/target"; DEFAULT_EPOCH=1792195200000000 ;;     # 2026-10-17 00:00 UTC
+    v07) FEATURES=(--features board-v07); TARGET_DIR="$HERE/target/v07"; DEFAULT_EPOCH=1792627200000000 ;;  # 2026-10-22
+    *) printf 'BOARD must be v06 or v07, not "%s"\n' "$BOARD" >&2; exit 2 ;;
+esac
+# v0.6 builds in the workspace's own target folder, exactly as for the published 0.6.0 image
+if [[ "$BOARD" == v06 ]]; then
+    unset CARGO_TARGET_DIR
+else
+    export CARGO_TARGET_DIR="$TARGET_DIR"
+fi
+VERSION="$(sed -n "s|^pub const FW_VERSION: &str = \"\(.*\)\"; // build.sh: $BOARD\$|\1|p" "$CORE/src/board.rs")"
+if [[ -z "$VERSION" ]]; then
+    printf 'no FW_VERSION line for %s in flashka-core/src/board.rs\n' "$BOARD" >&2
+    exit 2
+fi
+ELF="$TARGET_DIR/riscv32imc-unknown-none-elf/release/flashka-fw"   # the board's target folder
 MERGED="$DIST/flashka-fw-v$VERSION-merged.bin"
 
 FW_RUST_BIN="${FW_RUST_BIN:-/usr/lib/rust-1.91/bin}"
@@ -33,10 +59,12 @@ ESPFLASH="${ESPFLASH:-espflash}"
 export ESPFLASH_SKIP_UPDATE_CHECK=true
 # Reproducible image: the app descriptor's build date/time comes from
 # SOURCE_DATE_EPOCH instead of the clock. esp-bootloader-esp-idf 0.5.0 reads
-# this value in MICROseconds; the default is 2026-10-17 00:00:00 UTC. It is
-# compiled in when that crate is first built, so build from a clean
-# firmware/target to get the published image byte for byte.
-export SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-1792195200000000}"
+# this value in MICROseconds; the default is 2026-10-17 00:00:00 UTC for the v0.6
+# image and 2026-10-22 00:00:00 UTC for the v0.7 image. It is compiled in when that
+# crate is first built in the board's target folder, so build from a clean folder
+# (firmware/target/ for v0.6, firmware/target/v07/ for v0.7) to get the published
+# image byte for byte.
+export SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$DEFAULT_EPOCH}"
 # rust-lld links the firmware: a rustup toolchain finds its own, a distribution rustc
 # (FW_RUST_BIN) may not ship one - then use the first rust-lld found
 if [[ -z "${CARGO_TARGET_RISCV32IMC_UNKNOWN_NONE_ELF_LINKER:-}" ]]; then
@@ -65,21 +93,21 @@ step() { printf '\n==> %s\n' "$*"; }
 # 1. Logic tests on the host (flashka-core has no target config of its own,
 #    so it builds for the host).
 if [[ "${SKIP_TESTS:-0}" != "1" ]]; then
-    step "flashka-core: cargo test (host)"
-    (cd "$CORE" && "$HOST_CARGO" test --quiet)
+    step "flashka-core: cargo test (host, board $BOARD)"
+    (cd "$CORE" && "$HOST_CARGO" test --quiet ${FEATURES[@]+"${FEATURES[@]}"})
 fi
 
 # 2. Firmware release build (target, linker and build-std come from
 #    flashka-fw/.cargo/config.toml).
-step "flashka-fw: cargo build --release (riscv32imc-unknown-none-elf)"
+step "flashka-fw $VERSION for board $BOARD: cargo build --release (riscv32imc-unknown-none-elf)"
 # The remap flags are added to the target rustflags of .cargo/config.toml
 # (cargo joins arrays given with --config to the ones from the file).
 if [[ -x "$FW_RUST_BIN/cargo" ]]; then
     (cd "$FW" && RUSTC="$FW_RUST_BIN/rustc" RUSTC_BOOTSTRAP=1 PATH="$FW_RUST_BIN:$PATH" \
-        "$FW_RUST_BIN/cargo" build --release \
+        "$FW_RUST_BIN/cargo" build --release ${FEATURES[@]+"${FEATURES[@]}"} \
         --config "target.riscv32imc-unknown-none-elf.rustflags=$(remap_rustflags "$FW_RUST_BIN/rustc")")
 else
-    (cd "$FW" && RUSTC_BOOTSTRAP=1 cargo build --release \
+    (cd "$FW" && RUSTC_BOOTSTRAP=1 cargo build --release ${FEATURES[@]+"${FEATURES[@]}"} \
         --config "target.riscv32imc-unknown-none-elf.rustflags=$(remap_rustflags rustc)")
 fi
 
@@ -99,6 +127,16 @@ mkdir -p "$DIST"
     --partition-table "$HERE/partitions.csv" \
     "$ELF" "$MERGED"
 cp "$ELF" "$DIST/flashka-fw-v$VERSION.elf"
+
+# The app descriptor (at 0x10020 of the merged image: magic 0xABCD5432, then the version at
+# +16) must carry the version of the board that was built.
+desc_version="$(dd if="$MERGED" bs=1 skip=$((0x10030)) count=32 2>/dev/null | tr -d '\000')"
+desc_magic="$(dd if="$MERGED" bs=1 skip=$((0x10020)) count=4 2>/dev/null | od -An -tx1 | tr -d ' \n')"
+if [[ "$desc_magic" != "3254cdab" || "$desc_version" != "$VERSION" ]]; then
+    printf 'app descriptor check failed: magic %s, version "%s" (expected %s)\n' "$desc_magic" "$desc_version" "$VERSION" >&2
+    exit 1
+fi
+printf 'app descriptor: flashka-fw %s (board %s)\n' "$desc_version" "$BOARD"
 
 step "sizes"
 size_of() { stat -c '%s' "$1"; }

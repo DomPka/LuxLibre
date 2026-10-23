@@ -7,9 +7,11 @@
 // The page is the REAL page with the REAL esptool-js; only the hardware is pretend: navigator.serial is replaced by
 // test/helpers/fake-esp32c3.mjs (a pretend ESP32-C3 that speaks the chip's actual serial protocol).
 //
-// 1. build: the real page, a placeholder page, a page with a synthetic firmware, a tampered copy
+// 1. build: the real page, a placeholder page, a page with synthetic firmware for both boards, a tampered copy
 // 2. placeholder page: loads, says so, nothing embedded, Install disabled, own file via "Advanced" still works
 // 3. page with firmware: firmware card, connect -> install -> done (flash content checked), factory reset, log
+// 3b. board choice: nothing installs before the board is chosen; the firmware on the flashlight is read and an install
+//     of the other board's firmware needs a confirmation; a file for the other board is refused
 // 4. every failure explained: closed chooser, chip not answering (then the hold-the-button way), wrong chip,
 //    failed verification, cable pulled out, port busy, unplugged while connected
 // 5. "Advanced" file panel: wrong chip / too small / app-only image (needs a tick) / back to the built-in firmware
@@ -31,9 +33,13 @@ import { makeImage } from '../test/helpers/synthetic-image.mjs';
 const NO_SHOTS = process.argv.includes('--no-shots');
 const suite = createSuite('Firmware installer (app/flashka-flasher.html) and menu page (app/index.html)');
 
-const SYNTH_VERSION = '9.9.9';
-const synthImage = makeImage({ size: 300 * 1024, seed: 7 });
-const synthPath = path.join(OUT_DIR, 'fw', `flashka-fw-v${SYNTH_VERSION}-merged.bin`);
+/* synthetic firmware for both boards (with app descriptors, so the build and the page know the board); most tests
+   choose the v0.7 board, so synthImage / SYNTH_VERSION are its image */
+const SYNTH = { v07: '0.7.9', v06: '0.6.9' };
+const synthImages = { v07: makeImage({ size: 300 * 1024, seed: 7, version: SYNTH.v07 }), v06: makeImage({ size: 280 * 1024, seed: 8, version: SYNTH.v06 }) };
+const synthPaths = { v07: path.join(OUT_DIR, 'fw', `flashka-fw-v${SYNTH.v07}-merged.bin`), v06: path.join(OUT_DIR, 'fw', `flashka-fw-v${SYNTH.v06}-merged.bin`) };
+const SYNTH_VERSION = SYNTH.v07;
+const synthImage = synthImages.v07;
 const placeholderPath = path.join(OUT_DIR, 'flasher-placeholder.html');
 const synthPagePath = path.join(OUT_DIR, 'flasher-synthetic.html');
 const tamperedPath = path.join(OUT_DIR, 'flasher-tampered.html');
@@ -43,32 +49,36 @@ const TAMPERED_URL = pathToFileURL(tamperedPath).href;
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
 let realPageIsPlaceholder = false;
-let realFirmware = null;           /* bytes of the firmware the real page embeds (null for a placeholder build) */
+/** bytes of the firmware the real page embeds per board (null for a placeholder) */
+const realFirmware = { v07: null, v06: null };
 
 /* ================================================================== 1. build */
 fs.rmSync(OUT_DIR, { recursive: true, force: true });
-fs.mkdirSync(path.dirname(synthPath), { recursive: true });
+fs.mkdirSync(path.dirname(synthPaths.v07), { recursive: true });
 await suite.step('build: the real page (app/flashka-flasher.html) with `node build_flasher.mjs`', async () => {
   const r = buildFlasher([]);
   assertEqual(r.code, 0, 'build exit code\n' + r.stderr);
   realPageIsPlaceholder = /PLACEHOLDER BUILD/.test(r.stderr);
-  const bin = path.resolve(APP_DIR, '../firmware/dist/flashka-fw-v0.6.0-merged.bin');
-  if (!realPageIsPlaceholder) {
-    realFirmware = new Uint8Array(fs.readFileSync(bin));
-    assertMatch(r.stdout, new RegExp(sha256(realFirmware)), 'the build reports the SHA-256 of the firmware');
+  const bins = { v07: path.resolve(APP_DIR, '../firmware/dist/flashka-fw-v0.7.0-merged.bin'), v06: path.resolve(APP_DIR, '../firmware/dist/flashka-fw-v0.6.0-merged.bin') };
+  for (const id of ['v07', 'v06']) {
+    if (!fs.existsSync(bins[id])) continue;
+    realFirmware[id] = new Uint8Array(fs.readFileSync(bins[id]));
+    assertMatch(r.stdout, new RegExp(sha256(realFirmware[id])), 'the build reports the SHA-256 of the firmware');
   }
-  suite.note(realPageIsPlaceholder ? 'no firmware file yet: the real page is a PLACEHOLDER build' : `real page embeds ${path.basename(bin)} (${realFirmware.length} bytes)`);
+  suite.note(realPageIsPlaceholder ? 'a firmware file is missing: the real page is (partly) a PLACEHOLDER build'
+    : `real page embeds ${path.basename(bins.v07)} (${realFirmware.v07.length} bytes) and ${path.basename(bins.v06)} (${realFirmware.v06.length} bytes)`);
 });
 await suite.step('build: placeholder variant, variant with a synthetic firmware, tampered copy', async () => {
   let r = buildFlasher(['--placeholder', '--out', placeholderPath]);
   assertEqual(r.code, 0, r.stderr);
   assertMatch(r.stderr, /PLACEHOLDER BUILD/);
-  fs.writeFileSync(synthPath, synthImage);
-  r = buildFlasher(['--bin', synthPath, '--out', synthPagePath]);
+  fs.writeFileSync(synthPaths.v07, synthImages.v07);
+  fs.writeFileSync(synthPaths.v06, synthImages.v06);
+  r = buildFlasher(['--bin-v07', synthPaths.v07, '--bin-v06', synthPaths.v06, '--out', synthPagePath]);
   assertEqual(r.code, 0, r.stderr);
-  assert(!/PLACEHOLDER/.test(r.stderr), 'no placeholder warning when a firmware is given');
+  assert(!/PLACEHOLDER/.test(r.stderr), 'no placeholder warning when the firmware is given');
   const html = fs.readFileSync(synthPagePath, 'utf8');
-  /* change one letter of the embedded firmware (keeps the length, breaks the fingerprint) */
+  /* change one letter of the embedded v0.7 firmware (the first one; keeps the length, breaks the fingerprint) */
   const at = html.indexOf('"base64":"') + 10 + 5000;
   const flipped = html.slice(0, at) + (html[at] === 'A' ? 'B' : 'A') + html.slice(at + 1);
   fs.writeFileSync(tamperedPath, flipped);
@@ -77,12 +87,15 @@ await suite.step('build: placeholder variant, variant with a synthetic firmware,
 const browser = await launch();
 
 /* ------------------------------------------------------------------ helpers */
-/** Opens a page with the pretend hardware. o: chip, port, absent, width, height, dark, ua, insecure */
+/** Opens a page with the pretend hardware. o: chip, port, absent, width, height, dark, ua, insecure, board ('v07' by
+ *  default, 'v06', or null = leave the choice open, as a person arriving at the page finds it) */
 async function open(url, o = {}) {
   const init = await fakeSerialInit({ chip: o.chip || {}, port: o.port || {}, absent: !!o.absent });
   if (o.insecure) init.unshift('Object.defineProperty(window, "isSecureContext", { value: false, configurable: true });');
   const h = await newPage(browser, url, { width: o.width || 1280, height: o.height || 800, dark: !!o.dark, userAgent: o.ua, reducedMotion: 'reduce', init });
   await h.page.waitForFunction(() => window.__flasher && document.getElementById('fw-name').textContent !== '-', null, { timeout: 5000 });
+  const board = o.board === undefined ? 'v07' : o.board;
+  if (board) await h.page.check('#board-' + board);
   return h;
 }
 const bodyState = (page) => page.evaluate(() => document.body.dataset.state);
@@ -135,7 +148,12 @@ const top = async (page) => { await page.evaluate(() => window.scrollTo(0, 0)); 
     assert(await disabled(page, 'btn-install'), 'Install disabled');
     const html = fs.readFileSync(placeholderPath, 'utf8');
     const meta = JSON.parse(/<script id="firmware-data" type="application\/json">([\s\S]*?)<\/script>/.exec(html)[1]);
-    assertEqual([meta.placeholder, meta.base64, meta.size, meta.sha256, meta.fileName], [true, '', 0, null, null], 'no firmware bytes in the file');
+    assertEqual(meta.placeholder, true);
+    for (const id of ['v07', 'v06']) {
+      const b = meta.boards[id];
+      assertEqual([b.placeholder, b.base64, b.size, b.sha256, b.fileName], [true, '', 0, null, null], 'no firmware bytes in the file: ' + id);
+    }
+    assertMatch(await text(page, 'board-fw-v06'), /No firmware for it in this page/);
     assert(html.length < 400000, 'the placeholder page is small: ' + html.length);
     noErrors(h);
   });
@@ -322,6 +340,123 @@ await suite.step('while installing: closing the tab is guarded; Disconnect is av
   await page.evaluate(() => window.__fake.chip.resume());
   await untilState(page, 'done');
   assertEqual(await page.evaluate(() => { const e = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(e); return e.defaultPrevented; }), false, 'guard removed afterwards');
+  noErrors(h);
+  await h.close();
+});
+
+/* ================================================================== 3b. which FlashKa */
+await suite.step('board choice: nothing can be installed before the board is chosen; the firmware follows the choice', async () => {
+  const h = await open(SYNTH_URL, { board: null });
+  const { page } = h;
+  assertEqual(await page.evaluate(() => document.getElementById('step-board').dataset.status), 'active');
+  assertEqual(await page.evaluate(() => [...document.querySelectorAll('input[name=board]')].map((r) => r.checked)), [false, false], 'no board is preselected');
+  assertMatch(await text(page, 'board-status'), /nothing can be installed before that/);
+  assertMatch(await text(page, 'fw-name'), /Choose your FlashKa first/);
+  assertMatch(await text(page, 'fw-board'), /Not chosen yet/);
+  assertMatch(await text(page, 'board-fw-v07'), new RegExp(`Firmware ${SYNTH.v07} is included`));
+  assertMatch(await text(page, 'board-fw-v06'), new RegExp(`Firmware ${SYNTH.v06} is included`));
+  assertMatch(await page.locator('label[for="board-v07"]').textContent(), /FlashKa v0\.7\s*three keys in the middle/);
+  assertMatch(await page.locator('label[for="board-v06"]').textContent(), /FlashKa v0\.6\s*stainless button/);
+  assert(await page.evaluate(() => [...document.querySelectorAll('.board img')].every((i) => i.complete && i.naturalWidth === 480 && i.alt.length > 30)), 'both pictures load, with a description');
+  await connect(page);
+  assert(await disabled(page, 'btn-install'), 'connected, but no board chosen: Install disabled');
+  /* v0.7 */
+  await page.click('label[for="board-v07"]');
+  assertEqual(await page.evaluate(() => document.getElementById('step-board').dataset.status), 'done');
+  assertMatch(await text(page, 'board-status'), /FlashKa v0\.7 \(three keys in the middle\)\. The page installs only the firmware made for it\./);
+  assertEqual(await text(page, 'fw-board'), 'FlashKa v0.7 (three keys in the middle)');
+  assertEqual(await text(page, 'fw-sha'), sha256(synthImages.v07));
+  assert(!(await disabled(page, 'btn-install')), 'Install enabled');
+  /* changed to v0.6: its own image is installed */
+  await page.click('label[for="board-v06"]');
+  assertEqual(await text(page, 'fw-name'), `FlashKa firmware v${SYNTH.v06} for FlashKa v0.6`);
+  assertEqual(await text(page, 'fw-sha'), sha256(synthImages.v06));
+  await page.click('#btn-install');
+  await untilState(page, 'done');
+  assertEqual(await flashSha(page, synthImages.v06.length), sha256(synthImages.v06), 'the v0.6 image was written');
+  assert(await page.evaluate(() => [...document.querySelectorAll('input[name=board]')].every((r) => !r.disabled)), 'the choice can be changed again afterwards');
+  noErrors(h);
+  await h.close();
+});
+
+await suite.step('the flashlight runs the other board\'s firmware: shown after Connect, Install needs a confirmation', async () => {
+  const h = await open(SYNTH_URL, { chip: { installedFirmware: { version: '0.6.0' } } });
+  const { page } = h;
+  await connect(page);
+  assert(!(await hidden(page, 'board-check')), 'the check box is shown');
+  const msg = await text(page, 'board-check-text');
+  assertMatch(msg, /This flashlight runs FlashKa firmware 0\.6\.0, which is made for FlashKa v0\.6 \(stainless button\)\. You chose FlashKa v0\.7\./);
+  assertMatch(msg, /choose it in step 1/);
+  assert(await page.evaluate(() => document.getElementById('board-check').classList.contains('warn')), 'shown as a warning');
+  assert(await disabled(page, 'btn-install'), 'blocked until confirmed');
+  assert(!(await hidden(page, 'board-ack-row')), 'confirmation offered');
+  assertMatch(await text(page, 'board-ack-text'), /I have checked: this flashlight is a FlashKa v0\.7 \(three keys in the middle\)/);
+  await page.check('#board-ack');
+  assert(!(await disabled(page, 'btn-install')), 'enabled after the confirmation');
+  await page.uncheck('#board-ack');
+  assert(await disabled(page, 'btn-install'));
+  /* choosing v0.6 instead: it matches, no confirmation needed */
+  await page.click('label[for="board-v06"]');
+  assertMatch(await text(page, 'board-check-text'), /runs FlashKa firmware 0\.6\.0 for FlashKa v0\.6: it matches your choice/);
+  assert(await hidden(page, 'board-ack-row'));
+  assert(!(await disabled(page, 'btn-install')));
+  /* back to v0.7, confirmed: installs the v0.7 image */
+  await page.click('label[for="board-v07"]');
+  assert(await disabled(page, 'btn-install'), 'a new choice asks again');
+  await page.check('#board-ack');
+  await page.click('#btn-install');
+  await untilState(page, 'done');
+  assertEqual(await flashSha(page, synthImages.v07.length), sha256(synthImages.v07));
+  await page.waitForTimeout(300);
+  assertMatch(await text(page, 'log'), /confirmed by the person although the flashlight ran the other board's firmware/);
+  noErrors(h);
+  await h.close();
+  /* the reverse: v0.7 firmware on the flashlight, v0.6 chosen */
+  const h2 = await open(SYNTH_URL, { board: 'v06', chip: { installedFirmware: { version: '0.7.0' } } });
+  await connect(h2.page);
+  assertMatch(await text(h2.page, 'board-check-text'), /made for FlashKa v0\.7 \(three keys in the middle\)\. You chose FlashKa v0\.6\./);
+  assert(await disabled(h2.page, 'btn-install'));
+  noErrors(h2);
+  await h2.close();
+});
+
+await suite.step('installed firmware that matches, none, other firmware, or unreadable: shown, no confirmation needed', async () => {
+  const cases = [
+    [{ installedFirmware: { version: '0.7.0' } }, /runs FlashKa firmware 0\.7\.0 for FlashKa v0\.7: it matches your choice/, 'okbox'],
+    [{}, /No firmware was found on this flashlight \(new or erased\)\. Make sure it is a FlashKa v0\.7/, ''],
+    [{ installedFirmware: { version: '0.3.0', project: 'luxlibre' } }, /runs other firmware \(luxlibre 0\.3\.0\)/, ''],
+    [{ readFlashFails: true }, /could not be checked\. Make sure it really is a FlashKa v0\.7/, '']
+  ];
+  for (const [chipOpts, re, cls] of cases) {
+    const h = await open(SYNTH_URL, { chip: chipOpts });
+    await connect(h.page);
+    assertMatch(await text(h.page, 'board-check-text'), re);
+    if (cls) assert(await h.page.evaluate((c) => document.getElementById('board-check').classList.contains(c), cls), cls);
+    assert(await hidden(h.page, 'board-ack-row'), 'no confirmation');
+    assert(!(await disabled(h.page, 'btn-install')), 'Install enabled');
+    noErrors(h);
+    await h.close();
+  }
+});
+
+await suite.step('Advanced: a FlashKa firmware file for the other board is refused; after choosing that board it is accepted', async () => {
+  const h = await open(SYNTH_URL);
+  const { page } = h;
+  await connect(page);
+  await page.click('#advanced > summary');
+  const other = makeImage({ size: 150 * 1024, seed: 21, version: '0.6.4' });
+  await uploadFile(page, 'flashka-fw-v0.6.4-merged.bin', other);
+  await page.waitForFunction(() => /flashka-fw-v0\.6\.4/.test(document.getElementById('file-report').textContent));
+  assertMatch(await text(page, 'file-report'), /This is the firmware for FlashKa v0\.6 \(stainless button\); you chose FlashKa v0\.7 in step 1/);
+  assertMatch(await text(page, 'board-check-text'), /This file is the firmware for FlashKa v0\.6, but you chose FlashKa v0\.7/);
+  assert(await disabled(page, 'btn-install'), 'refused');
+  assert(await hidden(page, 'board-ack-row'), 'no way around it but choosing the other board');
+  await page.click('label[for="board-v06"]');
+  assertMatch(await text(page, 'file-report'), /It is FlashKa firmware 0\.6\.4 for FlashKa v0\.6/);
+  assert(!(await disabled(page, 'btn-install')), 'accepted for the v0.6');
+  await page.click('#btn-install');
+  await untilState(page, 'done');
+  assertEqual(await flashSha(page, other.length), sha256(other));
   noErrors(h);
   await h.close();
 });
@@ -544,16 +679,22 @@ await suite.step('advanced file panel: wrong chip, too small, app-only image (ne
 }
 
 /* ================================================================== 7. a damaged page */
-await suite.step('damaged page (one changed byte in the firmware): refused, Install disabled', async () => {
+await suite.step('damaged page (one changed byte in the v0.7 firmware): refused, Install disabled; the v0.6 firmware is intact', async () => {
   const h = await open(TAMPERED_URL);
   const { page } = h;
   assert(!(await hidden(page, 'damaged-banner')), 'banner visible');
   assertMatch(await text(page, 'damaged-banner'), /firmware inside this page is damaged/);
   assertMatch(await text(page, 'damaged-text'), /SHA-256 fingerprint does not match/);
   assertMatch(await text(page, 'fw-name'), /Not available/);
+  assertMatch(await text(page, 'board-fw-v07'), /damaged/);
   assert(await disabled(page, 'btn-install'));
   await connect(page);
   assert(await disabled(page, 'btn-install'), 'even when connected');
+  /* the other board's slot was not touched */
+  await page.check('#board-v06');
+  assert(await hidden(page, 'damaged-banner'), 'no banner for the intact v0.6 firmware');
+  assertEqual(await text(page, 'fw-sha'), sha256(synthImages.v06));
+  assert(!(await disabled(page, 'btn-install')), 'the v0.6 firmware can be installed');
   noErrors(h);
   await h.close();
 });
@@ -594,6 +735,7 @@ await suite.step('no horizontal scrolling and big touch targets at 320 / 360 / 3
     assertEqual(await page.getAttribute('#link-flasher', 'href'), 'flashka-flasher.html');
     assertMatch(await page.locator('#link-app').textContent(), /Demo mode/);
     assertMatch(await page.locator('#link-flasher').textContent(), /Phones cannot do this/);
+    assertMatch(await page.locator('#link-flasher').textContent(), /FlashKa v0\.7 and the v0\.6: you choose your model first/);
     noErrors(h);
   });
   await suite.step('the links open the pages (no console errors on arrival)', async () => {
@@ -629,19 +771,22 @@ await suite.step('the installer and the control app link to each other', async (
 });
 
 /* ================================================================== 11. real page + real firmware */
-await suite.step('the real page (app/flashka-flasher.html) installs the real firmware byte for byte', async () => {
-  if (realPageIsPlaceholder) { suite.note('skipped: no firmware file exists yet, the real page is a placeholder build'); return; }
-  const h = await open(FLASHER_URL);
-  const { page } = h;
-  assertMatch(await text(page, 'fw-sha'), new RegExp(sha256(realFirmware)));
-  assertMatch(await text(page, 'fw-check'), /complete image for an ESP32-C3/);
-  assertMatch(await text(page, 'fw-name'), /FlashKa firmware v\d+\.\d+\.\d+/);
-  await connect(page);
-  await page.click('#btn-install');
-  await untilState(page, 'done');
-  assertEqual(await flashSha(page, realFirmware.length), sha256(realFirmware), 'flash content = firmware/dist image');
-  noErrors(h);
-  await h.close();
+await suite.step('the real page (app/flashka-flasher.html) installs the real firmware of each board byte for byte', async () => {
+  if (realPageIsPlaceholder) { suite.note('skipped: a firmware file does not exist yet, the real page is a placeholder build'); return; }
+  for (const [id, version, label] of [['v07', '0.7.0', 'FlashKa v0.7'], ['v06', '0.6.0', 'FlashKa v0.6']]) {
+    const h = await open(FLASHER_URL, { board: id });
+    const { page } = h;
+    assertMatch(await text(page, 'fw-sha'), new RegExp(sha256(realFirmware[id])));
+    assertMatch(await text(page, 'fw-check'), /complete image for an ESP32-C3/);
+    assertMatch(await text(page, 'fw-check'), new RegExp(`Made for ${label}, the board you chose`));
+    assertEqual(await text(page, 'fw-name'), `FlashKa firmware v${version} for ${label}`);
+    await connect(page);
+    await page.click('#btn-install');
+    await untilState(page, 'done');
+    assertEqual(await flashSha(page, realFirmware[id].length), sha256(realFirmware[id]), 'flash content = firmware/dist image of ' + id);
+    noErrors(h);
+    await h.close();
+  }
 });
 
 /* ================================================================== 12. screenshots */
@@ -651,12 +796,15 @@ if (!NO_SHOTS) {
   async function flow(width, height, dark) {
     const phone = width < 600;
     const name = (s) => `flasher-${dark ? 'dark-' : ''}${s}-${width}.png`;
-    const h = await open(real, { width, height, dark, chip: { commandDelayMs: 25 } });
+    const h = await open(real, { width, height, dark, board: null, chip: { commandDelayMs: 25 } });
     const { page } = h;
     await top(page);
     shots.push(await shot(page, name('start')));
     if (!dark && phone) shots.push(await shot(page, `flasher-start-${width}-full.png`, { full: true }));
+    await page.click('label[for="board-v07"]');
     if (!dark) {
+      await to(page, 'step-board');
+      shots.push(await shot(page, name('board')));
       await to(page, 'step-2');
       await page.click('#btn-connect');
       await untilState(page, 'connected');
@@ -682,7 +830,7 @@ if (!NO_SHOTS) {
   await suite.step('screenshots 390x844 (light and dark)', async () => { await flow(390, 844, false); await flow(390, 844, true); });
   await suite.step('screenshots 1280x800 (light and dark)', async () => { await flow(1280, 800, false); await flow(1280, 800, true); });
 
-  await suite.step('screenshots of the problem, unsupported-browser, placeholder and advanced states', async () => {
+  await suite.step('screenshots of the problem, unsupported-browser, board-mismatch, placeholder and advanced states', async () => {
     for (const [width, height] of [[390, 844], [1280, 800]]) {
       const phone = width < 600;
       /* the flashlight does not answer */
@@ -698,6 +846,13 @@ if (!NO_SHOTS) {
       await top(h.page);
       shots.push(await shot(h.page, `flasher-unsupported-${width}.png`));
       noErrors(h, 'unsupported screenshot'); await h.close();
+      /* the flashlight runs the v0.6 firmware, the v0.7 was chosen */
+      h = await open(real, { width, height, chip: { installedFirmware: { version: '0.6.0' } } });
+      await connect(h.page);
+      await h.page.waitForTimeout(150);
+      await to(h.page, 'step-3');
+      shots.push(await shot(h.page, `flasher-mismatch-${width}.png`));
+      noErrors(h, 'mismatch screenshot'); await h.close();
       /* placeholder build */
       h = await open(PLACEHOLDER_URL, { width, height });
       await top(h.page);

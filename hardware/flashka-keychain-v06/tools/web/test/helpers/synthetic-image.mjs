@@ -3,7 +3,9 @@
 // (bootloader header at 0, partition table at 0x8000, app header at 0x10000) and content that compresses like code.
 
 /**
- * @param {{ size?: number, chipId?: number, merged?: boolean, seed?: number }} [options]
+ * `version` (e.g. "0.7.0") also writes the app descriptor of a FlashKa firmware at 0x10020 (magic 0xABCD5432, the
+ * version, project "flashka-fw" or `project`), so the image tells which board it is for.
+ * @param {{ size?: number, chipId?: number, merged?: boolean, seed?: number, version?: string, project?: string }} [options]
  * @returns {Uint8Array}
  */
 export function makeImage(options = {}) {
@@ -27,5 +29,17 @@ export function makeImage(options = {}) {
     img[0x8000] = 0xaa; img[0x8001] = 0x50;
     img[0x10000] = 0xe9;
   }
+  if (options.version !== undefined && size > 0x10020 + 96) writeAppDescriptor(img, 0x10020, options.version, options.project ?? 'flashka-fw');
   return img;
+}
+
+/**
+ * Writes an app descriptor (magic, version, project name) at `at`.
+ * @param {Uint8Array} img @param {number} at @param {string} version @param {string} project
+ */
+export function writeAppDescriptor(img, at, version, project = 'flashka-fw') {
+  img.fill(0, at, at + 96);
+  img.set([0x32, 0x54, 0xcd, 0xab], at);
+  img.set(new TextEncoder().encode(version).subarray(0, 31), at + 16);
+  img.set(new TextEncoder().encode(project).subarray(0, 31), at + 48);
 }

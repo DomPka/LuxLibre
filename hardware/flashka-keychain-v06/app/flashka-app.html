@@ -9,8 +9,9 @@
 <title>FlashKa control</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='12' width='17' height='8' rx='3' fill='%230b7a86'/%3E%3Cpath d='M23 8l5-3M23 16h6M23 24l5 3' stroke='%236366f1' stroke-width='2.4' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
 <!--
-  FlashKa v0.6 control app - ONE self-contained file (no CDN, no external fonts).
+  FlashKa control app (FlashKa v0.7 and v0.6) - ONE self-contained file (no CDN, no external fonts).
   Talks to the flashlight over Web Bluetooth using docs/ble_protocol.md (protocol version 2; version 1 = v0.5 lights is understood too).
+  The board is read from the light (Info characteristic: "FlashKa fw 0.7.x" = FlashKa v0.7, "FlashKa fw 0.6.x" = FlashKa v0.6).
   The three <script> blocks at the end are, in order:
     1. flashka-protocol : packet encoder/decoder, ranges, error mapping (pure functions; unit-tested in Node)
     2. flashka-sim      : the JavaScript "demo flashlight" (uses the same encoder/decoder; unit-tested in Node)
@@ -454,7 +455,7 @@ fieldset.group legend{padding:0;font-size:.82rem;font-weight:700;letter-spacing:
           <label>USB cable plugged in <input id="demo-usb" type="checkbox" style="width:24px;height:24px"></label>
           <label>Hot day (45 &deg;C air) <input id="demo-hot" type="checkbox" style="width:24px;height:24px"></label>
           <label>Light model
-            <select id="demo-model"><option value="2">FlashKa v0.6 (protocol 2)</option><option value="1">v0.5 light (protocol 1)</option></select>
+            <select id="demo-model"><option value="v07">FlashKa v0.7 (protocol 2)</option><option value="2" selected>FlashKa v0.6 (protocol 2)</option><option value="1">v0.5 light (protocol 1)</option></select>
           </label>
           <label>A paired computer is in range <input id="demo-computer" type="checkbox" style="width:24px;height:24px"></label>
           <button id="demo-both10" class="btn demo slim" type="button">Hold &lsaquo; and &rsaquo; for 10 s (forget computers)</button>
@@ -505,6 +506,7 @@ fieldset.group legend{padding:0;font-size:.82rem;font-weight:700;letter-spacing:
           <button class="prof" type="button" aria-pressed="false" data-profile="2"><b>Endurance</b><span>Longest battery life. The LED is never overdriven.</span><small id="pdesc-2"></small></button>
           <button class="prof" type="button" aria-pressed="false" data-profile="3"><b>Custom</b><span>Your own levels and limits. Edit them below.</span><small id="pdesc-3"></small></button>
         </div>
+        <p id="lm-note" class="muted small" style="margin-top:8px" hidden>Lumens: light out of the front of the FlashKa v0.7, estimated from the LED data (85 °C inside the LED) and the 87 % optic - not measured.</p>
         <div class="row" style="margin-top:12px">
           <div><b>Make it stick</b><p>The flashlight only remembers the profile and brightness level you picked after you save them.</p></div>
           <button id="btn-save-sel" class="btn" type="button">Save to flashlight</button>
@@ -535,7 +537,7 @@ fieldset.group legend{padding:0;font-size:.82rem;font-weight:700;letter-spacing:
   </div>
 
   <footer class="foot">
-    <span id="foot-device">FlashKa control app 0.6.0 &middot; Bluetooth protocol v2</span>
+    <span id="foot-device">FlashKa control app 0.7.0 &middot; Bluetooth protocol v2</span>
     <span class="links">
       <a href="flashka-flasher.html">Update the firmware</a>
       <button id="btn-disconnect" class="linkbtn" type="button" hidden>Disconnect</button>
@@ -745,8 +747,36 @@ var FlashKaProtocol = (function () {
     return b;
   }
 
-  /* Ranges from section 5 of the document. Some bounds depend on other fields. */
-  function profileBounds(p) {
+  /* ---- Boards ------------------------------------------------------------- */
+  /* The Info characteristic names the firmware, and the firmware names the board: 0.7.x runs on FlashKa v0.7 (SST-20
+     Gen 2 behind a TIR optic, 2850 mA turbo, one 14500 cell), 0.6.x on FlashKa v0.6. A light that says neither (a v0.5 light,
+     or the Info could not be read yet) gets the v0.6 numbers of the protocol document. */
+  function boardFromInfo(text) {
+    var m = /^FlashKa fw 0\.(\d+)\./.exec(String(text || ''));
+    return !m ? null : m[1] === '7' ? 'v07' : m[1] === '6' ? 'v06' : null;
+  }
+  /* Highest turbo of the Custom profile: 3000 mA in the protocol document; the v0.7 firmware allows 2850 mA (the LED's
+     3.0 A maximum less the tolerance of its current loop) and clamps anything above. */
+  function turboMax(board) { return board === 'v07' ? 2850 : 3000; }
+  /* FlashKa v0.7 only: estimated light out of the front, from the firmware's LED model (flashka-core board.rs: SST-20
+     Gen 2 6500 K G1 at Tj 85 degC, 680 lm at 1.5 A and 1156 lm at 3.0 A from the datasheet, the other points estimated)
+     x the 87 % TIR optic. Same integer arithmetic as the firmware, so both give the same numbers. */
+  var LED_LM_V07 = [[0, 0], [350, 191], [700, 361], [1000, 485], [1500, 680], [2000, 855], [3000, 1156]];
+  var OPTIC_PCT_V07 = 87;
+  function ledLumensX10V07(ma) {
+    var t = LED_LM_V07, i = 1;
+    ma = Math.min(Math.max(0, Math.round(ma)), t[t.length - 1][0]);
+    while (i < t.length - 1 && ma > t[i][0]) i++;
+    var a0 = t[i - 1][0], l0 = t[i - 1][1], a1 = t[i][0], l1 = t[i][1];
+    return Math.floor((10 * l0 * (a1 - a0) + 10 * (l1 - l0) * (ma - a0) + Math.floor((a1 - a0) / 2)) / (a1 - a0));
+  }
+  function frontLumens(ma, board) {
+    if (board !== 'v07' || !(ma > 0)) return null;
+    return Math.floor((ledLumensX10V07(ma) * OPTIC_PCT_V07 + 500) / 1000);
+  }
+
+  /* Ranges from section 5 of the document (turbo: per board). Some bounds depend on other fields. */
+  function profileBounds(p, board) {
     /* A neighbour only sets a limit while its own value is valid. So one wrong number is flagged once,
        not in every field that is measured against it. */
     var b = {};
@@ -755,7 +785,7 @@ var FlashKaProtocol = (function () {
     b.low       = { min: good('moon') ? p.moon : 1, max: 300, minFrom: 'moon' };
     b.medium    = { min: good('low') ? p.low : 1, max: 1000, minFrom: 'low' };
     b.high      = { min: good('medium') ? p.medium : 1, max: 2000, minFrom: 'medium' };
-    b.turbo     = { min: good('high') ? p.high : 1, max: 3000, minFrom: 'high' };
+    b.turbo     = { min: good('high') ? p.high : 1, max: turboMax(board), minFrom: 'high' };
     b.turboTime = { min: 0, max: 300 };
     b.stepDown  = { min: good('low') ? p.low : 1, max: good('high') ? p.high : 2000, minFrom: 'low', maxFrom: 'high' };
     b.tempLimit = { min: 40, max: 70 };
@@ -764,8 +794,8 @@ var FlashKaProtocol = (function () {
     return b;
   }
   /* Returns { ok, errors: { field: message } } - used by the Custom profile editor. */
-  function validateProfile(p) {
-    var bounds = profileBounds(p), errors = {};
+  function validateProfile(p, board) {
+    var bounds = profileBounds(p, board), errors = {};
     PROFILE_KEYS.forEach(function (k) {
       var v = p[k], r = bounds[k];
       if (!Number.isInteger(v)) { errors[k] = 'Enter a whole number.'; return; }
@@ -777,14 +807,14 @@ var FlashKaProtocol = (function () {
     return { ok: Object.keys(errors).length === 0, errors: errors };
   }
   /* What the firmware is documented to do with out-of-range values: clamp each field in order. */
-  function clampProfile(p) {
+  function clampProfile(p, board) {
     var q = {}, k;
     for (k in p) if (Object.prototype.hasOwnProperty.call(p, k)) q[k] = p[k];
     q.moon = clamp(p.moon, 1, 50);
     q.low = clamp(p.low, q.moon, 300);
     q.medium = clamp(p.medium, q.low, 1000);
     q.high = clamp(p.high, q.medium, 2000);
-    q.turbo = clamp(p.turbo, q.high, 3000);
+    q.turbo = clamp(p.turbo, q.high, turboMax(board));
     q.turboTime = clamp(p.turboTime, 0, 300);
     q.stepDown = clamp(p.stepDown, q.low, q.high);
     q.tempLimit = clamp(p.tempLimit, 40, 70);
@@ -802,17 +832,25 @@ var FlashKaProtocol = (function () {
     { id: 1, turboAllowed: true, rememberLevel: true, showBattery: true, moon: 3, low: 30, medium: 200, high: 600, turbo: 1200, turboTime: 60, stepDown: 600, tempLimit: 50, lvStep: 35, cellLimit: 1600 },
     { id: 2, turboAllowed: false, rememberLevel: true, showBattery: true, moon: 2, low: 15, medium: 100, high: 300, turbo: 300, turboTime: 0, stepDown: 300, tempLimit: 45, lvStep: 40, cellLimit: 800 }
   ];
-  function builtinProfile(id) {
-    if (id === 3) { var c = Object.assign({}, BUILTIN[1]); c.id = 3; return c; }   /* Custom default = Balanced */
-    return Object.assign({}, BUILTIN[id]);
+  /* FlashKa v0.7 (firmware 0.7.0, flashka-core profile.rs with the feature board-v07; docs/firmware.md section 9). */
+  var BUILTIN_V07 = [
+    { id: 0, turboAllowed: true, rememberLevel: true, showBattery: true, moon: 3, low: 50, medium: 400, high: 1800, turbo: 2850, turboTime: 60, stepDown: 1800, tempLimit: 50, lvStep: 15, cellLimit: 2800 },
+    { id: 1, turboAllowed: true, rememberLevel: true, showBattery: true, moon: 3, low: 40, medium: 250, high: 1530, turbo: 2850, turboTime: 60, stepDown: 1530, tempLimit: 50, lvStep: 20, cellLimit: 2800 },
+    { id: 2, turboAllowed: false, rememberLevel: true, showBattery: true, moon: 2, low: 15, medium: 100, high: 500, turbo: 500, turboTime: 0, stepDown: 500, tempLimit: 47, lvStep: 25, cellLimit: 800 }
+  ];
+  function builtinProfile(id, board) {
+    var table = board === 'v07' ? BUILTIN_V07 : BUILTIN;
+    if (id === 3) { var c = Object.assign({}, table[1]); c.id = 3; return c; }   /* Custom default = Balanced */
+    return Object.assign({}, table[id]);
   }
   /* Turbo exists only when the flag is set, the time limit is above 0 and the turbo current is above High
      (otherwise "turbo = High"). Same rule as the firmware. */
   function hasTurbo(p) { return !!p.turboAllowed && p.turboTime > 0 && p.turbo > p.high; }
-  /* "Moon 3 - Low 40 ..." one-liner for the profile cards. */
-  function describeProfile(p) {
-    var s = 'Moon ' + p.moon + ' · Low ' + p.low + ' · Medium ' + p.medium + ' · High ' + p.high + ' mA';
-    s += hasTurbo(p) ? ' · Turbo ' + p.turbo + ' mA for ' + p.turboTime + ' s' : ' · no extra Turbo';
+  /* "Moon 3 - Low 40 ..." one-liner for the profile cards; on a FlashKa v0.7 with the estimated lumens of High and Turbo. */
+  function describeProfile(p, board) {
+    var lm = function (ma) { var x = frontLumens(ma, board); return x === null ? '' : ' (' + x + ' lm)'; };
+    var s = 'Moon ' + p.moon + ' · Low ' + p.low + ' · Medium ' + p.medium + ' · High ' + p.high + ' mA' + lm(p.high);
+    s += hasTurbo(p) ? ' · Turbo ' + p.turbo + ' mA' + lm(p.turbo) + ' for ' + p.turboTime + ' s' : ' · no extra Turbo';
     return s;
   }
 
@@ -985,7 +1023,8 @@ var FlashKaProtocol = (function () {
     decodePresenter: decodePresenter, encodePresenter: encodePresenter, validatePresenter: validatePresenter, clampPresenter: clampPresenter,
     defaultPresenter: defaultPresenter, presenterKeys: presenterKeys, KEEPALIVE_MAX_S: KEEPALIVE_MAX_S, APP_LOCK_S: APP_LOCK_S,
     FLAG: FLAG, PFLAG: PFLAG, LEVEL: LEVEL, LEVEL_NAMES: LEVEL_NAMES, PROFILE_NAMES: PROFILE_NAMES, SOURCE: SOURCE, OP: OP, ATT: ATT,
-    PROFILE_KEYS: PROFILE_KEYS, FIELD_NAMES: FIELD_NAMES, BUILTIN: BUILTIN,
+    PROFILE_KEYS: PROFILE_KEYS, FIELD_NAMES: FIELD_NAMES, BUILTIN: BUILTIN, BUILTIN_V07: BUILTIN_V07,
+    boardFromInfo: boardFromInfo, turboMax: turboMax, frontLumens: frontLumens, ledLumensX10V07: ledLumensX10V07, LED_LM_V07: LED_LM_V07,
     ProtocolError: ProtocolError, toBytes: toBytes, toHex: toHex, fromHex: fromHex, clamp: clamp,
     decodeStatus: decodeStatus, encodeStatus: encodeStatus,
     decodeProfile: decodeProfile, encodeProfile: encodeProfile, profileBounds: profileBounds, validateProfile: validateProfile, clampProfile: clampProfile,
@@ -1005,10 +1044,16 @@ var FlashKaProtocol = (function () {
    packet format. It uses FlashKaProtocol.encodeStatus / decodeCommand / decodeProfile,
    so the app's demo mode runs exactly the same encoder/decoder code as the
    Bluetooth link does. Time is explicit (advance(seconds)) so tests are exact.
-   Model (all simplified, documented in docs/web_apps.md):
-   - two LP601646 cells in parallel, about 800 mAh, open-circuit curve + 0.15 ohm
-   - LED forward voltage 2.75 V + 0.15 V/A, buck efficiency 0.9 (document section 6)
-   - board temperature: first order, 7.5 K/W to the air, 70 s time constant
+   Model (all simplified, documented in docs/web_apps.md), per light (MODELS below):
+   - FlashKa v0.6 (default): two LP601646 cells in parallel, about 800 mAh, open-circuit curve + 0.15 ohm; LED forward
+     voltage 2.75 V + 0.15 V/A, buck efficiency 0.9 (document section 6); board temperature: first order, 7.5 K/W to the
+     air, 70 s time constant
+   - FlashKa v0.7 (createFlashlight({ model: 'v07' })): one Vapcell INR14500 F15, 1400 mAh (the firmware's figure), its
+     open-circuit curve (3.68 V at 50 %) + 0.132 ohm; LED 2.80 V + 0.15 V/A, 87 %; when the cell sags the buck runs at
+     100 % duty and the LED gets at most (V - 2.80 V) / 0.278 ohm (turbo dims on a half-empty cell); 15.4 K/W, 450 s
+     (the octagonal body of the v0.7 simulation as one node, docs/firmware.md section 9); charging at 475 mA; the v0.7
+     profiles, the 2850 mA turbo limit and the v0.7 thermal regulator (the temperature limit is held, firmware
+     thermal.rs); Info "FlashKa fw 0.7.0"
    - protection: temperature, low voltage, cell current (section 6)
    - button priority: 3 s app lock after every button action (section 4)
    - presenter mode (protocol 2): PRESENTER 1 switches the light off, sets the mode and drops the link (the real
@@ -1019,32 +1064,46 @@ var FlashKaProtocol = (function () {
 var FlashKaSim = (function (P) {
   'use strict';
   var CAP_MAH = 800, R_INT = 0.15, BASE_MA = 8, CHARGE_MA = 280, RTH = 7.5, TAU = 70, PRESENTER_MA = 20;
+  /* heat = part of the LED's electrical power that warms the light */
+  var MODELS = {
+    v06: { board: 'v06', capMah: CAP_MAH, rInt: R_INT, vf0: 2.75, eff: 0.9, rth: RTH, tau: TAU, heat: 0.75, info: 'FlashKa fw 0.6.0' },
+    v07: { board: 'v07', capMah: 1400, rInt: 0.132, vf0: 2.80, eff: 0.87, rth: 15.4, tau: 450, heat: 0.85, info: 'FlashKa fw 0.7.0',
+           dropOhm: 0.128,   /* battery (under load) to the LED at 100 % duty */
+           chargeMa: 475,    /* TP4057 with R3 2.0 k (494 mA) less the MCU, the firmware's figure */
+           ocv: [[0, 3.00], [5, 3.25], [10, 3.38], [20, 3.47], [30, 3.54], [40, 3.61], [50, 3.68], [60, 3.77], [70, 3.86], [80, 3.95], [90, 4.05], [100, 4.20]] },
+    v05: { board: null, capMah: CAP_MAH, rInt: R_INT, vf0: 2.75, eff: 0.9, rth: RTH, tau: TAU, heat: 0.75, info: 'Aurora++ fw 0.5.0' }
+  };
   var OCV = [[0, 3.00], [3, 3.30], [10, 3.55], [20, 3.66], [40, 3.76], [60, 3.87], [80, 4.00], [100, 4.19]];
 
-  function ocv(soc) {
+  function ocvTable(table, soc) {
     var i;
     soc = P.clamp(soc, 0, 100);
-    for (i = 1; i < OCV.length; i++) {
-      if (soc <= OCV[i][0]) {
-        var a = OCV[i - 1], b = OCV[i];
+    for (i = 1; i < table.length; i++) {
+      if (soc <= table[i][0]) {
+        var a = table[i - 1], b = table[i];
         return a[1] + (b[1] - a[1]) * (soc - a[0]) / (b[0] - a[0]);
       }
     }
-    return OCV[OCV.length - 1][1];
+    return table[table.length - 1][1];
   }
+  function ocv(soc) { return ocvTable(OCV, soc); }
   function ledVf(ma) { return 2.75 + 0.15 * ma / 1000; }
   function batteryMa(ledMa, vbat) { return ledMa > 0 ? ledVf(ledMa) * ledMa / (0.9 * vbat) : 0; }   /* V_LED*I / (0.9*V_BAT) */
   function att(code) { return P.makeAttError(code); }
 
   function createFlashlight(opts) {
     opts = opts || {};
-    var api = { name: opts.name || 'FlashKa-A7D4', onStatus: null, onBattery: null, onDisconnect: null };
+    var M = opts.protocol === 1 ? MODELS.v05 : opts.model === 'v07' ? MODELS.v07 : MODELS.v06;
+    function mVf(ma) { return M.vf0 + 0.15 * ma / 1000; }
+    function mOcv(s) { return M.ocv ? ocvTable(M.ocv, s) : ocv(s); }
+    function mBatteryMa(ledMa, vbat) { return ledMa > 0 ? mVf(ledMa) * ledMa / (M.eff * vbat) : 0; }
+    var api = { name: opts.name || 'FlashKa-A7D4', model: M.board || 'v05', onStatus: null, onBattery: null, onDisconnect: null };
     var st = {
       t: 0,
       on: false, level: 2, mem: 2, exactMa: null,
-      profileId: 1, custom: P.builtinProfile(3), saved: null,
+      profileId: 1, custom: P.builtinProfile(3, M.board), saved: null,
       lockout: false, usb: false, chargeDone: false,
-      remMah: CAP_MAH * (opts.soc !== undefined ? opts.soc : 78) / 100,
+      remMah: M.capMah * (opts.soc !== undefined ? opts.soc : 78) / 100,
       ambient: 24, tempC: 26,
       turboActive: false, turboLeft: 0,
       source: P.SOURCE.NONE, appLock: 0,
@@ -1056,10 +1115,10 @@ var FlashKaSim = (function (P) {
       vLoaded: 4.0, out: { req: 0, ma: 0, thermal: false, batt: false },
       lastKey: '', lastEmitT: -99, lastSoc: -1, computerNear: false
     };
-    st.vLoaded = ocv(100 * st.remMah / CAP_MAH);
+    st.vLoaded = mOcv(100 * st.remMah / M.capMah);
 
-    function params() { return st.profileId === 3 ? st.custom : P.builtinProfile(st.profileId); }
-    function soc() { return 100 * st.remMah / CAP_MAH; }
+    function params() { return st.profileId === 3 ? st.custom : P.builtinProfile(st.profileId, M.board); }
+    function soc() { return 100 * st.remMah / M.capMah; }
     function turboEffective(p) { return P.hasTurbo(p); }
     function levelMa(p, n) { return [p.moon, p.low, p.medium, p.high, p.turbo][n]; }
     function maxExact(p) { return turboEffective(p) ? p.turbo : p.high; }
@@ -1085,6 +1144,7 @@ var FlashKaSim = (function (P) {
       var req = requestMa(p), cap = req, T = st.tempC;
       if (T > 80) cap = 0;
       else if (T > 70) cap = Math.min(cap, p.moon);
+      else if (M.board === 'v07') cap = Math.min(cap, regCap(p, cap));   /* v0.7: the regulator */
       else if (T > p.tempLimit) {
         var f = Math.min(1, (T - p.tempLimit) / 15);        /* linear, 15 deg C above the limit -> Low */
         if (cap > p.low) cap = Math.round(cap - (cap - p.low) * f);
@@ -1094,17 +1154,46 @@ var FlashKaSim = (function (P) {
       if (st.vLoaded < 3.10) cap = Math.min(cap, p.moon);
       else if (st.lvSteps > 0) cap = Math.min(cap, [p.moon, p.low, p.medium, p.high, p.turbo][Math.max(0, 4 - st.lvSteps)]);
       var vb = Math.max(3.0, st.vLoaded);
-      if (batteryMa(cap, vb) > p.cellLimit) {                /* bisect the largest current whose battery side stays inside the limit */
+      if (mBatteryMa(cap, vb) > p.cellLimit) {                /* bisect the largest current whose battery side stays inside the limit */
         var lo = 0, hi = cap, i;
-        for (i = 0; i < 24; i++) { var mid = (lo + hi) / 2; if (batteryMa(mid, vb) > p.cellLimit) hi = mid; else lo = mid; }
+        for (i = 0; i < 24; i++) { var mid = (lo + hi) / 2; if (mBatteryMa(mid, vb) > p.cellLimit) hi = mid; else lo = mid; }
         cap = Math.floor(lo);
       }
       if (cap < before) o.batt = true;
+      if (M.dropOhm) cap = Math.min(cap, Math.max(0, (st.vLoaded - M.vf0) / (0.15 + M.dropOhm) * 1000));   /* the buck's headroom */
       o.req = req; o.ma = Math.max(0, Math.round(cap));
       return o;
     }
+    /* FlashKa v0.7: the thermal regulator of the firmware (flashka-core thermal.rs) in floating point. It holds the
+       board temperature 0.1 to 0.3 degC below the profile's limit; the full current until the temperature, predicted
+       8 s ahead, gets there. */
+    var reg = { valid: false, tF: 0, prev: 0, rate: 0, I: null, e: 0, eP: 0, hot: false };
+    function regUpdate(p, dt, req) {
+      var T = st.tempC;
+      if (!reg.valid) { reg.tF = T; reg.prev = T; reg.rate = 0; reg.valid = true; }
+      else reg.tF += (T - reg.tF) * (1 - Math.exp(-dt / 1.6));
+      var d = (reg.tF - reg.prev) / dt;
+      reg.prev = reg.tF;
+      reg.rate += (d - reg.rate) * (1 - Math.exp(-dt / 3.2));
+      var limit = Math.min(p.tempLimit, 65), aim = limit - 0.1;
+      var over = reg.tF + Math.max(reg.rate - 0.03, 0) * 8 - aim;
+      reg.e = over > 0 ? over : (over < -0.2 ? over + 0.2 : 0);
+      reg.eP = over > 0.1 ? over - 0.1 : (over < -0.3 ? over + 0.3 : 0);   /* the proportional part: 0.1 degC further out */
+      reg.hot = reg.tF - limit > 5;
+      if (!(req > 0)) return;
+      var floor = Math.min(p.low, req);
+      if (reg.I === null) reg.I = req;
+      reg.I = P.clamp(reg.I - 24 * reg.e * Math.min(Math.abs(reg.e), 0.5) / 0.5 * dt, floor, req);
+      if (reg.hot) reg.I = floor;
+    }
+    function regCap(p, req) {
+      if (!reg.valid || reg.I === null || !(req > 0)) return req;
+      var floor = Math.min(p.low, req);
+      if (reg.hot) return floor;
+      return P.clamp(Math.round(reg.I - 300 * reg.eP), floor, req);
+    }
     function charging(ma) { return st.usb && !st.chargeDone && st.tempC >= 0 && st.tempC <= 45 && ma <= 500 && soc() < 100; }
-    function chargeCurrent() { var s = soc(); return s <= 80 ? CHARGE_MA : CHARGE_MA * (1 - 0.8 * (s - 80) / 20); }
+    function chargeCurrent() { var s = soc(), c = M.chargeMa || CHARGE_MA; return s <= 80 ? c : c * (1 - 0.8 * (s - 80) / 20); }
 
     function leavePresenter(source) { st.mode = 0; st.idleS = 0; st.dropT = -1; st.source = source; }
     function step(dt) {
@@ -1127,32 +1216,33 @@ var FlashKaSim = (function (P) {
         if (st.lvTimer >= 5 && st.lvSteps < 4) { st.lvSteps++; st.lvTimer = 0; st.source = P.SOURCE.AUTO; }
       } else if (st.vLoaded > stepV + 0.05) { st.lvSteps = 0; st.lvTimer = 0; }
 
+      if (M.board === 'v07') regUpdate(p, dt, requestMa(p));
       var out = computeOutput(p);
-      var chg = charging(out.ma), vOc = ocv(soc());
+      var chg = charging(out.ma), vOc = mOcv(soc());
       var base = st.usb ? 0 : BASE_MA + (st.mode !== 0 ? PRESENTER_MA : 0);   /* with USB plugged in the electronics run from USB */
-      var draw = batteryMa(out.ma, vOc) + base, k;
+      var draw = mBatteryMa(out.ma, vOc) + base, k;
       for (k = 0; k < 2; k++) {                                  /* the sag changes the current: iterate twice */
-        st.vLoaded = vOc - draw / 1000 * R_INT + (chg ? 0.08 : 0);
-        draw = batteryMa(out.ma, Math.max(2.5, st.vLoaded)) + base;
+        st.vLoaded = vOc - draw / 1000 * M.rInt + (chg ? 0.08 : 0);
+        draw = mBatteryMa(out.ma, Math.max(2.5, st.vLoaded)) + base;
       }
-      st.remMah = P.clamp(st.remMah - draw * dt / 3600 * st.speed + (chg ? chargeCurrent() * dt / 3600 * st.speed : 0), 0, CAP_MAH);
-      if (st.usb && st.remMah >= CAP_MAH - 1e-6) st.chargeDone = true;
+      st.remMah = P.clamp(st.remMah - draw * dt / 3600 * st.speed + (chg ? chargeCurrent() * dt / 3600 * st.speed : 0), 0, M.capMah);
+      if (st.usb && st.remMah >= M.capMah - 1e-6) st.chargeDone = true;
       if (st.chargeDone && soc() < 96) st.chargeDone = false;
 
-      var heat = 0.75 * ledVf(out.ma) * out.ma / 1000;           /* 25 % of the electrical power leaves as light */
-      st.tempC += (st.ambient + RTH * heat + (chg ? 1.5 : 0) - st.tempC) * (1 - Math.exp(-dt / TAU));
+      var heat = M.heat * mVf(out.ma) * out.ma / 1000;         /* the rest of the electrical power leaves as light */
+      st.tempC += (st.ambient + M.rth * heat + (chg ? 1.5 : 0) - st.tempC) * (1 - Math.exp(-dt / M.tau));
 
       if (st.on && (st.tempC > 80 || (st.vLoaded < 3.0 && !st.usb))) {   /* protection switches the light off */
         if (st.vLoaded < 3.0) st.lvOff = true;
         st.on = false; st.exactMa = null; st.turboActive = false; st.turboLeft = 0; st.source = P.SOURCE.AUTO;
       }
-      if (st.lvOff && (st.usb || ocv(soc()) > 3.30)) st.lvOff = false;
+      if (st.lvOff && (st.usb || mOcv(soc()) > 3.30)) st.lvOff = false;
       st.out = computeOutput(p);
       if (st.rebootT >= 0) { st.rebootT -= dt; if (st.rebootT < 0 && api.onDisconnect) api.onDisconnect('reboot'); }
     }
 
     function buildStatus() {
-      var out = st.out, bat = batteryMa(out.ma, Math.max(3.0, st.vLoaded)) + BASE_MA, usable = Math.max(0, st.remMah - 0.05 * CAP_MAH);
+      var out = st.out, bat = mBatteryMa(out.ma, Math.max(3.0, st.vLoaded)) + BASE_MA, usable = Math.max(0, st.remMah - 0.05 * M.capMah);
       return P.encodeStatus({
         on: st.on, turbo: st.on && st.turboActive, charging: charging(out.ma), chargeDone: st.usb && st.chargeDone, usb: st.usb,
         lockout: st.lockout, thermalLimit: st.on && out.thermal, batteryLimit: st.on && out.batt,
@@ -1232,7 +1322,7 @@ var FlashKaSim = (function (P) {
         case 'FORGET_HOSTS': st.bonded = 0; if (st.mode === 2) st.mode = 1; break;
         case 'KEEPALIVE': st.keepalive = c.seconds; break;
         case 'FACTORY_RESET':
-          st.profileId = 1; st.custom = P.builtinProfile(3); st.saved = null; st.level = 2; st.exactMa = null; st.on = false;
+          st.profileId = 1; st.custom = P.builtinProfile(3, M.board); st.saved = null; st.level = 2; st.exactMa = null; st.on = false;
           st.lockout = false; st.turboActive = false; st.turboLeft = 0; st.rebootT = 0.6;
           st.presenter = P.defaultPresenter(); st.savedPresenter = null; break;
       }
@@ -1246,7 +1336,7 @@ var FlashKaSim = (function (P) {
     };
     api.readStatus = function () { st.out = computeOutput(params()); return buildStatus(); };
     api.readProfile = function () { var p = params(); return P.encodeProfile(Object.assign({}, p, { id: st.profileId })); };
-    api.readInfo = function () { var s = st.protocol >= 2 ? 'FlashKa fw 0.6.0' : 'Aurora++ fw 0.5.0', b = new Uint8Array(s.length), i; for (i = 0; i < s.length; i++) b[i] = s.charCodeAt(i); return b; };
+    api.readInfo = function () { var s = M.info, b = new Uint8Array(s.length), i; for (i = 0; i < s.length; i++) b[i] = s.charCodeAt(i); return b; };
     api.readBattery = function () { return Uint8Array.of(Math.round(P.clamp(soc(), 0, 100))); };
     api.writeCommand = function (bytes) { execute(bytes); };
     api.hasPresenter = function () { return st.protocol >= 2; };
@@ -1263,7 +1353,7 @@ var FlashKaSim = (function (P) {
       var q;
       try { q = P.decodeProfile(bytes); } catch (e) { throw att(P.ATT.INVALID); }
       if (bytes.length !== P.PROFILE_LEN || q.id !== 3) throw att(P.ATT.INVALID);
-      q = P.clampProfile(q); q.id = 3;
+      q = P.clampProfile(q, M.board); q.id = 3;
       st.custom = q; st.profileId = 3;
       var p = params();
       if (st.exactMa !== null) st.exactMa = Math.min(st.exactMa, maxExact(p));
@@ -1285,7 +1375,7 @@ var FlashKaSim = (function (P) {
     };
     api.setUsb = function (b) { st.usb = !!b; if (!st.usb) st.chargeDone = false; emit(true); };
     api.setAmbient = function (c) { st.ambient = c; };
-    api.setSoc = function (pct) { st.remMah = CAP_MAH * P.clamp(pct, 0, 100) / 100; st.chargeDone = false; st.lvSteps = 0; st.vLoaded = ocv(pct); emit(true); };
+    api.setSoc = function (pct) { st.remMah = M.capMah * P.clamp(pct, 0, 100) / 100; st.chargeDone = false; st.lvSteps = 0; st.vLoaded = mOcv(pct); emit(true); };
     api.setSpeed = function (x) { st.speed = Math.max(1, x); };
     api.setLaser = function (b) { st.laser = !!b; emit(true); };
     /* --- presenter mode, things the user does on the real light and with the computer --- */
@@ -1310,7 +1400,7 @@ var FlashKaSim = (function (P) {
     return api;
   }
 
-  var api = { createFlashlight: createFlashlight, ocv: ocv, ledVf: ledVf, batteryMa: batteryMa, CAP_MAH: CAP_MAH };
+  var api = { createFlashlight: createFlashlight, ocv: ocv, ledVf: ledVf, batteryMa: batteryMa, CAP_MAH: CAP_MAH, MODELS: MODELS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   return api;
 })(FlashKaProtocol);
@@ -1319,7 +1409,7 @@ var FlashKaSim = (function (P) {
 (function () {
   'use strict';
   var P = FlashKaProtocol, Sim = FlashKaSim;
-  var APP_VERSION = '0.6.0';
+  var APP_VERSION = '0.7.0';
 
   /* ---------------------------------------------------------------- helpers */
   function $(id) { return document.getElementById(id); }
@@ -1350,6 +1440,7 @@ var FlashKaSim = (function (P) {
     status: null, statusAt: 0, batteryPct: null,
     profile: null,           /* decoded Profile characteristic = the ACTIVE profile */
     name: '', info: '',
+    board: null,             /* 'v07' | 'v06' | null: from the Info characteristic (P.boardFromInfo) */
     userClosed: false, reconnecting: false, autoTries: 0,
     draft: null, draftDirty: false, changed: {},
     presenter: null,         /* decoded Presenter characteristic (protocol 2 only), null when the light has none */
@@ -1471,7 +1562,12 @@ var FlashKaSim = (function (P) {
       try { S.presenter = P.decodePresenter(await link.readPresenter()); } catch (e) { S.presenter = null; }   /* no Presenter card then */
     }
     S.conn = 'connected'; S.autoTries = 0; S.presenterOut = false;
-    link.readInfo().then(function (b) { S.info = new TextDecoder().decode(P.toBytes(b)).replace(/\0+$/, ''); renderFooter(); }, function () {});
+    link.readInfo().then(function (b) {
+      S.info = new TextDecoder().decode(P.toBytes(b)).replace(/\0+$/, '');
+      S.board = P.boardFromInfo(S.info);          /* the board decides the built-in tables, the turbo limit and the lumens */
+      renderAll(); renderProfileCards();
+      if (S.draft) validateDraft();               /* the editor's allowed ranges depend on the board */
+    }, function () {});
     if (!S.draftDirty) resetDraft();
     if (!S.pDirty) resetPresenterDraft();
     renderAll();
@@ -1511,9 +1607,11 @@ var FlashKaSim = (function (P) {
     await connectDevice(device);
   }
 
-  function startDemo(protocol) {
-    var sim = Sim.createFlashlight({ soc: 78, protocol: protocol === 1 ? 1 : 2, name: protocol === 1 ? 'Aurora-A7D4' : undefined });
-    $('demo-model').value = protocol === 1 ? '1' : '2';
+  /* model: 'v07' (FlashKa v0.7), 2 (FlashKa v0.6) or 1 (a v0.5 light, protocol 1) */
+  function startDemo(model) {
+    var v05 = model === 1 || model === '1', v07 = model === 'v07';
+    var sim = Sim.createFlashlight({ soc: 78, protocol: v05 ? 1 : 2, model: v07 ? 'v07' : undefined, name: v05 ? 'Aurora-A7D4' : undefined });
+    $('demo-model').value = v05 ? '1' : v07 ? 'v07' : '2';
     S.sim = sim; S.device = null; S.mode = 'demo'; S.conn = 'connecting'; S.name = sim.name; S.draftDirty = false;
     renderConn();
     startDemoTimer();
@@ -1522,7 +1620,7 @@ var FlashKaSim = (function (P) {
   function leave() {                                /* back to the start screen */
     S.userClosed = true; stopDemoTimer();
     if (S.link) S.link.disconnect();
-    S.link = null; S.sim = null; S.status = null; S.profile = null; S.conn = 'idle'; S.mode = ''; S.info = '';
+    S.link = null; S.sim = null; S.status = null; S.profile = null; S.conn = 'idle'; S.mode = ''; S.info = ''; S.board = null;
     S.draftDirty = false; S.versionWarned = false; S.presenter = null; S.pDirty = false; S.presenterOut = false;
     renderConn();
   }
@@ -1781,6 +1879,12 @@ var FlashKaSim = (function (P) {
     { key: 'lvStep', label: 'Low-battery step-down', unit: 'V', help: 'Below this battery voltage the light steps down.', volts: true },
     { key: 'cellLimit', label: 'Battery current limit', unit: 'mA', help: 'Protects the cells. Lower is gentler.' }
   ];
+  /* FlashKa v0.7 (docs/firmware.md section 9): the temperature limit is held by a regulator; the battery protection on
+     the board can cut off near 3.0 A (it then stays off until USB power is plugged in); the one 14500 cell is rated 3 A */
+  var HELP_V07 = {
+    tempLimit: 'The light keeps its temperature just below this.',
+    cellLimit: 'Protects the cell (rated 3 A). Near 3.0 A the battery protection can switch the light off until USB is plugged in; if that happens in turbo, use 2500.'
+  };
   function buildEditor() {
     var host = $('fields');
     FIELDS.forEach(function (f) {
@@ -1807,7 +1911,7 @@ var FlashKaSim = (function (P) {
     });
   }
   function resetDraft(fromBuiltin) {
-    var p = fromBuiltin ? P.builtinProfile(1) : (S.profile ? Object.assign({}, S.profile) : P.builtinProfile(3));
+    var p = fromBuiltin ? P.builtinProfile(1, S.board) : (S.profile ? Object.assign({}, S.profile) : P.builtinProfile(3, S.board));
     p.id = 3; S.draft = p; S.draftDirty = !!fromBuiltin; S.changed = {};
     if (fromBuiltin) $('adjusted').hidden = true;
     fillEditor();
@@ -1826,11 +1930,12 @@ var FlashKaSim = (function (P) {
     validateDraft();
   }
   function validateDraft() {
-    var d = S.draft, v = P.validateProfile(d), b = P.profileBounds(d), bad = 0;
+    var d = S.draft, v = P.validateProfile(d, S.board), b = P.profileBounds(d, S.board), bad = 0;
     FIELDS.forEach(function (f) {
       var wrap = document.querySelector('.field[data-key="' + f.key + '"]'), r = b[f.key];
       var lo = f.volts ? P.lvStepToVolts(r.min).toFixed(2) : r.min, hi = f.volts ? P.lvStepToVolts(r.max).toFixed(2) : r.max;
-      setText('h-' + f.key, (f.help ? f.help + ' ' : '') + 'Allowed: ' + lo + ' to ' + hi + ' ' + f.unit + '.');
+      var help = S.board === 'v07' && HELP_V07[f.key] ? HELP_V07[f.key] : f.help;
+      setText('h-' + f.key, (help ? help + ' ' : '') + 'Allowed: ' + lo + ' to ' + hi + ' ' + f.unit + '.');
       var msg = v.errors[f.key] || '';
       if (msg && f.volts) msg = 'Use a voltage from ' + lo + ' to ' + hi + ' V.';
       setText('e-' + f.key, msg);
@@ -1846,7 +1951,7 @@ var FlashKaSim = (function (P) {
     $('btn-apply').disabled = !enabled; $('btn-save').disabled = !enabled;
   }
   async function applyDraft() {
-    var v = P.validateProfile(S.draft);
+    var v = P.validateProfile(S.draft, S.board);
     if (!v.ok || S.conn !== 'connected') return false;
     var sent = Object.assign({}, S.draft, { id: 3 });
     try { await S.link.writeProfile(P.encodeProfile(sent)); }
@@ -1980,11 +2085,13 @@ var FlashKaSim = (function (P) {
     var line = 'Running on battery';
     if (st.chargeDone) line = 'Fully charged' + (st.usb ? ' - USB connected' : '');
     else if (st.charging) line = 'Charging - USB connected';
-    else if (st.usb) line = 'USB connected - not charging right now';
+    else if (st.usb) line = st.tempC >= 43 ? 'USB connected - charging paused until the light cools down (normal)'
+                                           : 'USB connected - not charging right now';
     setText('bat-line', line);
     setText('st-volt', P.formatVolts(st.voltageMv));
     setText('st-temp', P.formatTemp(st.tempC));
-    setText('st-led', st.currentMa + ' mA');
+    var lm = P.frontLumens(st.currentMa, S.board);   /* FlashKa v0.7: estimated light out of the front */
+    setText('st-led', st.currentMa + ' mA' + (lm !== null ? ' · ' + lm + ' lm' : ''));
     setText('st-run', st.on ? P.formatRuntime(st.runtimeMin) : '–');
     setText('st-prof', nameOfProfile(st.profile));
     renderBadges(st);
@@ -2086,10 +2193,11 @@ var FlashKaSim = (function (P) {
       var n = +b.dataset.profile;
       b.setAttribute('aria-pressed', String(!!st && st.profile === n));
       var small = $('pdesc-' + n), txt;
-      if (n < 3) txt = P.describeProfile(P.builtinProfile(n));
-      else txt = S.profile && S.profile.id === 3 ? P.describeProfile(S.profile) : 'Starts as a copy of Balanced';
+      if (n < 3) txt = P.describeProfile(P.builtinProfile(n, S.board), S.board);
+      else txt = S.profile && S.profile.id === 3 ? P.describeProfile(S.profile, S.board) : 'Starts as a copy of Balanced';
       if (small.textContent !== txt) small.textContent = txt;
     });
+    $('lm-note').hidden = S.board !== 'v07';
   }
 
   /* ----------------------------------------------------------- demo tools */
@@ -2100,7 +2208,7 @@ var FlashKaSim = (function (P) {
     $('demo-hot').addEventListener('change', function (e) { if (S.sim) S.sim.setAmbient(e.target.checked ? 45 : 24); });
     $('demo-soc').addEventListener('input', function (e) { setText('demo-soc-out', e.target.value + '%'); if (S.sim) S.sim.setSoc(+e.target.value); });
     $('demo-speed').addEventListener('change', function (e) { if (S.sim) S.sim.setSpeed(+e.target.value); });
-    $('demo-model').addEventListener('change', function (e) { if (S.sim) { leave(); startDemo(+e.target.value); } });   /* a different light: start the demo again */
+    $('demo-model').addEventListener('change', function (e) { if (S.sim) { leave(); startDemo(e.target.value === 'v07' ? 'v07' : +e.target.value); } });   /* a different light: start the demo again */
     $('demo-computer').addEventListener('change', function (e) { if (S.sim) S.sim.computerConnects(e.target.checked); });
     $('demo-both10').addEventListener('click', function () { if (S.sim) S.sim.holdBothButtons(10); });
     $('demo-pair').addEventListener('click', function () { if (S.sim) { S.sim.pairComputer(); toast('A computer paired with the light.', 'ok', 'Demo'); } });

@@ -1,0 +1,2543 @@
+{
+ "version": "0.7",
+ "params": {
+  "W": 20.0,
+  "H": 18.0,
+  "C_edge": 3.4,
+  "C_front": 0.4,
+  "C_end": 0.6,
+  "wall": 1.5,
+  "floor": 1.5,
+  "lid_t": 1.5,
+  "inner_r": 2.0,
+  "front_relief": [
+   2.0,
+   0.9,
+   0.6
+  ],
+  "L_head": 11.45,
+  "Z_axis": 8.0,
+  "lid_x0": 4.2,
+  "Y_w": -3.825,
+  "opt_od": 10.0,
+  "opt_h": 6.93,
+  "opt_h_tol": 0.2,
+  "opt_exit_d": 8.6,
+  "opt_recess": 0.2,
+  "opt_bore": 10.1,
+  "sst_size": 3.45,
+  "sst_h": 0.7,
+  "mcpcb_d": 10.0,
+  "mcpcb_t": 1.6,
+  "tim_t": 0.1,
+  "head_solid_min": 2.0,
+  "wire_groove": [
+   1.4,
+   1.3
+  ],
+  "led_wire_r": 5.7,
+  "led_wire_ang": 30.0,
+  "ledwire_d": 1.5,
+  "Y_l": 5.85,
+  "Z_las": 5.9,
+  "las_d": 6.0,
+  "las_len": 12.0,
+  "las_clear": 0.1,
+  "las_recess": 0.3,
+  "las_set": [
+   5.5,
+   4.8
+  ],
+  "las_set_len": 5.0,
+  "las_set_point": 0.8,
+  "las_bore_extra": 0.3,
+  "sleeve_id": 4.6,
+  "sleeve_od": 6.0,
+  "sleeve_len": 10.0,
+  "sleeve_slit": 0.8,
+  "pcb_len": 24.0,
+  "pcb_t": 0.8,
+  "Z_pcb_bot": 9.2,
+  "pcb_gap_front": 0.1,
+  "pcb_side_gap": 0.25,
+  "pcb_chamfer": 1.3,
+  "ledge_w": 0.8,
+  "las_keepout_x": 15.65,
+  "mod_w": 13.2,
+  "mod_len": 16.6,
+  "mod_onboard": 11.2,
+  "mod_h": 2.4,
+  "mod_y": -1.4,
+  "ant_gap": 0.8,
+  "L_batt": 51.6,
+  "cell_d": 14.0,
+  "cell_d_tol": 0.2,
+  "cell_len": 49.0,
+  "cell_len_tol": 0.3,
+  "cell_mass_g": 22.0,
+  "cell_max": [
+   14.5,
+   50.4
+  ],
+  "cell_alt": [
+   14.1,
+   50.1,
+   0.2,
+   0.3
+  ],
+  "cell_end": 0.4,
+  "cell_end_pad": 0.4,
+  "cell_tape": 0.05,
+  "rail_y": 3.5,
+  "rail_w": 1.2,
+  "rail_h": 1.1,
+  "top_pad": [
+   1.5,
+   6.0
+  ],
+  "foam_step": 0.5,
+  "foam_target": 0.375,
+  "strip_w": 5.0,
+  "tail_front_wall": 0.8,
+  "lan_slot_w": 3.6,
+  "lan_slot_len": 4.6,
+  "tail_end_wall": 1.45,
+  "lan_chamfer": 0.25,
+  "twin_x": 4.6,
+  "twin_y": 10.8,
+  "twin_r": 0.8,
+  "twin_corner": 1.8,
+  "twin_depth": 1.0,
+  "twin_chamfer": 0.3,
+  "twin_front_gap": 0.8,
+  "tail_facet": 2.0,
+  "rfw_x0_over_pcb": 1.0,
+  "rfw_x_beyond_ant": 0.5,
+  "rfw_y": 10.8,
+  "rfw_r": 1.5,
+  "rfw_flange": 0.8,
+  "rfw_flange_t": 0.6,
+  "rfw_flange_drop": 0.2,
+  "rfw_clear": 0.03,
+  "rfw_flange_clear": 0.1,
+  "m16_tap": 1.25,
+  "m16_drill": 3.6,
+  "m16_clear": 1.8,
+  "m16_csk": 3.3,
+  "screw_dy": 4.5,
+  "lid_screw_len": 6.0,
+  "screw_x_front": 10.14,
+  "m16_pitch": 0.35,
+  "X_usb": 17.35,
+  "usb_open": [
+   12.6,
+   6.8,
+   2.0
+  ],
+  "usb_open_chamfer": 0.3,
+  "X_s2": 16.8,
+  "s2_slot": [
+   3.2,
+   2.0,
+   0.8
+  ],
+  "s2_knob_z": 0.7,
+  "s2_knob_len": 1.55,
+  "s2_knob_out": 0.75,
+  "frw_box": [
+   36.35,
+   41.45,
+   5.4,
+   1.5
+  ],
+  "pan_depth": 0.3,
+  "pan_r": 0.8,
+  "band": 1.2,
+  "rail": 1.2,
+  "tex_pitch": 0.9,
+  "tex_depth": 0.2,
+  "grv_depth": 0.3,
+  "grv_head": [
+   1.5,
+   2.7,
+   3.9
+  ],
+  "grv_tail_off": [
+   5.4,
+   4.2,
+   3.0
+  ],
+  "bay_split": 2,
+  "band_rf": 1.8,
+  "tex_min_metal_cells": 0.9,
+  "tex_min_metal": 1.0,
+  "X_next": 18.65,
+  "X_main": 25.65,
+  "X_prev": 32.65,
+  "key_y": 0.0,
+  "main_key": [
+   6.8,
+   6.8,
+   1.0
+  ],
+  "side_key": [
+   4.2,
+   10.0,
+   1.5
+  ],
+  "main_face_z": 0.15,
+  "side_face_z": 0.3,
+  "chevron_h": 0.2,
+  "chevron": [
+   0.6,
+   0.6,
+   1.2
+  ],
+  "bez_depth": 0.5,
+  "bez_margin": 0.3,
+  "bez_style": "stadium",
+  "key_clear": 0.1,
+  "key_clear_end": 0.15,
+  "flange_t": 0.45,
+  "flange_main": 0.4,
+  "flange_side": 0.5,
+  "nub_d": 1.6,
+  "nub_h": 0.5,
+  "pre_main": 0.15,
+  "pre_side": 0.25,
+  "led_gap_rest": 0.6,
+  "pocket_clear": 0.25,
+  "ring_icon": [
+   4.4,
+   0.5,
+   0.03
+  ],
+  "stiffener": [
+   3.6,
+   9.4,
+   0.3,
+   0.8
+  ],
+  "doubler": [
+   2.0,
+   2.0,
+   0.3
+  ],
+  "plate_recess": [
+   3.8,
+   9.6,
+   1.0
+  ],
+  "plate_glue": 0.02,
+  "E_rubber_mpa": 9.4,
+  "E_steel_mpa": 193000.0,
+  "mould_n": 4,
+  "mould_pitch": 9.2,
+  "mould_size": [
+   48.0,
+   28.0
+  ],
+  "mould_t": [
+   8.0,
+   8.0
+  ],
+  "mould_draft": 1.0,
+  "mould_cap_offset": -0.04,
+  "mould_runner": [
+   1.2,
+   0.45,
+   3.0
+  ],
+  "mould_sprue_d": 2.5,
+  "mould_vent": [
+   1.0,
+   0.1
+  ],
+  "mould_vent_hole": [
+   1.0,
+   2.5,
+   1.5,
+   0.8
+  ],
+  "mould_dowel": [
+   2.0,
+   8.0,
+   5.0
+  ],
+  "mould_dowels": [
+   [
+    -20.5,
+    0.0
+   ],
+   [
+    20.5,
+    3.0
+   ]
+  ],
+  "mould_screws": [
+   [
+    -20.5,
+    -10.5
+   ],
+   [
+    -20.5,
+    10.5
+   ],
+   [
+    20.5,
+    -10.5
+   ],
+   [
+    20.5,
+    10.5
+   ]
+  ],
+  "mould_m3": [
+   2.5,
+   7.0,
+   6.0,
+   3.4
+  ],
+  "mould_pry": [
+   8.0,
+   1.5,
+   2.0
+  ],
+  "rubber_shrink": 0.001,
+  "resin_t": [
+   6.0,
+   5.0
+  ],
+  "resin_floor": 2.0,
+  "resin_rim": 3.0,
+  "resin_rib": 2.0,
+  "resin_boss": 8.0,
+  "resin_hole_boss": 5.0,
+  "resin_pin": [
+   4.0,
+   2.5,
+   0.5,
+   4.2
+  ],
+  "resin_bolt": [
+   3.4,
+   16.0
+  ],
+  "kit_min": [
+   30.0,
+   20.0,
+   8.0
+  ],
+  "kit_h_pmma": 8.5,
+  "kit_h_pom": 17.0,
+  "kit_gap": 3.0,
+  "kit_gap_tall": 5.0,
+  "kit_wall": 3.0,
+  "kit_tab": [
+   0.6,
+   0.6
+  ],
+  "kb_x0": 16.15,
+  "kb_x1": 35.15,
+  "kb_y": 7.4,
+  "kb_r": 1.0,
+  "kb_t": 0.8,
+  "kb_z0": 4.4,
+  "kb_holes": [
+   [
+    25.65,
+    5.8
+   ],
+   [
+    25.65,
+    -5.8
+   ]
+  ],
+  "kb_hole_d": 1.8,
+  "kb_keepout_d": 3.8,
+  "boss_d": 3.4,
+  "kb_screw_len": 2.5,
+  "kb_screw_head": [
+   3.0,
+   1.1
+  ],
+  "kb_ribs": [
+   [
+    18.65,
+    1
+   ],
+   [
+    18.65,
+    -1
+   ],
+   [
+    32.65,
+    1
+   ],
+   [
+    32.65,
+    -1
+   ]
+  ],
+  "rib_w": 1.4,
+  "rib_y0": 5.9,
+  "sw_body": [
+   3.9,
+   2.9
+  ],
+  "sw_h": 2.0,
+  "sw_body_h": 1.6,
+  "sw_act_d": 1.9,
+  "sw_travel": 0.25,
+  "sw_click": 0.2,
+  "sw_force_n": 1.6,
+  "led_size": 1.0,
+  "ring_led_h": 0.85,
+  "led_y": 2.4,
+  "smt_standoff": 0.05,
+  "pogo_free": 5.0,
+  "pogo_work": 4.0,
+  "pogo_min": 3.7,
+  "pogo_max_work": 4.2,
+  "pogo_base": [
+   2.0,
+   0.4
+  ],
+  "pogo_barrel": [
+   1.54,
+   3.3
+  ],
+  "pogo_plunger_d": 0.9,
+  "pogo_force_n": 1.17,
+  "pogo_force_tol_n": 0.29,
+  "pogo_pins": [
+   [
+    17.75,
+    2.5
+   ],
+   [
+    20.55,
+    2.5
+   ],
+   [
+    23.35,
+    2.5
+   ],
+   [
+    27.75,
+    2.5
+   ],
+   [
+    30.55,
+    2.5
+   ],
+   [
+    33.35,
+    2.5
+   ]
+  ],
+  "pogo_part": "Harwin P70-1010045R (LCSC C22100007)",
+  "boss_box": [
+   24.85,
+   33.65,
+   -7.6,
+   4.8
+  ],
+  "boss_r": 1.0,
+  "pad_t0": 1.5,
+  "pad_gap": 1.15,
+  "pad_E_mpa": 1.0,
+  "front_boss": true,
+  "boss2_box": [
+   18.4,
+   22.1,
+   0.25,
+   3.25
+  ],
+  "boss2_r": 0.5,
+  "pad2_t0": 1.0,
+  "pad2_gap": 0.75,
+  "pad2_E_mpa": 5.3,
+  "pcb_E_mpa": 20000.0,
+  "pcb_nu": 0.14,
+  "s2_stop_gap": 0.225
+ },
+ "derived": {
+  "L": 99.19999999999999,
+  "Z_lid": 14.6,
+  "Z_pcb_top": 10.0,
+  "D_w": 8.83,
+  "X_pcb0": 11.549999999999999,
+  "X_pcb1": 35.55,
+  "X_ant1": 40.95,
+  "Y_pcb": 8.25,
+  "X_batt0": 41.75,
+  "X_batt1": 93.35,
+  "X_lan": 95.94999999999999,
+  "X_screw_front": 10.14,
+  "X_screw_back": 95.94999999999999,
+  "Z_usb": 7.594999999999999,
+  "rf_window": [
+   34.55,
+   41.45,
+   5.4
+  ],
+  "Z_sw_tip": 2.35,
+  "Z_led_face": 3.5,
+  "main_key_top_z": 2.9,
+  "main_nub_z": 2.2,
+  "side_nub_z": 2.1,
+  "kb_z_top": 5.2,
+  "pogo_working_height": 3.95,
+  "kb_screw_tip_z": 2.7,
+  "kb_tap_drill_z": 2.025,
+  "kb_tap_drill_apex_z": 1.6495,
+  "lid_boss_h": 2.95,
+  "pad_strain": 0.2333
+ },
+ "pcb_frame": {
+  "dx": 2.75,
+  "note": "pcb_outline, components and key_board are in the KiCad board frame (the frame of the first v0.7 layout, a 94.4 mm body): housing X = board X + 2.75. Everything else in this file is in the housing frame (X = 0 at the front face of the 99.2 mm body)."
+ },
+ "pcb_outline": [
+  [
+   10.1,
+   -8.25
+  ],
+  [
+   32.8,
+   -8.25
+  ],
+  [
+   32.8,
+   8.25
+  ],
+  [
+   10.1,
+   8.25
+  ],
+  [
+   8.8,
+   6.95
+  ],
+  [
+   8.8,
+   -6.95
+  ]
+ ],
+ "components": {
+  "J1_usb": {
+   "x": 14.6,
+   "face_y": -8.25,
+   "side": "B",
+   "z_centre": 7.594999999999999,
+   "note": "TYPE-C-31-M-12 on the bottom side, mating face flush with the PCB edge"
+  },
+  "buttons": {
+   "board": "KB",
+   "part": "Alps SKRKAEE020 (LCSC C115357), KiCad Button_Switch_SMD:SW_Push_SPST_NO_Alps_SKRK",
+   "side": "KB bottom face",
+   "z_kb_bottom": 4.4,
+   "z_actuator_tip": 2.35,
+   "note": "v0.7: the three switches sit on the bottom face of the key board (KB), actuator pointing down at the keys; rot 0 = the two pads along housing X, rot 90 = pads along housing Y. The main board does not carry them any more.",
+   "SW1_main": {
+    "x": 22.9,
+    "y": 0.0,
+    "rot": 0
+   },
+   "SW2_next": {
+    "x": 15.9,
+    "y": 0.0,
+    "rot": 90
+   },
+   "SW3_prev": {
+    "x": 29.9,
+    "y": 0.0,
+    "rot": 90
+   }
+  },
+  "ring_leds": {
+   "board": "KB",
+   "part": "NH-B1010RGBT-HF (LCSC C2874113)",
+   "side": "KB bottom face",
+   "rot": 0,
+   "LED3": {
+    "x": 22.9,
+    "y": 2.4
+   },
+   "LED4": {
+    "x": 22.9,
+    "y": -2.4
+   },
+   "note": "emit downwards into the top face of the clear main key (key top Z 2.90 at rest, LED face Z 3.50 for the 0.85 mm worst-case LED height)"
+  },
+  "S2_interlock": {
+   "x": 14.05,
+   "knob_tip_y": 9.0,
+   "side": "F",
+   "note": "PCM12-class slide, knob towards +Y into the wall slot"
+  },
+  "U4_module": {
+   "x_onboard_end": 32.8,
+   "y": -1.4,
+   "side": "F",
+   "note": "ESP32-C3-MINI-1, antenna overhangs the rear edge by 5.4 mm"
+  },
+  "pcb": {
+   "x0": 8.8,
+   "x1": 32.8,
+   "y_minus": -8.25,
+   "y_plus": 8.25,
+   "z_bottom": 9.2,
+   "t": 0.8
+  },
+  "keepout_bottom": [
+   {
+    "what": "laser module tail",
+    "x0": 7.8,
+    "x1": 12.9,
+    "y0": 2.55,
+    "y1": 9.25
+   }
+  ],
+  "keepout_top": [
+   {
+    "what": "front hold-down pad",
+    "x0": 15.6,
+    "x1": 19.4,
+    "y0": 0.2,
+    "y1": 3.3,
+    "note": "no top-side components inside; copper, vias and solder mask allowed"
+   }
+  ],
+  "keepout_bottom_circles": [],
+  "trough_y": [
+   -7.55,
+   7.55
+  ],
+  "trough_exceptions": [
+   {
+    "what": "USB-C (no ledge)",
+    "x0": 9.7,
+    "x1": 19.6,
+    "side": "-Y"
+   },
+   {
+    "what": "laser (no ledge)",
+    "x0": 7.8,
+    "x1": 12.9,
+    "side": "+Y"
+   }
+  ],
+  "rf_window": {
+   "x0": 31.8,
+   "x1": 38.7,
+   "half_y": 5.4
+  },
+  "max_height_top": 6.3,
+  "max_height_top_note": "under the lid plate; within 0.64 of the board edges (|Y| > 7.61) the lid's inner edge limits the parts to Z 14.40 (4.40 above the board)",
+  "max_height_bottom": 7.4,
+  "kb_zone": {
+   "x0": 13.4,
+   "x1": 32.4,
+   "y0": -7.4,
+   "y1": 7.4,
+   "z_kb_top": 5.2,
+   "z_pogo_barrel_top": 8.55,
+   "z_screw_head_top": 6.3,
+   "pogo_pins": [
+    [
+     15.0,
+     2.5
+    ],
+    [
+     17.8,
+     2.5
+    ],
+    [
+     20.6,
+     2.5
+    ],
+    [
+     25.0,
+     2.5
+    ],
+    [
+     27.8,
+     2.5
+    ],
+    [
+     30.6,
+     2.5
+    ]
+   ],
+   "note": "bottom-side parts of the main board above the key board must clear the KB top-face parts (pogo barrels, screw heads, resistors); J6 target pads right above the pogo pins"
+  },
+  "led_wire_top": {
+   "y": -0.975,
+   "z": 12.9363,
+   "x_exit": 8.71,
+   "d": 1.5
+  },
+  "led_wire_bottom": {
+   "y": -6.675,
+   "z": 3.0637,
+   "x_exit": 9.888,
+   "d": 1.5
+  },
+  "front_screw_tips_z": 11.0
+ },
+ "key_board": {
+  "outline": {
+   "x0": 13.4,
+   "x1": 32.4,
+   "y0": -7.4,
+   "y1": 7.4,
+   "corner_r": 1.0
+  },
+  "z_bottom": 4.4,
+  "z_top": 5.2,
+  "holes": [
+   [
+    22.9,
+    5.8
+   ],
+   [
+    22.9,
+    -5.8
+   ]
+  ],
+  "hole_d": 1.8,
+  "screw": "M1.6 x 2.5 pan head, stainless steel",
+  "support_areas_on_the_KB_bottom_face": [
+   {
+    "what": "boss X22.9 Y+5.8",
+    "bbox": [
+     21.2,
+     24.6,
+     4.1,
+     7.4
+    ]
+   },
+   {
+    "what": "boss X22.9 Y-5.8",
+    "bbox": [
+     21.2,
+     24.6,
+     -7.4,
+     -4.1
+    ]
+   },
+   {
+    "what": "rib X15.9 +Y",
+    "bbox": [
+     15.2,
+     16.6,
+     5.9,
+     7.4
+    ]
+   },
+   {
+    "what": "rib X15.9 -Y",
+    "bbox": [
+     15.2,
+     16.6,
+     -7.1,
+     -5.9
+    ]
+   },
+   {
+    "what": "rib X29.9 +Y",
+    "bbox": [
+     29.2,
+     30.6,
+     5.9,
+     7.4
+    ]
+   },
+   {
+    "what": "rib X29.9 -Y",
+    "bbox": [
+     29.2,
+     30.6,
+     -7.4,
+     -5.9
+    ]
+   }
+  ],
+  "pogo_pins": [
+   [
+    15.0,
+    2.5
+   ],
+   [
+    17.8,
+    2.5
+   ],
+   [
+    20.6,
+    2.5
+   ],
+   [
+    25.0,
+    2.5
+   ],
+   [
+    27.8,
+    2.5
+   ],
+   [
+    30.6,
+    2.5
+   ]
+  ],
+  "pogo_part": "Harwin P70-1010045R (LCSC C22100007)"
+ },
+ "panel_layout": [
+  {
+   "name": "top PCB zone",
+   "face": "top",
+   "u0": 12.99,
+   "u1": 32.75,
+   "v0": -5.4,
+   "v1": 5.4,
+   "r": 0.8
+  },
+  {
+   "name": "bottom bay 1 (with the RF window)",
+   "face": "bottom",
+   "u0": 36.35,
+   "u1": 64.1,
+   "v0": -5.4,
+   "v1": 5.4,
+   "r": 0.8
+  },
+  {
+   "name": "top bay 1",
+   "face": "top",
+   "u0": 43.25,
+   "u1": 64.1,
+   "v0": -5.4,
+   "v1": 5.4,
+   "r": 0.8
+  },
+  {
+   "name": "minus_y bay 1",
+   "face": "minus_y",
+   "u0": 43.25,
+   "u1": 64.1,
+   "v0": 4.6,
+   "v1": 13.4,
+   "r": 0.8
+  },
+  {
+   "name": "plus_y bay 1",
+   "face": "plus_y",
+   "u0": 43.25,
+   "u1": 64.1,
+   "v0": 4.6,
+   "v1": 13.4,
+   "r": 0.8
+  },
+  {
+   "name": "bottom bay 2",
+   "face": "bottom",
+   "u0": 65.3,
+   "u1": 86.15,
+   "v0": -5.4,
+   "v1": 5.4,
+   "r": 0.8
+  },
+  {
+   "name": "top bay 2",
+   "face": "top",
+   "u0": 65.3,
+   "u1": 86.15,
+   "v0": -5.4,
+   "v1": 5.4,
+   "r": 0.8
+  },
+  {
+   "name": "minus_y bay 2",
+   "face": "minus_y",
+   "u0": 65.3,
+   "u1": 86.15,
+   "v0": 4.6,
+   "v1": 13.4,
+   "r": 0.8
+  },
+  {
+   "name": "plus_y bay 2",
+   "face": "plus_y",
+   "u0": 65.3,
+   "u1": 86.15,
+   "v0": 4.6,
+   "v1": 13.4,
+   "r": 0.8
+  },
+  {
+   "name": "minus_y PCB zone",
+   "face": "minus_y",
+   "u0": 25.15,
+   "u1": 42.05,
+   "v0": 4.6,
+   "v1": 13.4,
+   "r": 0.8
+  },
+  {
+   "name": "plus_y PCB zone",
+   "face": "plus_y",
+   "u0": 19.6,
+   "u1": 42.05,
+   "v0": 4.6,
+   "v1": 13.4,
+   "r": 0.8
+  }
+ ],
+ "volumes_mm3": {
+  "FlashKa_tray": 8328.5,
+  "FlashKa_lid": 3120.7,
+  "FlashKa_rf_window": 117.5,
+  "FlashKa_antenna_spacer": 825.4,
+  "FlashKa_key_main": 112.4,
+  "FlashKa_key_side": 55.8,
+  "FlashKa_key_side_prev": 55.8,
+  "FlashKa_key_stiffener": 11.0,
+  "FlashKa_key_stiffener_prev": 11.0,
+  "FlashKa_laser_sleeve": 110.9
+ },
+ "mass_g": {
+  "FlashKa_tray": 22.487,
+  "FlashKa_lid": 8.426,
+  "FlashKa_rf_window": 0.166,
+  "FlashKa_antenna_spacer": 1.164,
+  "FlashKa_key_main": 0.134,
+  "FlashKa_key_side": 0.064,
+  "FlashKa_key_side_prev": 0.064,
+  "FlashKa_key_stiffener": 0.087,
+  "FlashKa_key_stiffener_prev": 0.087,
+  "FlashKa_laser_sleeve": 0.156
+ },
+ "tray_bbox": [
+  -0.002,
+  99.2,
+  -10.005,
+  10.003,
+  -0.009,
+  18.003
+ ],
+ "solids_valid": {
+  "FlashKa_tray": true,
+  "FlashKa_lid": true,
+  "FlashKa_rf_window": true,
+  "FlashKa_antenna_spacer": true,
+  "FlashKa_key_main": true,
+  "FlashKa_key_side": true,
+  "FlashKa_key_side_prev": true,
+  "FlashKa_key_stiffener": true,
+  "FlashKa_key_stiffener_prev": true,
+  "FlashKa_laser_sleeve": true
+ },
+ "min_walls": {
+  "optic bore to control-side face": 1.125,
+  "optic bore to the lower -Y diagonal facet": 2.569,
+  "optic bore to top face (lid seat, X > lid_x0)": 1.55,
+  "optic bore to bottom face": 2.95,
+  "solid head block behind the LED board (bore floor to head rear face)": 2.62,
+  "LED wire groove (upper) to lid seat": 0.751,
+  "LED wire hole (upper) to lid seat": 0.914,
+  "LED wire groove (lower) to control-side face": 2.394,
+  "LED wire hole (lower) to control-side face": 2.575,
+  "LED wire groove (lower) to the lower -Y diagonal facet": 1.304,
+  "LED wire hole (lower) to the lower -Y diagonal facet": 1.363,
+  "laser bore to laser-side face": 1.1,
+  "laser bore to the lower +Y diagonal facet": 1.652,
+  "laser bore to bottom face": 2.85,
+  "laser set screw: thread crest to the front lid tap +Y thread": 3.05,
+  "laser set screw: hole behind the lid front edge (thread crest)": 0.5,
+  "laser set screw: thread crest to the head rear face": 5.15,
+  "optic bore to laser bore": 1.575,
+  "laser module top below the PCB": 0.3,
+  "side walls": 1.5,
+  "floor": 1.5,
+  "lid plate over the cavity": 1.5,
+  "diagonal facets: wall to the cavity (tray) and to the lid pocket": 1.5,
+  "lid over the head and the tail blocks (solid)": 3.4,
+  "lid around the RF window flange pocket": 0.9,
+  "lid: RF window pocket edge to the upper diagonal facets": 0.919,
+  "lanyard bridge (slot to tail face)": 1.45,
+  "tail front wall (bay to slot)": 0.8,
+  "slot end to rear screw tap": 1.575,
+  "slot end to rear screw tap (thread crest)": 1.4,
+  "lid top face: rear countersink edge to the slot chamfer": 0.3,
+  "front screw tap to head rear face": 0.685,
+  "front screw tap to head rear face (thread crest)": 0.51,
+  "front screw tap to the optic bore floor": 0.685,
+  "front screw tap to the optic bore floor (thread crest)": 0.51,
+  "front corner relief to the outer side face": 1.1,
+  "floor under the key bezel": 1.0,
+  "floor web: next opening to main opening": 1.3,
+  "floor web: main opening to previous opening": 1.3,
+  "floor: previous opening to floor RF window": 1.5,
+  "bezel edge to floor RF window (band)": 0.8,
+  "floor RF window to side wall": 3.1,
+  "KB boss: wall round the M1.6 thread (key side)": 0.9,
+  "KB tap: metal under the drill point to the bottom face": 1.649,
+  "KB tap: thread engagement of the M1.6 x 2.5 screw": 1.7,
+  "texture: groove width": 0.4,
+  "texture: land between grooves": 0.5,
+  "transverse groove width": 0.6,
+  "transverse groove land": 0.6,
+  "wall front lid tap -Y - LED wire hole top": 2.15,
+  "wall front lid tap -Y - optic bore": 0.685,
+  "wall front lid tap +Y - laser bore": 2.101,
+  "wall optic bore - laser bore": 1.8,
+  "wall front lid tap +Y - LED wire hole top": 4.1,
+  "wall front lid tap -Y - LED wire groove top": 2.254,
+  "wall LED wire groove top - laser bore": 5.901,
+  "wall LED wire hole top - laser bore": 6.003,
+  "wall laser set-screw hole - front lid tap +Y": 3.4,
+  "wall laser set-screw hole - optic bore": 2.95,
+  "wall laser set-screw hole - LED wire hole top": 5.398,
+  "wall laser set-screw hole - LED wire groove top": 4.26,
+  "wall rear lid tap +Y - lanyard slot": 1.575,
+  "wall rear lid tap -Y - lanyard slot": 1.575,
+  "wall front lid tap +Y - front corner relief +Y": 2.43,
+  "wall front lid tap -Y - front corner relief -Y": 2.43,
+  "wall KB tap +Y - key bezel": 1.254,
+  "wall KB tap -Y - key bezel": 1.254,
+  "wall KB tap +Y - main key opening": 1.706,
+  "wall KB tap -Y - main key opening": 1.706,
+  "wall front lid tap -Y thread - optic bore": 0.51,
+  "wall front lid tap -Y thread - cavity": 0.51,
+  "wall front lid tap +Y thread - cavity": 0.51
+ },
+ "rf_windows": {
+  "lid opening (X x Y, r)": [
+   6.9,
+   10.8,
+   1.5
+  ],
+  "lid opening X": [
+   34.55,
+   41.45
+  ],
+  "lid insert clearance per side": 0.03,
+  "lid insert flange clearance per side (in the pocket)": 0.1,
+  "floor opening (X x Y, r)": [
+   5.1,
+   10.8,
+   1.5
+  ],
+  "floor opening X": [
+   36.35,
+   41.45
+  ],
+  "module antenna X": [
+   35.55,
+   40.95
+  ],
+  "antenna covered by the lid window (X)": [
+   35.55,
+   40.95
+  ],
+  "antenna covered by the floor window (X)": [
+   36.35,
+   40.95
+  ],
+  "module width (Y)": [
+   -8.0,
+   5.2
+  ],
+  "module width under both windows (Y)": [
+   -5.4,
+   5.2
+  ],
+  "window material": "POM-C black (both); between X 36.35 and 41.45 no metal above or below the module from Y -5.4 to 5.2; its -Y edge strip (Y -8 to -5.4) has aluminium round it (floor corner, side wall, lid seat and diagonal wall)"
+ },
+ "pogo_stack": {
+  "pin": "Harwin P70-1010045R (LCSC C22100007)",
+  "free_mm": 5.0,
+  "working_mm": 4.0,
+  "min_mm": 3.7,
+  "working_height_nominal_mm": 3.95,
+  "items_mm": {
+   "main-board ledge Z": 0.05,
+   "KB boss top Z": 0.03,
+   "KB thickness (0.8 mm board)": 0.08,
+   "pogo solder joint": 0.03
+  },
+  "working_height_worst_case_mm": [
+   3.76,
+   4.14
+  ],
+  "working_height_rss_mm": [
+   3.847,
+   4.053
+  ],
+  "allowed_range_mm": [
+   3.7,
+   4.2
+  ],
+  "inside_range_worst_case": true,
+  "margin_to_range_worst_case_mm": [
+   0.06,
+   0.06
+  ],
+  "compression_mm": [
+   0.86,
+   1.05,
+   1.24
+  ],
+  "force_per_pin_N (min, nominal, max incl. the +/-0.29 N spring tolerance)": [
+   0.757,
+   1.229,
+   1.81
+  ],
+  "force_total_N": [
+   4.54,
+   7.37,
+   10.86
+  ],
+  "max_force_factor": 1.547,
+  "note": "spring force linear through the free height (1.17 N at 4.00 mm)"
+ },
+ "pad_stack": {
+  "pad_free_mm": 1.5,
+  "gap_nominal_mm": 1.15,
+  "items_mm": {
+   "module can height": 0.1,
+   "main board thickness": 0.08,
+   "main-board ledge Z": 0.05,
+   "lid boss height": 0.03,
+   "lid seat Z": 0.03
+  },
+  "gap_worst_case_mm": [
+   0.86,
+   1.44
+  ],
+  "gap_rss_mm": [
+   1.006,
+   1.294
+  ],
+  "compression_pct_nominal": 23.3,
+  "compression_pct_worst_case": [
+   4.0,
+   42.7
+  ],
+  "front pad": {
+   "pad_free_mm": 1.0,
+   "gap_nominal_mm": 0.75,
+   "items_mm": {
+    "main board thickness": 0.08,
+    "main-board ledge Z": 0.05,
+    "lid boss height": 0.03,
+    "lid seat Z": 0.03
+   },
+   "gap_worst_case_mm": [
+    0.56,
+    0.94
+   ],
+   "gap_rss_mm": [
+    0.647,
+    0.853
+   ],
+   "compression_pct_nominal": 25.0,
+   "compression_pct_worst_case": [
+    6.0,
+    44.0
+   ]
+  }
+ },
+ "key_tolerance_stack": {
+  "main key (CNC PMMA)": {
+   "nominal_free_play_mm": 0.15,
+   "items_mm": {
+    "switch height (actuator tip)": 0.1,
+    "switch solder joint": 0.03,
+    "KB boss top vs floor seat (one setup)": 0.03,
+    "floor seat face": 0.03,
+    "key length (flange underside to nub top)": 0.03
+   },
+   "worst_case_mm": [
+    -0.07,
+    0.37
+   ],
+   "rss_mm": [
+    0.033,
+    0.267
+   ]
+  },
+  "side keys (cast rubber + glued plate and doubler)": {
+   "nominal_free_play_mm": 0.25,
+   "items_mm": {
+    "switch height (actuator tip)": 0.1,
+    "switch solder joint": 0.03,
+    "KB boss top vs floor seat (one setup)": 0.03,
+    "floor seat face": 0.03,
+    "recess floor above the flange underside (cast in the aluminium mould)": 0.05,
+    "plate + doubler, 2 x 0.30 shim (+/-0.02 each)": 0.04,
+    "glue films": 0.02
+   },
+   "worst_case_mm": [
+    -0.05,
+    0.55
+   ],
+   "rss_mm": [
+    0.119,
+    0.381
+   ]
+  },
+  "note": "a negative value is a preload on the switch: for the elastomer keys it is taken by the rubber (a few tenths of a newton per 0.1 mm), for the rigid PMMA key only the worst case (all tolerances at their limit at once) goes below zero, and still stays below the click (about 0.20 mm)"
+ },
+ "side_key_chevron": {
+  "stroke": 0.6,
+  "height": 0.2,
+  "apex_angle_deg": 90.0,
+  "overall_x": 1.8,
+  "overall_y": 3.0,
+  "next_key": "X 18.65: apex towards the head (-X)",
+  "previous_key": "X 32.65: apex towards the tail (+X), the same part turned 180 deg",
+  "reading": "held like a presenter (head towards the screen, keys up): the key nearest the head reads '^' (next), the key nearest the hand 'v' (previous)"
+ },
+ "machining_kits": {
+  "FlashKa_pmma_kit": {
+   "file": "FlashKa_pmma_kit.step",
+   "material": "clear cast PMMA (acrylic, not extruded)",
+   "size": [
+    52.8,
+    22.0,
+    8.5
+   ],
+   "gap": 3.0,
+   "wall": 3.0,
+   "tab": [
+    0.6,
+    0.45
+   ],
+   "tab_length": 3.0,
+   "tab_plane_z": [
+    3.825,
+    4.275
+   ],
+   "n_parts": 3,
+   "n_tabs": 9,
+   "parts": [
+    {
+     "part": "main key 1",
+     "file": "FlashKa_key_main.step",
+     "centre_xy": [
+      9.8,
+      11.0
+     ],
+     "z": [
+      2.875,
+      5.625
+     ],
+     "orientation": "outer face up (kit +Z)",
+     "tabs": "3: middle of the +Y, -Y and +X flange edges (housing frame), 0.6 x 0.45, 3 long"
+    },
+    {
+     "part": "main key 2",
+     "file": "FlashKa_key_main.step",
+     "centre_xy": [
+      26.4,
+      11.0
+     ],
+     "z": [
+      2.875,
+      5.625
+     ],
+     "orientation": "outer face up (kit +Z)",
+     "tabs": "3: middle of the +Y, -Y and +X flange edges (housing frame), 0.6 x 0.45, 3 long"
+    },
+    {
+     "part": "main key 3",
+     "file": "FlashKa_key_main.step",
+     "centre_xy": [
+      43.0,
+      11.0
+     ],
+     "z": [
+      2.875,
+      5.625
+     ],
+     "orientation": "outer face up (kit +Z)",
+     "tabs": "3: middle of the +Y, -Y and +X flange edges (housing frame), 0.6 x 0.45, 3 long"
+    }
+   ],
+   "setups": "top (kit +Z): outer face, frosted ring, edge break, cap below the flange; bottom: light-input face, switch pocket and nub, cap above the flange; the gaps from each side to the tab plane"
+  },
+  "FlashKa_pom_kit": {
+   "file": "FlashKa_pom_kit.step",
+   "material": "POM-C (acetal copolymer), black",
+   "size": [
+    45.4,
+    39.3,
+    17.0
+   ],
+   "gap": 3.0,
+   "gap_spacer": 5.0,
+   "wall": 3.0,
+   "tab": [
+    0.6,
+    0.6
+   ],
+   "tab_plane_z": [
+    12.5,
+    13.1
+   ],
+   "n_parts": 3,
+   "n_tabs": 9,
+   "parts": [
+    {
+     "part": "lid RF window insert",
+     "file": "FlashKa_rf_window.step",
+     "centre_xy": [
+      12.1,
+      10.15
+     ],
+     "z": [
+      12.5,
+      13.9
+     ],
+     "orientation": "textured face up (kit +Z), long side along kit X",
+     "tabs": "3: middle of both long flange edges and of one short flange edge, 0.6 x 0.6, flush with the flange underside, 3 long"
+    },
+    {
+     "part": "lid RF window insert (spare)",
+     "file": "FlashKa_rf_window.step",
+     "centre_xy": [
+      33.3,
+      10.15
+     ],
+     "z": [
+      12.5,
+      13.9
+     ],
+     "orientation": "textured face up (kit +Z), long side along kit X",
+     "tabs": "3: middle of both long flange edges and of one short flange edge, 0.6 x 0.6, flush with the flange underside, 3 long"
+    },
+    {
+     "part": "antenna spacer",
+     "file": "FlashKa_antenna_spacer.step",
+     "centre_xy": [
+      22.7,
+      28.3
+     ],
+     "z": [
+      0.575,
+      16.425
+     ],
+     "orientation": "floor plug up (kit +Z), long side along kit X",
+     "tabs": "3: two on the +Y side face, one on the -Y side face (housing frame), 0.6 x 0.6, 5 long"
+    }
+   ],
+   "not_in_the_kit": "laser sleeve (option, only for a laser module thinner than 6 mm): its slit along the axis needs a side setup; single file FlashKa_laser_sleeve.step",
+   "setups": "top (kit +Z): insert faces with the texture, spacer floor plug with the texture and its bottom chamfers; bottom: insert flange undersides, spacer top side (U, rebate, tall wall); the gaps from each side to the tab plane"
+  }
+ },
+ "laser_retention": {
+  "screw": "M1.6 x 5 set screw, ISO 4026 flat point or ISO 4029 cup point, hex socket, stainless steel",
+  "position_x_y": [
+   5.5,
+   4.8
+  ],
+  "offset_from_the_laser_axis_mm (towards -Y)": 1.05,
+  "entry": "from the head-block top (Z 14.6), under the front end of the lid; fitted with the lid off",
+  "thread": "M1.6x0.35-6H, tap drill d1.25 from the head-block top into the laser bore",
+  "thread_length_at_the_screw_axis_mm": 5.836,
+  "screw_point_on_the_module_z (module centred; point d0.8)": 8.829,
+  "screw_top_z": 13.829,
+  "screw_top_below_the_head_block_top_mm": 0.771,
+  "contact_angle_on_the_module_deg (0 = straight down onto the axis)": 12.5,
+  "hole_x_range (tap drill)": [
+   4.875,
+   6.125
+  ],
+  "lid_front_edge_x": 4.2,
+  "covered_by_the_lid": true,
+  "outside_of_the_closed_light (ray scan)": {
+   "bottom": {
+    "rays": 10873,
+    "points deeper than 0.6 mm": [],
+    "count": 0
+   },
+   "top": {
+    "rays": 11798,
+    "points deeper than 0.6 mm": [],
+    "count": 0
+   }
+  }
+ },
+ "optic_seat": {
+  "optic": "LEDiL LISA3-RS-PIN (FP16558): d10.0, 6.93 +/-0.2 above the LED board (LEDiL drawing FP165xx LISA3-x-PIN rev 1.2; data sheet 6.9), PMMA lens in a black PC holder; the two pins are cut off",
+  "seat": "the holder base stands on the front face of the LED board (the LED level, as LEDiL designs it: 'PCB or heatsink level. LED location'); the LED board lies on the bore floor with thermal paste; no spacer, no window",
+  "bore_d (+0.05/0)": 10.1,
+  "radial_play_nominal": 0.05,
+  "optic_front_face_x (min, nominal, max over the height tolerance)": [
+   0.0,
+   0.2,
+   0.4
+  ],
+  "optic_front_recess_behind_the_front_face": [
+   0.0,
+   0.2,
+   0.4
+  ],
+  "led_board_front_face_x (= holder seat = LED level)": 7.13,
+  "led_board_back_face_x": 8.73,
+  "thermal_paste_mm": 0.1,
+  "bore_floor_x": 8.83,
+  "head_rear_face_x": 11.45,
+  "solid_behind_the_bore_floor_mm": 2.62,
+  "solid_behind_the_bore_floor_required_mm": 2.0,
+  "led_axis_y_z": [
+   -3.825,
+   8.0
+  ],
+  "lens_exit_d (drawing callout, unlabelled)": 8.6,
+  "vignetting": "the bore keeps its full diameter to the front face (no lip, no window): from the edge of the exit (r 4.30) a ray clears the bore mouth (r 5.050) up to 61.9 deg from the axis at the deepest seat (recess 0.4), 75.1 deg at the nominal one",
+  "retention": "two-part epoxy (or neutral-cure silicone) on the holder rim against the bore wall, the optic pressed onto the LED board while it cures; no cyanoacrylate (its vapour fogs PMMA).  Not a press fit: the thin PC holder would have to carry the fit, the bore is +0.05/0, and the LED board must stay pressed onto the floor.  The glued optic traps the LED board on the bore floor.",
+  "led_wires": "the pads face the two wire grooves (upper groove 30 deg from 12 o'clock towards the laser, lower one opposite); if the holder base sits on the solder joints, file two notches into the holder rim"
+ },
+ "bay": {
+  "bay_x": [
+   41.75,
+   93.35
+  ],
+  "bay_length": 51.6,
+  "bay_section": "inside of the octagon: 17 wide between the side walls, floor Z 1.5, lid plate Z 16.5; 45 deg corners (lower -Y corner = channel for the joints and the far-end wire)",
+  "rails": {
+   "inner_top_edge_y": [
+    -3.5,
+    3.5
+   ],
+   "width": 1.2,
+   "top_z": 2.6,
+   "x": [
+    44.75,
+    90.35
+   ],
+   "insulation": "polyimide tape 0.05 on each rail; the cell keeps its own sleeve"
+  },
+  "cell_front_x (behind the strip)": 42.15,
+  "length_budget": "51.6 = longest cell 50.4 + 2 x 0.4 (nickel strip 0.2 + fold / weld bumps) + 0.4 (tail pad at its thinnest)",
+  "cases": {
+   "F15 at its lower limits": {
+    "d_x_length": [
+     13.8,
+     48.7
+    ],
+    "axis_z": 8.596,
+    "clearance_over_the_floor_between_the_rails": 0.196,
+    "gap_under_the_lid (top foam strip)": 1.004,
+    "top_strip_free_mm": 1.5,
+    "top_strip_compression_pct": 33.1,
+    "side_gap_to_the_walls": 1.6,
+    "length_left_for_the_tail_pad": 2.1,
+    "tail_pad_free_mm": 3.5,
+    "tail_pad_compression_pct": 40.0
+   },
+   "F15 nominal": {
+    "d_x_length": [
+     14.0,
+     49.0
+    ],
+    "axis_z": 8.712,
+    "clearance_over_the_floor_between_the_rails": 0.212,
+    "gap_under_the_lid (top foam strip)": 0.788,
+    "top_strip_free_mm": 1.5,
+    "top_strip_compression_pct": 47.5,
+    "side_gap_to_the_walls": 1.5,
+    "length_left_for_the_tail_pad": 1.8,
+    "tail_pad_free_mm": 3.0,
+    "tail_pad_compression_pct": 40.0
+   },
+   "F15 at its upper limits": {
+    "d_x_length": [
+     14.2,
+     49.3
+    ],
+    "axis_z": 8.827,
+    "clearance_over_the_floor_between_the_rails": 0.227,
+    "gap_under_the_lid (top foam strip)": 0.573,
+    "top_strip_free_mm": 1.0,
+    "top_strip_compression_pct": 42.7,
+    "side_gap_to_the_walls": 1.4,
+    "length_left_for_the_tail_pad": 1.5,
+    "tail_pad_free_mm": 2.5,
+    "tail_pad_compression_pct": 40.0
+   },
+   "K10 at its lower limits": {
+    "d_x_length": [
+     13.9,
+     49.8
+    ],
+    "axis_z": 8.654,
+    "clearance_over_the_floor_between_the_rails": 0.204,
+    "gap_under_the_lid (top foam strip)": 0.896,
+    "top_strip_free_mm": 1.5,
+    "top_strip_compression_pct": 40.3,
+    "side_gap_to_the_walls": 1.55,
+    "length_left_for_the_tail_pad": 1.0,
+    "tail_pad_free_mm": 1.5,
+    "tail_pad_compression_pct": 33.3
+   },
+   "K10 at its upper limits": {
+    "d_x_length": [
+     14.3,
+     50.4
+    ],
+    "axis_z": 8.885,
+    "clearance_over_the_floor_between_the_rails": 0.235,
+    "gap_under_the_lid (top foam strip)": 0.465,
+    "top_strip_free_mm": 1.0,
+    "top_strip_compression_pct": 53.5,
+    "side_gap_to_the_walls": 1.35,
+    "length_left_for_the_tail_pad": 0.4,
+    "tail_pad_free_mm": 0.5,
+    "tail_pad_compression_pct": 20.0
+   },
+   "largest flat-top 14500 the bay takes": {
+    "d_x_length": [
+     14.5,
+     50.4
+    ],
+    "axis_z": 8.999,
+    "clearance_over_the_floor_between_the_rails": 0.249,
+    "gap_under_the_lid (top foam strip)": 0.251,
+    "top_strip_free_mm": 0.5,
+    "top_strip_compression_pct": 49.8,
+    "side_gap_to_the_walls": 1.25,
+    "length_left_for_the_tail_pad": 0.4,
+    "tail_pad_free_mm": 0.5,
+    "tail_pad_compression_pct": 20.0
+   }
+  },
+  "holding": "the cell rests on the two rails (it cannot roll); a soft closed-cell foam strip 6 wide under the lid presses it down and a foam pad at the tail end takes up the length; both are stacks of 0.5 mm foam sheet, each about 1.6 x the gap it fills (compressed 20 to 55 %, see the cases); F15 nominal: 1.5 mm strip, 3 mm tail pad",
+  "connection": "nickel strips (0.2 x 5) spot-welded to both ends (pre-tabbed cell or a spot welder; never solder on the can); front end = BAT+ (cell + towards the head): its strip is bent forward into the antenna-spacer rebate and the 24 AWG wire soldered to it there; far end = BAT-: its strip is bent into the lower -Y corner channel, the wire soldered there runs forward in the channel",
+  "heat_path": "the cell touches the body only along the two rails (through the tape) and through the foam: weakly coupled; no thermal pad (a gap pad pressed over the cell length would load the lid with tens of newtons)",
+  "interference F15 at its lower limits (mm3)": {
+   "FlashKa_tray": 0.0,
+   "FlashKa_lid": 0.0,
+   "FlashKa_rf_window": 0.0,
+   "FlashKa_antenna_spacer": 0.0
+  },
+  "interference F15 nominal (mm3)": {
+   "FlashKa_tray": 0.0,
+   "FlashKa_lid": 0.0,
+   "FlashKa_rf_window": 0.0,
+   "FlashKa_antenna_spacer": 0.0
+  },
+  "interference F15 at its upper limits (mm3)": {
+   "FlashKa_tray": 0.0,
+   "FlashKa_lid": 0.0,
+   "FlashKa_rf_window": 0.0,
+   "FlashKa_antenna_spacer": 0.0
+  },
+  "interference K10 at its lower limits (mm3)": {
+   "FlashKa_tray": 0.0,
+   "FlashKa_lid": 0.0,
+   "FlashKa_rf_window": 0.0,
+   "FlashKa_antenna_spacer": 0.0
+  },
+  "interference K10 at its upper limits (mm3)": {
+   "FlashKa_tray": 0.0,
+   "FlashKa_lid": 0.0,
+   "FlashKa_rf_window": 0.0,
+   "FlashKa_antenna_spacer": 0.0
+  },
+  "interference largest flat-top 14500 the bay takes (mm3)": {
+   "FlashKa_tray": 0.0,
+   "FlashKa_lid": 0.0,
+   "FlashKa_rf_window": 0.0,
+   "FlashKa_antenna_spacer": 0.0
+  }
+ },
+ "wire_paths": {
+  "wire_od_used_mm (24 AWG PTFE)": 1.05,
+  "led_groove_width": 1.4,
+  "led_groove_side_play": 0.175,
+  "led_radial_room_beside_the_board": 1.35,
+  "led_radial_play": 0.3,
+  "led_hole_d": 1.5,
+  "led_hole_play": 0.225,
+  "led_holes_on_the_groove_line": "hole axis r 5.70 from the optic axis = groove channel centre (r 5.000 .. 6.350): the wire runs straight, none passes under the LED board",
+  "led_hole_exit_upper_y_z": [
+   -0.975,
+   12.936
+  ],
+  "led_hole_exit_lower_y_z": [
+   -6.675,
+   3.064
+  ],
+  "led_hole_end_x (upper, lower: through the cavity corner R2)": [
+   11.46,
+   12.638
+  ],
+  "cell_wire_rebate_y": [
+   -8.5,
+   -4.6
+  ],
+  "cell_wire_rebate_z": [
+   5.6,
+   10.0
+  ],
+  "cell_wire_rebate_section": [
+   3.9,
+   4.4
+  ],
+  "cell_wire_rebate_section_under_the_main_board": [
+   3.9,
+   3.6
+  ],
+  "cell_wire_rebate_width_at_the_spacer_front (inside the tray's ledge-block corner)": 2.66,
+  "cell_wires (2 x 24 AWG side by side)": [
+   2.1,
+   1.05
+  ],
+  "cell_wires_margin_in_the_rebate (narrowest width, height under the board)": [
+   0.56,
+   2.55
+  ],
+  "cell_channel": {
+   "point_y_z": [
+    -6.6,
+    3.6
+   ],
+   "to_the_floor_diagonal": 1.046,
+   "to_the_side_wall": 1.9,
+   "to_the_floor": 2.1,
+   "to_the_rail": 1.9,
+   "to the cell (F15 at its lower limits)": 1.378,
+   "to the cell (largest flat-top 14500 the bay takes)": 1.277,
+   "free_radius (round a d1.05 wire: 0.525)": 1.046
+  },
+  "kb_to_main_board_gap_z": [
+   5.2,
+   9.2
+  ],
+  "laser_wires": "28 AWG, unchanged (beside the laser module under the main board)",
+  "led_wire_passage": {
+   "wire d1.05 upper vs tray (mm3)": 0.0,
+   "wire upper: clearance to the tray": 0.125,
+   "wire upper: clearance to the LED board": 0.175,
+   "wire upper: clearance to the optic holder": 0.175,
+   "wire d1.05 lower vs tray (mm3)": 0.0,
+   "wire lower: clearance to the tray": 0.088,
+   "wire lower: clearance to the LED board": 0.175,
+   "wire lower: clearance to the optic holder": 0.175
+  }
+ },
+ "thermal_model_inputs": {
+  "material": "6061-T6 aluminium, density 2.70 g/cm3 (masses below)",
+  "mass_tray_g": 22.49,
+  "mass_lid_g": 8.43,
+  "mass_tray_plus_lid_g": 30.91,
+  "outer_surface_mm2 (closed light, envelope incl. chamfers)": 7382.1,
+  "outer_surface_aluminium_mm2 (envelope minus the openings listed)": 6886.3,
+  "openings_mm2": {
+   "optic bore (front)": 80.12,
+   "laser bore (front)": 29.22,
+   "key opening next": 43.12,
+   "key opening main": 47.96,
+   "key opening prev": 43.12,
+   "floor RF window": 53.15,
+   "lid RF window": 72.59,
+   "USB-C opening": 93.14,
+   "S2 slot": 5.85,
+   "lanyard slot (top + bottom)": 27.56
+  },
+  "head_block_mass_g (tray X 0 .. 11.45)": 6.34,
+  "lid_over_the_head_mass_g (X 4.2 .. 11.45)": 1.05,
+  "solid_behind_the_led_board_mass_g (X 8.83 .. 11.45)": 1.72,
+  "led_board_to_head_contact_mm2 (d10.0 board on the bore floor, minus the wire-hole slivers)": 78.51,
+  "led_board": "copper DTP d10.0 x 1.6, 1.13 g (copper density 8.96 g/cm3), thermal paste 0.10 mm",
+  "led_board_position_x_y_z": [
+   7.13,
+   8.73,
+   -3.825,
+   8.0
+  ],
+  "distance_led_board_to_outer_faces_mm": {
+   "-Y side face": 1.175,
+   "lower -Y diagonal facet": 2.619,
+   "bottom face": 3.0,
+   "head block top (lid seat; the lid lies on it)": 1.6,
+   "top face (head block + lid)": 5.0,
+   "front face (along the axis)": 7.13
+  },
+  "section": {
+   "width_x_height": [
+    20.0,
+    18.0
+   ],
+   "facet_leg_45deg": 3.4,
+   "facets_mm (bottom, top, side, diagonal)": [
+    13.2,
+    13.2,
+    11.2,
+    4.808
+   ],
+   "outline_perimeter_mm": 68.033,
+   "outline_area_mm2": 336.88,
+   "lid_seat_z (parting line on the side facets)": 14.6,
+   "inside (Y x Z between the walls)": [
+    17.0,
+    15.0
+   ]
+  },
+  "cell": {
+   "part": "Vapcell INR14500 F15 (maker: about 22 g, 14.0 +/-0.2 x 49.0 +/-0.3)",
+   "mass_g (maker, about)": 22.0,
+   "axis_y_z (nominal cell)": [
+    0.0,
+    8.712
+   ],
+   "x": [
+    42.15,
+    91.15
+   ],
+   "contact_to_the_body": "two line contacts along the rails (|Y| 3.5, X 44.75..90.35) through polyimide tape 0.05; foam strip to the lid; nickel strips and wires to the board: weakly coupled"
+  },
+  "texture_adds_mm2 (panel V texture, all faces)": 625.2,
+  "optic_mass_g (PMMA lens 1.19 + PC holder 1.20 g/cm3, drawn shape)": 0.575
+ },
+ "summary": {
+  "total_length_mm": 99.2,
+  "head_length_mm": 11.45,
+  "cross_section_mm": [
+   20.0,
+   18.0
+  ],
+  "section": {
+   "width_x_height": [
+    20.0,
+    18.0
+   ],
+   "facet_leg_45deg": 3.4,
+   "facets_mm (bottom, top, side, diagonal)": [
+    13.2,
+    13.2,
+    11.2,
+    4.808
+   ],
+   "outline_perimeter_mm": 68.033,
+   "outline_area_mm2": 336.88,
+   "lid_seat_z (parting line on the side facets)": 14.6,
+   "inside (Y x Z between the walls)": [
+    17.0,
+    15.0
+   ]
+  },
+  "optic": {
+   "part": "LEDiL LISA3-RS-PIN (FP16558), pins cut off, glued on the holder rim",
+   "bore_d": 10.1,
+   "front_face_x (min, nom, max)": [
+    0.0,
+    0.2,
+    0.4
+   ],
+   "seat_x (holder on the LED board front face = LED level)": 7.13,
+   "height_above_led_board": 6.93,
+   "exit_d (unverified callout)": 8.6
+  },
+  "led_board": {
+   "d": 10.0,
+   "t": 1.6,
+   "x_front": 7.13,
+   "x_back": 8.73,
+   "paste_mm": 0.1,
+   "bore_floor_x": 8.83,
+   "axis_y": -3.825,
+   "axis_z": 8.0,
+   "solid_behind_mm": 2.62
+  },
+  "bay": {
+   "x": [
+    41.75,
+    93.35
+   ],
+   "length": 51.6,
+   "section": "inside of the octagon: 17 wide between the side walls, floor Z 1.5, lid plate Z 16.5; 45 deg corners (lower -Y corner = channel for the joints and the far-end wire)",
+   "rails": {
+    "inner_top_edge_y": [
+     -3.5,
+     3.5
+    ],
+    "width": 1.2,
+    "top_z": 2.6,
+    "x": [
+     44.75,
+     90.35
+    ],
+    "insulation": "polyimide tape 0.05 on each rail; the cell keeps its own sleeve"
+   },
+   "cell": "1 x Vapcell INR14500 F15 (14.0 x 49.0; any flat-top 14500 up to 14.5 x 50.4)",
+   "cell_axis_y_z (nominal)": [
+    0.0,
+    8.712
+   ],
+   "cell_x (nominal)": [
+    42.15,
+    91.15
+   ],
+   "holding": "the cell rests on the two rails (it cannot roll); a soft closed-cell foam strip 6 wide under the lid presses it down and a foam pad at the tail end takes up the length; both are stacks of 0.5 mm foam sheet, each about 1.6 x the gap it fills (compressed 20 to 55 %, see the cases); F15 nominal: 1.5 mm strip, 3 mm tail pad",
+   "connection": "nickel strips (0.2 x 5) spot-welded to both ends (pre-tabbed cell or a spot welder; never solder on the can); front end = BAT+ (cell + towards the head): its strip is bent forward into the antenna-spacer rebate and the 24 AWG wire soldered to it there; far end = BAT-: its strip is bent into the lower -Y corner channel, the wire soldered there runs forward in the channel"
+  },
+  "wire_paths": {
+   "cell": {
+    "cell wire, far end (BAT-)": [
+     [
+      88.55,
+      -6.6,
+      3.6
+     ],
+     [
+      45.15,
+      -6.6,
+      3.6
+     ],
+     [
+      42.0,
+      -7.7,
+      6.4
+     ],
+     [
+      39.3,
+      -7.6,
+      6.4
+     ],
+     [
+      36.3,
+      -6.2,
+      6.4
+     ],
+     [
+      35.45,
+      -6.25,
+      6.6
+     ],
+     [
+      34.35,
+      -6.15,
+      8.6
+     ]
+    ],
+    "cell wire, front end (BAT+)": [
+     [
+      39.35,
+      -5.7,
+      7.4
+     ],
+     [
+      36.3,
+      -5.5,
+      8.2
+     ],
+     [
+      35.45,
+      -5.3,
+      8.4
+     ],
+     [
+      34.35,
+      -3.15,
+      8.6
+     ]
+    ]
+   },
+   "cell_channel": {
+    "point_y_z": [
+     -6.6,
+     3.6
+    ],
+    "to_the_floor_diagonal": 1.046,
+    "to_the_side_wall": 1.9,
+    "to_the_floor": 2.1,
+    "to_the_rail": 1.9,
+    "to the cell (F15 at its lower limits)": 1.378,
+    "to the cell (largest flat-top 14500 the bay takes)": 1.277,
+    "free_radius (round a d1.05 wire: 0.525)": 1.046
+   }
+  },
+  "thermal_model_inputs": {
+   "aluminium_mass_tray_plus_lid_g": 30.91,
+   "mass_tray_g": 22.49,
+   "mass_lid_g": 8.43,
+   "cell_mass_g (maker, about)": 22.0,
+   "outer_surface_mm2": 7382.1,
+   "outer_surface_aluminium_mm2": 6886.3,
+   "head_block_mass_g (tray X 0..11.45)": 6.34,
+   "lid_over_head_mass_g": 1.05,
+   "solid_behind_led_board_mass_g": 1.72,
+   "led_board_to_head_contact_mm2": 78.51,
+   "led_board_copper_mass_g": 1.126,
+   "thermal_paste_mm": 0.1,
+   "cell_coupling": "two line contacts along the rails (|Y| 3.5, X 44.75..90.35) through polyimide tape 0.05; foam strip to the lid; nickel strips and wires to the board: weakly coupled"
+  },
+  "pcb_frame_dx": 2.75
+ },
+ "interference_main_board_centred": [],
+ "interference_main_board_at_-Y": [],
+ "interference_main_board_at_+Y": [],
+ "interference_key_board": [],
+ "interference_key_board_vs_main_board": [],
+ "interference_part_to_part": [],
+ "texture_and_grooves": [
+  {
+   "feature": "top PCB zone",
+   "metal_under_mm": 1.0,
+   "limit_mm": 1.0,
+   "ok": true,
+   "clearance_to_openings_mm": 1.2,
+   "nearest_opening": "screw 10.14/+1"
+  },
+  {
+   "feature": "bottom bay 1 (with the RF window)",
+   "metal_under_mm": 1.0,
+   "limit_mm": 1.0,
+   "ok": true,
+   "clearance_to_openings_mm": 1.5,
+   "nearest_opening": "key opening prev"
+  },
+  {
+   "feature": "top bay 1",
+   "metal_under_mm": 1.0,
+   "limit_mm": 0.9,
+   "ok": true,
+   "clearance_to_openings_mm": 1.8,
+   "nearest_opening": "RF opening"
+  },
+  {
+   "feature": "minus_y bay 1",
+   "metal_under_mm": 1.0,
+   "limit_mm": 0.9,
+   "ok": true,
+   "clearance_to_openings_mm": 6.072,
+   "nearest_opening": "floor RF window"
+  },
+  {
+   "feature": "plus_y bay 1",
+   "metal_under_mm": 1.0,
+   "limit_mm": 0.9,
+   "ok": true,
+   "clearance_to_openings_mm": 6.135,
+   "nearest_opening": "floor RF window"
+  },
+  {
+   "feature": "bottom bay 2",
+   "metal_under_mm": 1.0,
+   "limit_mm": 0.9,
+   "ok": true,
+   "clearance_to_openings_mm": 7.406,
+   "nearest_opening": "tail window"
+  },
+  {
+   "feature": "top bay 2",
+   "metal_under_mm": 1.0,
+   "limit_mm": 0.9,
+   "ok": true,
+   "clearance_to_openings_mm": 7.651,
+   "nearest_opening": "lanyard slot"
+  },
+  {
+   "feature": "minus_y bay 2",
+   "metal_under_mm": 1.0,
+   "limit_mm": 0.9,
+   "ok": true,
+   "clearance_to_openings_mm": 10.273,
+   "nearest_opening": "tail window"
+  },
+  {
+   "feature": "plus_y bay 2",
+   "metal_under_mm": 1.0,
+   "limit_mm": 0.9,
+   "ok": true,
+   "clearance_to_openings_mm": 10.273,
+   "nearest_opening": "tail window"
+  },
+  {
+   "feature": "minus_y PCB zone",
+   "metal_under_mm": 1.0,
+   "limit_mm": 1.0,
+   "ok": true,
+   "clearance_to_openings_mm": 1.2,
+   "nearest_opening": "USB-C opening"
+  },
+  {
+   "feature": "plus_y PCB zone",
+   "metal_under_mm": 1.0,
+   "limit_mm": 1.0,
+   "ok": true,
+   "clearance_to_openings_mm": 1.2,
+   "nearest_opening": "S2 slot"
+  },
+  {
+   "feature": "head groove X1.5 (tray)",
+   "metal_under_mm": 1.352,
+   "limit_mm": 1.0,
+   "ok": true,
+   "clearance_to_openings_mm": 9.268,
+   "nearest_opening": "USB-C opening"
+  },
+  {
+   "feature": "head groove X2.7 (tray)",
+   "metal_under_mm": 1.352,
+   "limit_mm": 1.0,
+   "ok": true,
+   "clearance_to_openings_mm": 8.108,
+   "nearest_opening": "USB-C opening"
+  },
+  {
+   "feature": "head groove X3.9 (tray)",
+   "metal_under_mm": 1.352,
+   "limit_mm": 1.0,
+   "ok": true,
+   "clearance_to_openings_mm": 6.957,
+   "nearest_opening": "USB-C opening"
+  },
+  {
+   "feature": "head groove X3.9 (lid)",
+   "metal_under_mm": 7.405,
+   "limit_mm": 1.0,
+   "ok": true,
+   "clearance_to_openings_mm": 4.61,
+   "nearest_opening": "screw 10.14/-1"
+  },
+  {
+   "feature": "tail groove X87.95 (tray)",
+   "metal_under_mm": 1.076,
+   "limit_mm": 0.9,
+   "ok": true,
+   "clearance_to_openings_mm": 5.308,
+   "nearest_opening": "tail window"
+  },
+  {
+   "feature": "tail groove X87.95 (lid)",
+   "metal_under_mm": 1.2,
+   "limit_mm": 0.9,
+   "ok": true,
+   "clearance_to_openings_mm": 5.551,
+   "nearest_opening": "lanyard slot"
+  },
+  {
+   "feature": "tail groove X89.15 (tray)",
+   "metal_under_mm": 1.076,
+   "limit_mm": 0.9,
+   "ok": true,
+   "clearance_to_openings_mm": 4.111,
+   "nearest_opening": "tail window"
+  },
+  {
+   "feature": "tail groove X89.15 (lid)",
+   "metal_under_mm": 1.2,
+   "limit_mm": 0.9,
+   "ok": true,
+   "clearance_to_openings_mm": 4.351,
+   "nearest_opening": "lanyard slot"
+  },
+  {
+   "feature": "tail groove X90.35 (tray)",
+   "metal_under_mm": 1.076,
+   "limit_mm": 0.9,
+   "ok": true,
+   "clearance_to_openings_mm": 2.915,
+   "nearest_opening": "tail window"
+  },
+  {
+   "feature": "tail groove X90.35 (lid)",
+   "metal_under_mm": 1.2,
+   "limit_mm": 0.9,
+   "ok": true,
+   "clearance_to_openings_mm": 3.152,
+   "nearest_opening": "lanyard slot"
+  },
+  {
+   "feature": "key bezel",
+   "metal_under_mm": 1.0,
+   "limit_mm": 1.0,
+   "ok": true,
+   "clearance_to_openings_mm": 0.8,
+   "nearest_opening": "floor RF window"
+  }
+ ],
+ "texture_min_metal_mm": 1.0,
+ "texture_all_ok": true,
+ "key_stroke": {
+  "main (SW1)": {
+   "free_play_mm (nub / doubler to actuator at rest)": 0.15,
+   "stroke_to_full_travel_mm": 0.4,
+   "contacts_before_full_travel": [],
+   "tray_contacts_while_pressed": [],
+   "nearest_other_items_at_rest_mm": [
+    [
+     "kb_sw1",
+     0.146
+    ],
+    [
+     "kb_led3",
+     0.6
+    ],
+    [
+     "kb_led4",
+     0.6
+    ]
+   ]
+  },
+  "next (SW2)": {
+   "free_play_mm (nub / doubler to actuator at rest)": 0.25,
+   "stroke_to_full_travel_mm": 0.5,
+   "contacts_before_full_travel": [],
+   "tray_contacts_while_pressed": [],
+   "nearest_other_items_at_rest_mm": [
+    [
+     "FlashKa_key_main",
+     0.6
+    ],
+    [
+     "kb_sw2",
+     0.65
+    ],
+    [
+     "kb",
+     2.3
+    ]
+   ]
+  },
+  "previous (SW3)": {
+   "free_play_mm (nub / doubler to actuator at rest)": 0.25,
+   "stroke_to_full_travel_mm": 0.5,
+   "contacts_before_full_travel": [],
+   "tray_contacts_while_pressed": [],
+   "nearest_other_items_at_rest_mm": [
+    [
+     "FlashKa_antenna_spacer",
+     0.45
+    ],
+    [
+     "FlashKa_key_main",
+     0.6
+    ],
+    [
+     "kb_sw3",
+     0.65
+    ]
+   ]
+  },
+  "main: pocket floor below a full-height switch box at full travel (mm)": 0.25,
+  "side: doubler top below the switch body at full travel (mm)": 0.15,
+  "side: plate top below the switch body at full travel (mm)": 0.45
+ },
+ "led_to_key_gap": {
+  "gap_at_rest_mm": 0.6,
+  "gap_at_full_travel_mm": 0.2,
+  "full_travel_gap_rss_min_mm": 0.051,
+  "full_travel_gap_worst_case_mm": -0.08,
+  "led_height_used_mm": 0.85,
+  "note": "gap at full travel = switch height - travel - LED height - (key top to nub depth): independent of the floor and the KB height; a lower real LED only makes both gaps larger"
+ },
+ "side_key_end_press": {
+  "model": "rigid rocker about the far flange end (pivot) on the floor seat; the doubler on the switch actuator; press 2.0 mm from the near key end; rubber E 9.4 MPa (Shore A 80, Gent), linear",
+  "pivot_to_nub_mm": 5.5,
+  "nub_to_press_point_mm": 3.0,
+  "press_force_at_click_N": 1.035,
+  "pivot_reaction_N": 0.565,
+  "compression_mm": {
+   "doubler on the actuator (steel)": 0.0,
+   "pivot flange": 0.0104,
+   "under the finger": 0.0108
+  },
+  "stiffener_bending_at_press_point_mm": 0.0169,
+  "click": {
+   "nub_travel_mm": 0.45,
+   "press_travel_mm": 0.729,
+   "near_end_rise_mm": 0.9,
+   "near_end_clearance_to_KB_mm": 2.45,
+   "near_end_margin_mm": 1.55,
+   "tilt_deg": 4.69,
+   "cap_end_shift_in_opening_mm": 0.082,
+   "end_gap_in_opening_mm": 0.15
+  },
+  "full travel": {
+   "nub_travel_mm": 0.5,
+   "press_travel_mm": 0.806,
+   "near_end_rise_mm": 1.0,
+   "near_end_clearance_to_KB_mm": 2.45,
+   "near_end_margin_mm": 1.45,
+   "tilt_deg": 5.21,
+   "cap_end_shift_in_opening_mm": 0.091,
+   "end_gap_in_opening_mm": 0.15
+  },
+  "click, free play at the RSS maximum": {
+   "nub_travel_mm": 0.62,
+   "press_travel_mm": 0.992,
+   "near_end_rise_mm": 1.24,
+   "near_end_clearance_to_KB_mm": 2.45,
+   "near_end_margin_mm": 1.21,
+   "tilt_deg": 6.46,
+   "cap_end_shift_in_opening_mm": 0.113,
+   "end_gap_in_opening_mm": 0.15
+  },
+  "without the stiffener plate (rubber only)": {
+   "section_I_mm4": 0.997,
+   "extra_press_travel_from_bending_and_shear_mm": 3.238,
+   "press_travel_at_click_mm": 3.933,
+   "near_end_rise_estimate_mm": 5.09,
+   "note": "the rubber key bends more than its whole switch travel: it would feel soft at the ends; the 0.3 mm stainless steel plate makes it a stiff rocker"
+  },
+  "rocked_key_contacts_at_full_travel (own actuator and its column excluded)": []
+ },
+ "insertion_path": {
+  "collisions": [],
+  "board reaches the plunger tips from (deg)": 9.0,
+  "board_on_plunger_tips (expected, compresses the pins)": [
+   "kb_pogo1_pl",
+   "kb_pogo2_pl",
+   "kb_pogo3_pl",
+   "kb_pogo4_pl",
+   "kb_pogo5_pl",
+   "kb_pogo6_pl"
+  ]
+ },
+ "holddown": {
+  "model": "Mindlin plate FR-4 0.8 mm, E 20000 MPa, nu 0.14, grid 0.273 x 0.275 mm, free edges; unilateral ledge supports (+Y ledge X >= 15.65, -Y ledge X >= 22.35); pads = linear springs; six pogo pins = upward point loads; S2 knob stop 0.225 mm above rest",
+  "pad_E_scale": 1.0,
+  "pad_gap_extra_mm": 0.0,
+  "front_boss": true,
+  "pogo_force_total_N": 7.37,
+  "can pad": {
+   "box_mm": [
+    24.85,
+    33.65,
+    -7.6,
+    4.8
+   ],
+   "area_mm2": 108.3,
+   "free_thickness_mm": 1.5,
+   "compressed_to_mm": 1.15,
+   "compression_pct": 23.3,
+   "E_MPa": 1.0,
+   "stiffness_N_per_mm": 72.17,
+   "preload_N": 25.26
+  },
+  "front pad": {
+   "box_mm": [
+    18.4,
+    22.1,
+    0.25,
+    3.25
+   ],
+   "area_mm2": 10.9,
+   "free_thickness_mm": 1.0,
+   "compressed_to_mm": 0.75,
+   "compression_pct": 25.0,
+   "E_MPa": 5.3,
+   "stiffness_N_per_mm": 57.69,
+   "preload_N": 14.42
+  },
+  "preload_total_N": 39.68,
+  "preload_over_pogo_force": 5.38,
+  "board_bow_at_rest_mm (no pins)": -0.1035,
+  "ledge_nodes_lifted_with_pins": -2,
+  "max_ledge_lift_mm": 0.0004,
+  "max_ledge_lift_at_XY": [
+   23.55,
+   -7.97
+  ],
+  "board_z_at_the_pins_mm (relative to the ledges)": [
+   -0.0607,
+   -0.0667,
+   -0.0686,
+   -0.0707,
+   -0.0704,
+   -0.0692
+  ],
+  "pin_point_lift_by_the_pins_mm": [
+   0.0166,
+   0.0174,
+   0.0181,
+   0.0193,
+   0.0203,
+   0.021
+  ],
+  "pogo_factor_at_which_the_board_leaves_the_ledges": 3,
+  "lift_limit_mm": 0.02,
+  "ok": true,
+  "note": "pad modulus is an assumption from the Shore hardness (gap pad Shore 00 70-80: 1.0 MPa); the parts on the board stiffen it (ignored)"
+ },
+ "holddown_soft_case (pads 0.7 E, gaps +0.1, pins at their maximum force)": {
+  "model": "Mindlin plate FR-4 0.8 mm, E 20000 MPa, nu 0.14, grid 0.273 x 0.275 mm, free edges; unilateral ledge supports (+Y ledge X >= 15.65, -Y ledge X >= 22.35); pads = linear springs; six pogo pins = upward point loads; S2 knob stop 0.225 mm above rest",
+  "pad_E_scale": 0.7,
+  "pad_gap_extra_mm": 0.1,
+  "front_boss": true,
+  "pogo_force_total_N": 10.86,
+  "can pad": {
+   "box_mm": [
+    24.85,
+    33.65,
+    -7.6,
+    4.8
+   ],
+   "area_mm2": 108.3,
+   "free_thickness_mm": 1.5,
+   "compressed_to_mm": 1.25,
+   "compression_pct": 16.7,
+   "E_MPa": 0.7,
+   "stiffness_N_per_mm": 50.52,
+   "preload_N": 12.63
+  },
+  "front pad": {
+   "box_mm": [
+    18.4,
+    22.1,
+    0.25,
+    3.25
+   ],
+   "area_mm2": 10.9,
+   "free_thickness_mm": 1.0,
+   "compressed_to_mm": 0.85,
+   "compression_pct": 15.0,
+   "E_MPa": 3.71,
+   "stiffness_N_per_mm": 40.38,
+   "preload_N": 6.06
+  },
+  "preload_total_N": 18.69,
+  "preload_over_pogo_force": 1.72,
+  "board_bow_at_rest_mm (no pins)": -0.0551,
+  "ledge_nodes_lifted_with_pins": 21,
+  "max_ledge_lift_mm": 0.0006,
+  "max_ledge_lift_at_XY": [
+   15.91,
+   7.98
+  ],
+  "board_z_at_the_pins_mm (relative to the ledges)": [
+   -0.0105,
+   -0.0134,
+   -0.0146,
+   -0.016,
+   -0.0155,
+   -0.0146
+  ],
+  "pin_point_lift_by_the_pins_mm": [
+   0.0272,
+   0.0282,
+   0.0291,
+   0.0309,
+   0.0323,
+   0.0333
+  ],
+  "pogo_factor_at_which_the_board_leaves_the_ledges": 1,
+  "lift_limit_mm": 0.02,
+  "ok": true,
+  "note": "pad modulus is an assumption from the Shore hardness (gap pad Shore 00 70-80: 1.0 MPa); the parts on the board stiffen it (ignored)"
+ },
+ "holddown_hard_case (pads 1.3 E, gaps -0.1)": {
+  "model": "Mindlin plate FR-4 0.8 mm, E 20000 MPa, nu 0.14, grid 0.273 x 0.275 mm, free edges; unilateral ledge supports (+Y ledge X >= 15.65, -Y ledge X >= 22.35); pads = linear springs; six pogo pins = upward point loads; S2 knob stop 0.225 mm above rest",
+  "pad_E_scale": 1.3,
+  "pad_gap_extra_mm": -0.1,
+  "front_boss": true,
+  "pogo_force_total_N": 7.37,
+  "can pad": {
+   "box_mm": [
+    24.85,
+    33.65,
+    -7.6,
+    4.8
+   ],
+   "area_mm2": 108.3,
+   "free_thickness_mm": 1.5,
+   "compressed_to_mm": 1.05,
+   "compression_pct": 30.0,
+   "E_MPa": 1.3,
+   "stiffness_N_per_mm": 93.83,
+   "preload_N": 42.22
+  },
+  "front pad": {
+   "box_mm": [
+    18.4,
+    22.1,
+    0.25,
+    3.25
+   ],
+   "area_mm2": 10.9,
+   "free_thickness_mm": 1.0,
+   "compressed_to_mm": 0.65,
+   "compression_pct": 35.0,
+   "E_MPa": 6.89,
+   "stiffness_N_per_mm": 75.0,
+   "preload_N": 26.25
+  },
+  "preload_total_N": 68.47,
+  "preload_over_pogo_force": 9.29,
+  "board_bow_at_rest_mm (no pins)": -0.1626,
+  "ledge_nodes_lifted_with_pins": -1,
+  "max_ledge_lift_mm": 0.0008,
+  "max_ledge_lift_at_XY": [
+   23.55,
+   -7.97
+  ],
+  "board_z_at_the_pins_mm (relative to the ledges)": [
+   -0.1107,
+   -0.1201,
+   -0.1223,
+   -0.1244,
+   -0.1237,
+   -0.1217
+  ],
+  "pin_point_lift_by_the_pins_mm": [
+   0.0153,
+   0.0159,
+   0.0166,
+   0.018,
+   0.019,
+   0.0197
+  ],
+  "pogo_factor_at_which_the_board_leaves_the_ledges": 5,
+  "lift_limit_mm": 0.02,
+  "ok": true,
+  "note": "pad modulus is an assumption from the Shore hardness (gap pad Shore 00 70-80: 1.0 MPa); the parts on the board stiffen it (ignored)"
+ },
+ "holddown_without_the_front_boss": {
+  "model": "Mindlin plate FR-4 0.8 mm, E 20000 MPa, nu 0.14, grid 0.273 x 0.275 mm, free edges; unilateral ledge supports (+Y ledge X >= 15.65, -Y ledge X >= 22.35); pads = linear springs; six pogo pins = upward point loads; S2 knob stop 0.225 mm above rest",
+  "pad_E_scale": 1.0,
+  "pad_gap_extra_mm": 0.0,
+  "front_boss": false,
+  "pogo_force_total_N": 7.37,
+  "can pad": {
+   "box_mm": [
+    24.85,
+    33.65,
+    -7.6,
+    4.8
+   ],
+   "area_mm2": 108.3,
+   "free_thickness_mm": 1.5,
+   "compressed_to_mm": 1.15,
+   "compression_pct": 23.3,
+   "E_MPa": 1.0,
+   "stiffness_N_per_mm": 72.17,
+   "preload_N": 25.26
+  },
+  "preload_total_N": 25.26,
+  "preload_over_pogo_force": 3.43,
+  "board_bow_at_rest_mm (no pins)": -0.0959,
+  "ledge_nodes_lifted_with_pins": 47,
+  "max_ledge_lift_mm": 0.0894,
+  "max_ledge_lift_at_XY": [
+   15.91,
+   7.98
+  ],
+  "board_z_at_the_pins_mm (relative to the ledges)": [
+   0.0516,
+   0.023,
+   -0.0058,
+   -0.0433,
+   -0.0555,
+   -0.0613
+  ],
+  "pin_point_lift_by_the_pins_mm": [
+   0.0772,
+   0.0597,
+   0.0437,
+   0.0264,
+   0.0218,
+   0.0198
+  ],
+  "pogo_factor_at_which_the_board_leaves_the_ledges": 1,
+  "lift_limit_mm": 0.02,
+  "ok": false,
+  "note": "pad modulus is an assumption from the Shore hardness (gap pad Shore 00 70-80: 1.0 MPa); the parts on the board stiffen it (ignored)"
+ },
+ "machining_kit_checks": {
+  "FlashKa_pmma_kit": {
+   "bbox_mm": [
+    52.8,
+    22.0,
+    8.5
+   ],
+   "jlccnc_minimum_mm": [
+    30.0,
+    20.0,
+    8.0
+   ],
+   "bbox_ok": true,
+   "solids": 1,
+   "valid": true,
+   "gap_part_to_frame_min_mm": 3.0,
+   "gap_part_to_frame_max_mm": 3.0,
+   "volume_mm3": 5925.49,
+   "volume_expected_mm3": 5925.49,
+   "volume_ok": true,
+   "parts_vs_single_files_mm3": [
+    {
+     "part": "main key 1",
+     "kit": 112.433,
+     "single": 112.433
+    },
+    {
+     "part": "main key 2",
+     "kit": 112.433,
+     "single": 112.433
+    },
+    {
+     "part": "main key 3",
+     "kit": 112.433,
+     "single": 112.433
+    }
+   ],
+   "two_setups": {
+    "faces": 210,
+    "points": 652,
+    "blocked": 0,
+    "blocked_points": []
+   },
+   "ok": true
+  },
+  "FlashKa_pom_kit": {
+   "bbox_mm": [
+    45.4,
+    39.3,
+    17.0
+   ],
+   "jlccnc_minimum_mm": [
+    30.0,
+    20.0,
+    8.0
+   ],
+   "bbox_ok": true,
+   "solids": 1,
+   "valid": true,
+   "gap_part_to_frame_min_mm": 3.0,
+   "gap_part_to_frame_max_mm": 4.9172,
+   "volume_mm3": 16480.26,
+   "volume_expected_mm3": 16480.26,
+   "volume_ok": true,
+   "parts_vs_single_files_mm3": [
+    {
+     "part": "lid RF window insert",
+     "kit": 117.457,
+     "single": 117.457
+    },
+    {
+     "part": "lid RF window insert (spare)",
+     "kit": 117.457,
+     "single": 117.457
+    },
+    {
+     "part": "antenna spacer",
+     "kit": 825.411,
+     "single": 825.411
+    }
+   ],
+   "two_setups": {
+    "faces": 243,
+    "points": 786,
+    "blocked": 0,
+    "blocked_points": []
+   },
+   "ok": true
+  }
+ }
+}

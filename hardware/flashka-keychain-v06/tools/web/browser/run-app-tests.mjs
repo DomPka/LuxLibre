@@ -7,12 +7,14 @@
 // 1. loads with no console errors; the "no Web Bluetooth" explanation
 // 2. demo mode click-through: on/off, levels, turbo timer, slider, profiles, Custom editor, save, lockout,
 //    identify, keep-alive, button priority, USB, thermal / battery badges, lost connection, reconnect
+// 2a. FlashKa v0.7 in demo mode: the board is read from the light (v0.7 tables, estimated lumens, 2850 mA turbo limit)
 // 2b. presenter card in demo mode: settings, enter / leave, pairing, forgetting, v0.5 light
 // 3. the real Bluetooth code path against a fake navigator.bluetooth (one GATT operation at a time,
 //    error mapping, KEEPALIVE fallback, automatic reconnect)
-// 3b. presenter mode over the fake Bluetooth link; a protocol 1 (v0.5) light without presenter features
+// 3b. presenter mode over the fake Bluetooth link; a protocol 1 (v0.5) light without presenter features;
+//     a FlashKa v0.7 recognised from its Info characteristic
 // 4. no horizontal scrolling at 320 / 360 / 390 / 1280 px
-// 5. screenshots at 390x844 and 1280x800 into app/screenshots/
+// 5. screenshots at 390x844 and 1280x800 into app/screenshots/ (also the v0.7 demo light: status and profile cards)
 import {
   launch, createSuite, newPage, shot, APP_URL, assert, assertEqual, assertMatch,
   until, untilText, untilToast, text, toastTexts, advance, noErrors
@@ -424,6 +426,78 @@ for (const [label, ua, re] of [
     await untilText(page, 'pill-text', /^Demo mode$/);
     await untilText(page, 'light-chip', /^Off$/);
     noErrors(h, 'whole demo session');
+  });
+  await h.close();
+}
+
+/* ================================================================== 2a. FlashKa v0.7 (demo mode) */
+{
+  const h = await newPage(browser, APP_URL);
+  const { page } = h;
+  await page.click('#btn-demo');
+  await untilText(page, 'pill-text', /^Demo mode$/);
+
+  await suite.step('v0.7 demo: the app reads the board from the light - v0.7 tables with estimated lumens out of the front', async () => {
+    assert(!(await visible(page, '#lm-note')), 'no lumens note for the default FlashKa v0.6');
+    assertEqual(await text(page, 'st-led'), '0 mA');
+    await page.selectOption('#demo-model', 'v07');
+    await untilText(page, 'foot-device', /FlashKa-A7D4 · FlashKa fw 0\.7\.0/);
+    await untilText(page, 'pdesc-1', /^Moon 3 · Low 40 · Medium 250 · High 1530 mA \(601 lm\) · Turbo 2850 mA \(966 lm\) for 60 s$/);
+    assertEqual(await text(page, 'pdesc-0'), 'Moon 3 · Low 50 · Medium 400 · High 1800 mA (683 lm) · Turbo 2850 mA (966 lm) for 60 s');
+    assertEqual(await text(page, 'pdesc-2'), 'Moon 2 · Low 15 · Medium 100 · High 500 mA (230 lm) · no extra Turbo');
+    assertEqual(await text(page, 'pdesc-3'), 'Starts as a copy of Balanced');
+    assert(await visible(page, '#lm-note'), 'the lumens note says they are estimates');
+    assertMatch(await text(page, 'lm-note'), /estimated .*87 % optic - not measured/);
+    await page.click('#btn-power');
+    await untilText(page, 'light-chip', /^On · Medium · 250 mA$/);
+    assertEqual(await text(page, 'st-led'), '250 mA · 119 lm');
+    await page.click('.lvl[data-level="3"]');
+    await untilText(page, 'st-led', /^1530 mA · 601 lm$/);
+    await setRange(page, 'demo-soc', 100);
+    await page.click('.lvl[data-level="4"]');
+    await untilText(page, 'st-led', /^2850 mA · 966 lm$/);
+    // one F15 cell: at half charge it sags and turbo dims - the light reports what the LED really gets
+    await setRange(page, 'demo-soc', 50);
+    await until(page, () => { const m = /^(\d+) mA · (\d+) lm$/.exec(document.getElementById('st-led').textContent); return !!m && +m[1] > 1900 && +m[1] < 2500; });
+    await setRange(page, 'demo-soc', 78);
+    await page.click('#btn-power');
+    await untilText(page, 'light-chip', /^Off$/);
+    noErrors(h);
+  });
+
+  await suite.step('v0.7 demo: Custom editor allows Turbo up to 2850 mA (the v0.7 limit) and starts from the v0.7 Balanced', async () => {
+    await page.click('#editor > summary');
+    await until(page, () => document.getElementById('editor').open);
+    const vals = {};
+    for (const k of ['moon', 'low', 'medium', 'high', 'turbo', 'turboTime', 'stepDown', 'tempLimit', 'lvStep', 'cellLimit']) vals[k] = await page.inputValue('#f-' + k);
+    assertEqual(vals, { moon: '3', low: '40', medium: '250', high: '1530', turbo: '2850', turboTime: '60', stepDown: '1530', tempLimit: '50', lvStep: '3.20', cellLimit: '2800' });
+    assertMatch(await text(page, 'h-turbo'), /Allowed: 1530 to 2850 mA\.$/);
+    assertEqual(await text(page, 'h-tempLimit'), 'The light keeps its temperature just below this. Allowed: 40 to 70 °C.', 'v0.7: the limit is held (regulator)');
+    assertEqual(await text(page, 'h-cellLimit'), 'Protects the cell (rated 3 A). Near 3.0 A the battery protection can switch the light off until USB is plugged in; if that happens in turbo, use 2500. Allowed: 200 to 3000 mA.', 'v0.7: the F15 rating and the protection trip');
+    await page.fill('#f-turbo', '3000');
+    assertEqual(await text(page, 'e-turbo'), 'Use a value from 1530 (High) to 2850.');
+    assert(await page.locator('#btn-apply').isDisabled(), '3000 mA is refused on a FlashKa v0.7');
+    await page.fill('#f-turbo', '2850');
+    assert(await page.locator('#btn-apply').isEnabled(), '2850 mA is fine');
+    await page.click('#btn-apply');
+    await untilText(page, 'adjusted', /^Applied\. The flashlight now uses your Custom profile exactly as shown\./);
+    await untilText(page, 'pdesc-3', /^Moon 3 · Low 40 · Medium 250 · High 1530 mA \(601 lm\) · Turbo 2850 mA \(966 lm\) for 60 s$/);
+    noErrors(h);
+  });
+
+  await suite.step('v0.7 demo: back to a FlashKa v0.6 - protocol tables, no lumens, Turbo up to 3000 mA', async () => {
+    await page.selectOption('#demo-model', '2');
+    await untilText(page, 'foot-device', /FlashKa fw 0\.6\.0/);
+    await untilText(page, 'pdesc-1', /^Moon 3 · Low 30 · Medium 200 · High 600 mA · Turbo 1200 mA for 60 s$/);
+    assert(!(await visible(page, '#lm-note')), 'no lumens note');
+    await page.click('#btn-power');
+    await untilText(page, 'light-chip', /^On · Medium · 200 mA$/);
+    assertEqual(await text(page, 'st-led'), '200 mA');
+    if (!(await page.evaluate(() => document.getElementById('editor').open))) await page.click('#editor > summary');
+    await untilText(page, 'h-turbo', /Allowed: 600 to 3000 mA\.$/);
+    assertEqual(await text(page, 'h-tempLimit'), 'Above this the light is dimmed. Allowed: 40 to 70 °C.', 'v0.6: the protocol\'s linear dimming');
+    assertEqual(await text(page, 'h-cellLimit'), 'Protects the cells. Lower is gentler. Allowed: 200 to 3000 mA.', 'v0.6: the protocol help');
+    noErrors(h, 'v0.7 demo session');
   });
   await h.close();
 }
@@ -858,7 +932,7 @@ for (const [label, ua, re] of [
     assert(await visible(page, '#card-presenter'), 'card visible');
     const first = await wire(page);
     assert(first.includes('read a7d40006 00 1E 00 00'), 'presenter read at connect: ' + JSON.stringify(first));
-    await untilText(page, 'foot-device', /FlashKa-BEEF · FlashKa fw 0\.6\.0 · app 0\.6\.0 · protocol v2/);
+    await untilText(page, 'foot-device', /FlashKa-BEEF · FlashKa fw 0\.6\.0 · app 0\.7\.0 · protocol v2/);
     await page.evaluate(() => { window.__fakeBle.log.length = 0; });
     await page.check('#pk-arrows'); await page.check('#pf-swap'); await page.fill('#pf-idle', '120');
     await page.click('#btn-presenter-save');
@@ -943,6 +1017,21 @@ for (const [label, ua, re] of [
     await untilText(t.page, 'light-chip', /^On/);
     assertEqual(await t.page.evaluate(() => window.__flashka.state.status.version), 1);
     assertEqual((await toastTexts(t.page)).filter((x) => /Version mismatch|protocol version/.test(x)), [], 'no version warning for protocol 1');
+    noErrors(t); await t.close();
+  });
+
+  await suite.step('Bluetooth: a FlashKa v0.7 is recognised from its Info characteristic (v0.7 tables, lumens, 2850 mA turbo limit)', async () => {
+    const t = await newPage(browser, APP_URL, { bluetooth: true, init: ['window.__fakeBle.model = "v07"; window.__fakeBle.deviceName = "FlashKa-0707";'] });
+    await t.page.click('#btn-connect');
+    await until(t.page, () => document.body.dataset.conn === 'connected');
+    await untilText(t.page, 'foot-device', /FlashKa-0707 · FlashKa fw 0\.7\.0/);
+    await untilText(t.page, 'pdesc-1', /^Moon 3 · Low 40 · Medium 250 · High 1530 mA \(601 lm\) · Turbo 2850 mA \(966 lm\) for 60 s$/);
+    assert(await visible(t.page, '#lm-note'), 'lumens note');
+    assertEqual(await t.page.evaluate(() => window.__flashka.state.board), 'v07');
+    await t.page.click('#editor > summary');
+    await untilText(t.page, 'h-turbo', /Allowed: 1530 to 2850 mA\.$/);
+    await t.page.click('#btn-power');
+    await untilText(t.page, 'st-led', /^250 mA · 119 lm$/);
     noErrors(t); await t.close();
   });
 
@@ -1086,6 +1175,22 @@ if (!NO_SHOTS) {
       shots.push(await shot(page, name('presenter-forget')));
     }
     noErrors(h, `screenshot session ${width} ${dark ? 'dark' : 'light'}`); await h.close();
+    /* FlashKa v0.7 (demo light model): status and profile cards with the estimated lumens */
+    if (!dark) {
+      const v = await newPage(browser, APP_URL, { width, height, dark, dpr });
+      await v.page.click('#btn-demo');
+      await untilText(v.page, 'pill-text', /^Demo mode$/);
+      await v.page.selectOption('#demo-model', 'v07');
+      await untilText(v.page, 'foot-device', /fw 0\.7\.0/);
+      await v.page.click('.lvl[data-level="3"]');
+      await untilText(v.page, 'st-led', /^1530 mA · 601 lm$/);
+      await v.page.waitForTimeout(500);
+      await clearToasts(v.page); await top(v.page);
+      shots.push(await shot(v.page, name('v07-demo-on')));
+      await to(v.page, 'card-profile'); await clearToasts(v.page);
+      shots.push(await shot(v.page, name('v07-profiles')));
+      noErrors(v, `v0.7 screenshot session ${width}`); await v.close();
+    }
   }
   await suite.step('screenshots 390x844 (light and dark)', async () => { await flow(390, 844, false); await flow(390, 844, true); });
   await suite.step('screenshots 1280x800 (light and dark)', async () => { await flow(1280, 800, false); await flow(1280, 800, true); });

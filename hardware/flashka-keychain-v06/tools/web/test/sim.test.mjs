@@ -394,6 +394,116 @@ test('presenter mode costs about 20 mA more than idle', () => {
   assert.ok(b.state().remMah < a.state().remMah, 'the presenter drains faster');
 });
 
+/* ---------------------------------------------------------------- FlashKa v0.7 demo light */
+// V_LED*I / (0.87*V_BAT) with the v0.7 LED (2.80 V + 0.15 V/A), as the v0.7 firmware's battery limit
+const batV07 = (ma, v) => (2.8 + 0.15 * ma / 1000) * ma / (0.87 * v);
+
+test('FlashKa v0.7 demo light: Info "FlashKa fw 0.7.0" (the app reads the board from it), v0.7 tables', () => {
+  const sim = make({ model: 'v07' });
+  const info = new TextDecoder().decode(sim.readInfo());
+  assert.equal(info, 'FlashKa fw 0.7.0'); assert.equal(P.boardFromInfo(info), 'v07'); assert.equal(sim.model, 'v07');
+  assert.equal(new TextDecoder().decode(make().readInfo()), 'FlashKa fw 0.6.0', 'the default demo light stays a FlashKa v0.6');
+  sim.writeCommand(P.cmd.on());
+  [[0, 3], [1, 40], [2, 250], [3, 1530]].forEach(([lvl, ma]) => { sim.writeCommand(P.cmd.level(lvl)); assert.equal(st(sim).currentMa, ma, `Balanced level ${lvl}`); });
+  sim.writeCommand(P.cmd.profile(0));
+  [[1, 50], [2, 400], [3, 1800]].forEach(([lvl, ma]) => { sim.writeCommand(P.cmd.level(lvl)); assert.equal(st(sim).currentMa, ma, `Extreme level ${lvl}`); });
+  sim.writeCommand(P.cmd.profile(2)); sim.writeCommand(P.cmd.level(4));
+  const s = st(sim); assert.equal(s.turbo, false); assert.equal(s.currentMa, 500, 'Endurance: no extra turbo, High 500 mA');
+  assert.deepEqual(plain(P.decodeProfile(sim.readProfile())), { ...plain(P.builtinProfile(2, 'v07')) });
+});
+
+test('FlashKa v0.7: turbo 2850 mA for 60 s, then High 1530 mA (cold room, full pack: only the timer acts)', () => {
+  const sim = make({ model: 'v07', soc: 100 }); sim.setAmbient(0);   // below about 3.78 V under load the 2800 mA cell limit would shave turbo
+  sim.writeCommand(P.cmd.on()); sim.writeCommand(P.cmd.level(4));
+  let s = st(sim); assert.equal(s.turbo, true); assert.equal(s.currentMa, 2850); assert.equal(s.turboLeftS, 60);
+  sim.advance(59); s = st(sim); assert.equal(s.currentMa, 2850); assert.equal(s.thermalLimit, false);
+  sim.advance(1); s = st(sim);
+  assert.equal(s.turbo, false); assert.equal(s.currentMa, 1530); assert.equal(s.source, 3, 'the timer is an automatic change');
+});
+
+test('FlashKa v0.7 at room temperature: the regulator holds the 50 degC limit (v0.7 firmware), steady and without hunting', () => {
+  for (const [level, start] of [[4, 2850], [3, 1530]]) {
+    const sim = make({ model: 'v07', soc: 100 });
+    sim.writeCommand(P.cmd.on()); sim.writeCommand(P.cmd.level(level));
+    let maxMa = 0, maxT = 0, full = null, prev = null, maxStep = 0;
+    const late = [];
+    for (let t = 1; t <= 1800; t++) {
+      sim.advance(1);
+      const s = st(sim);
+      maxMa = Math.max(maxMa, s.currentMa); maxT = Math.max(maxT, s.tempC);
+      if (full === null && s.currentMa < start) full = t;
+      if (t >= 900) {
+        if (prev) maxStep = Math.max(maxStep, Math.abs(s.currentMa - prev) / prev);
+        prev = s.currentMa;
+      }
+      // the demo's single thermal node (400 s) settles more slowly than the light's sensor, which
+      // follows the head: steadiness is checked over the last 5 minutes
+      if (t >= 1500) late.push(s.currentMa);
+    }
+    const s = st(sim);
+    assert.ok(maxMa <= 2850, 'never above the v0.7 turbo: ' + maxMa);
+    assert.equal(s.thermalLimit, true);
+    assert.ok(s.tempC >= 49.5 && s.tempC <= 50.0, 'held just below the 50 degC limit: ' + s.tempC);
+    assert.ok(maxT <= 51.0, 'overshoot at most 1 degC: ' + maxT);
+    assert.ok(s.currentMa > 40 && s.currentMa < 1530, 'a steady level between Low and High: ' + s.currentMa);
+    assert.ok(Math.max(...late) - Math.min(...late) <= 0.02 * s.currentMa, 'no hunting: ' + Math.min(...late) + '-' + Math.max(...late));
+    assert.ok(maxStep <= 0.02, 'at most 2 % per second: ' + maxStep);
+    if (level === 3) assert.ok(full >= 150, 'High in full for at least 150 s: ' + full);
+  }
+  // a FlashKa v0.6 demo light keeps the linear law of the protocol (15 degC band above its limit)
+  const v06 = make({ soc: 100 }); v06.setAmbient(45);
+  v06.writeCommand(P.cmd.profile(0)); v06.writeCommand(P.cmd.on()); v06.writeCommand(P.cmd.level(3));
+  v06.advance(1200);
+  assert.ok(st(v06).tempC > 55, 'v0.6: settles above its 55 degC limit: ' + st(v06).tempC);
+});
+
+test('FlashKa v0.7 (one F15 cell): turbo dims on a half-full cell (the cell sags, 2800 mA cell limit); drain, runtime and charging use 1400 mAh and 475 mA', () => {
+  const half = make({ model: 'v07', soc: 50 }); half.setAmbient(0);
+  half.writeCommand(P.cmd.on()); half.writeCommand(P.cmd.level(4)); half.advance(2);
+  let s = st(half);
+  assert.ok(s.turbo, 'turbo is on');
+  assert.ok(s.currentMa < 2850 && s.currentMa > 1900, 'turbo dims on a half-full cell: ' + s.currentMa);
+  assert.ok(batV07(s.currentMa, Math.max(3000, s.voltageMv) / 1000) <= 2800 + 1, 'battery side at most 2800 mA');
+  const full = make({ model: 'v07', soc: 100 }); full.setAmbient(0);
+  full.writeCommand(P.cmd.on()); full.writeCommand(P.cmd.level(4)); full.advance(1);
+  assert.equal(st(full).currentMa, 2850, 'a full cell gives the whole turbo'); assert.equal(st(full).batteryLimit, false);
+
+  const sim = make({ model: 'v07', soc: 100 }); sim.setAmbient(0);
+  sim.writeCommand(P.cmd.on()); sim.writeCommand(P.cmd.level(3));           // High 1530 mA = about 1.4 A from the cell
+  const s0 = st(sim); sim.advance(180); const s1 = st(sim);
+  assert.equal(s1.currentMa, 1530); assert.equal(s1.thermalLimit, false);
+  const drop = s0.soc - s1.soc;
+  assert.ok(drop >= 4 && drop <= 6, `3 min at High drop about 4.9 % of 1400 mAh (got ${drop})`);
+  const expected = ((s1.soc / 100 * 1400) - 70) / (batV07(1530, s1.voltageMv / 1000) + 8) * 60;
+  assert.ok(Math.abs(s1.runtimeMin - expected) < expected * 0.12, `runtime ${s1.runtimeMin} vs ${expected.toFixed(0)}`);
+
+  // charging: 475 mA into the F15 (TP4057 with R3 2.0 k less the MCU), the v0.6 demo keeps 280 mA
+  const chg = make({ model: 'v07', soc: 40 }); chg.setAmbient(0); chg.setUsb(true);
+  const c0 = st(chg).soc; chg.advance(600); const c1 = st(chg);
+  assert.ok(c1.charging, 'charging');
+  const gain = (c1.soc - c0) / 100 * 1400;
+  assert.ok(gain > 70 && gain < 85, `10 min at 475 mA = 79 mAh into 1400 mAh (got ${gain.toFixed(1)})`);
+  const c6 = make({ soc: 40 }); c6.setAmbient(0); c6.setUsb(true);
+  const d0 = st(c6).soc; c6.advance(600);
+  assert.ok(Math.abs((st(c6).soc - d0) / 100 * 800 - 46.7) < 6, 'v0.6: 280 mA');
+});
+
+test('FlashKa v0.7: a Custom turbo above 2850 mA and exact currents are clamped like the v0.7 firmware', () => {
+  const sim = make({ model: 'v07' });
+  const want = { ...P.builtinProfile(1, 'v07'), id: 3, high: 2500, turbo: 3000 };
+  sim.writeProfile(P.encodeProfile(want));
+  const back = plain(P.decodeProfile(sim.readProfile()));
+  assert.deepEqual(back, { ...plain(P.clampProfile(want, 'v07')), id: 3 });
+  assert.deepEqual([back.high, back.turbo], [2000, 2850]);
+  assert.ok(P.validateProfile(back, 'v07').ok);
+  sim.writeCommand(P.cmd.on()); sim.writeCommand(P.cmd.level(4)); assert.equal(st(sim).currentMa, 2850);
+  sim.writeCommand(P.cmd.profile(1)); sim.writeCommand(P.cmd.outputMa(5000));
+  assert.equal(st(sim).currentMa, 2850, 'OUTPUT_MA is clamped to the turbo current');
+  // the same write to a FlashKa v0.6 keeps the protocol's 3000 mA
+  const v06 = make(); v06.writeProfile(P.encodeProfile(want));
+  assert.equal(P.decodeProfile(v06.readProfile()).turbo, 3000);
+});
+
 test('a v0.5 light (protocol 1): 18-byte Status, no Presenter characteristic, 0x0A and 0x0B are invalid', () => {
   const sim = make({ protocol: 1 });
   assert.equal(sim.readStatus().length, 18);

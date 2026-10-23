@@ -303,8 +303,9 @@ impl Status {
     }
 }
 
-/// Text of the Info characteristic (<= 20 bytes UTF-8): product and firmware version.
-pub const INFO_TEXT: &str = "FlashKa fw 0.6.0";
+/// Text of the Info characteristic (<= 20 bytes UTF-8): product and firmware version,
+/// "FlashKa fw 0.6.0" (v0.6 board) or "FlashKa fw 0.7.0" (v0.7 board), see [`crate::board`].
+pub const INFO_TEXT: &str = crate::board::INFO_TEXT;
 
 #[cfg(test)]
 mod tests {

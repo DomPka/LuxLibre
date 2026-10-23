@@ -11,14 +11,21 @@
 //  * Any failure closes the port again, so the person can simply press Connect once more.
 //  * The reset at the end is done by hand, because esptool-js 0.7.0's HardReset only releases the reset line
 //    without first pulling it.
+//  * connect() also reads the app descriptor of the firmware that is on the flashlight now (96 bytes at 0x10020), so
+//    the page can see which FlashKa (v0.7 or v0.6) it is running and stop an install of the other board's firmware.
 
 import { ESPLoader, Transport } from 'esptool-js';
 import { md5hex } from './md5.js';
+import { APP_DESC_OFFSET, appInfoFromFields } from './image.js';
 
 export const ESPRESSIF_USB_VENDOR_ID = 0x303a;
 /** The chip name esptool-js reports for the flashlight's chip. */
 export const EXPECTED_CHIP = 'ESP32-C3';
 export const BAUD = 115200;
+/** Bytes of the app descriptor read back from the flashlight: magic, version (at +16), project name (at +48). */
+export const APP_DESC_READ_LEN = 96;
+/** A read of the installed firmware's descriptor that takes longer than this fails the connection. */
+export const READ_INSTALLED_TIMEOUT_MS = 8000;
 
 export class WrongChipError extends Error {
   /** @param {string} chipName */
@@ -56,6 +63,8 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  * @property {string} mac           "34:85:18:aa:bb:cc"
  * @property {number} flashBytes    size of the flash chip, 0 when unknown
  * @property {string} flashLabel    "4MB" or ""
+ * @property {import('./image.js').AppInfo | null} installed   the firmware on the flashlight now (from its app
+ *                                  descriptor; found = false when there is none); null when it could not be read
  *
  * @typedef {'preparing' | 'erasing' | 'writing' | 'verifying' | 'restarting'} Phase
  *
@@ -70,6 +79,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  * @property {(text: string, newline: boolean) => void} [log]   receives the esptool-js output
  * @property {number} [connectAttempts]   reset-and-sync attempts, esptool-js default is 7
  * @property {() => void} [onLost]        the USB device disappeared while connected
+ * @property {number} [readTimeoutMs]     time limit for reading the installed firmware's descriptor (tests)
  */
 
 /**
@@ -80,6 +90,7 @@ export function createEspBackend(options = {}) {
   const log = options.log || (() => {});
   const connectAttempts = options.connectAttempts || 7;
   const onLost = options.onLost || (() => {});
+  const readTimeoutMs = options.readTimeoutMs || READ_INSTALLED_TIMEOUT_MS;
 
   /** @type {import('esptool-js').IEspLoaderTerminal} */
   const terminal = {
@@ -182,10 +193,47 @@ export function createEspBackend(options = {}) {
         if (flashId === 0xffffff || flashId === 0) loader.info('WARNING: the flash chip did not answer sensibly; writing will probably fail.');
       }
       l.flashBytes = flashBytes;
-      return { chip: chip.CHIP_NAME, description, mac, flashBytes, flashLabel };
+      const installed = loader.secureDownloadMode ? null : await readInstalled(l);
+      return { chip: chip.CHIP_NAME, description, mac, flashBytes, flashLabel, installed };
     } catch (e) {
       await teardown();
       throw e;
+    }
+  }
+
+  /**
+   * Reads the app descriptor of the firmware that is on the flashlight now, so that the page can tell which FlashKa
+   * it belongs to. Returns null when the helper program refuses the read (the page then relies on the person's choice
+   * alone). A read that never ends would leave esptool-js waiting on the port, so that fails the connection instead.
+   * @param {Link} l
+   * @returns {Promise<import('./image.js').AppInfo | null>}
+   */
+  async function readInstalled(l) {
+    let timer = 0;
+    let timedOut = false;
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => { timedOut = true; reject(new Error('Reading the installed firmware took too long')); }, readTimeoutMs);
+    });
+    timeout.catch(() => {});
+    try {
+      const read = l.loader.readFlash(APP_DESC_OFFSET, APP_DESC_READ_LEN);
+      read.catch(() => {});
+      const bytes = await Promise.race([read, timeout]);
+      const info = appInfoFromFields(
+        (bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24)) >>> 0,
+        bytes.subarray(16, 48),
+        bytes.subarray(48, 80)
+      );
+      l.loader.info(info.found ? `Installed firmware: ${info.project || '?'} ${info.version || '?'}` : 'Installed firmware: none found');
+      return info;
+    } catch (e) {
+      if (timedOut) throw e;
+      l.loader.info('Could not read the installed firmware: ' + (e && /** @type {Error} */ (e).message));
+      return null;
+    } finally {
+      clearTimeout(timer);
+      /* The helper program ends a flash read with a 16-byte checksum packet that esptool-js 0.7.0 leaves unread. */
+      if (!timedOut) await l.transport.drainInput(50, 300);
     }
   }
 

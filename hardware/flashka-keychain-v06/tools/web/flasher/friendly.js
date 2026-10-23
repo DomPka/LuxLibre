@@ -175,7 +175,7 @@ export function explainError(err, stage) {
       message: 'The data that is now on the flashlight is not the same as the firmware file, so the flashlight may not start. It is safe to try again.',
       steps: [
         'Unplug the flashlight, plug it in again and click "Connect".',
-        'Tick "factory reset" in step 3 and click "Install" again.',
+        'Tick "factory reset" in step 4 and click "Install" again.',
         'If it fails again, try another cable or USB port (a loose cable damages data).'
       ]
     });

@@ -8,23 +8,25 @@
 //                     setSignals(DTR/RTS), 'disconnect' event, the same errors Chrome throws in the same situations
 //   FakeEsp32c3     - the chip: USB-Serial/JTAG reset logic (DTR/RTS -> ROM download mode or normal start), ROM
 //                     commands (SYNC, READ_REG, WRITE_REG, GET_SECURITY_INFO, MEM_*), the stub (uploaded through MEM_*,
-//                     then FLASH_DEFL_*, SPI_FLASH_MD5, ERASE_FLASH) and a virtual flash chip
+//                     then FLASH_DEFL_*, SPI_FLASH_MD5, ERASE_FLASH, READ_FLASH) and a virtual flash chip
 //
 // Scenarios (constructor options) let the tests provoke every failure the page must explain: a chip that never
 // answers, wrong chip, a failed verification, a cable pulled out in the middle, a busy port, ...
 //
 // The module has no Node-only imports, so test/helpers/browser-entry.mjs bundles it for Playwright as well.
 // Faithfulness notes: the ROM answers SYNC eight times; the stub's flash write is acknowledged per block; the
-// stub erases the target range when FLASH_DEFL_BEGIN arrives; MD5 is over the written range.
+// stub erases the target range when FLASH_DEFL_BEGIN arrives; MD5 is over the written range; READ_FLASH sends the
+// data in packets that the host acknowledges with the byte count so far, then a 16-byte MD5 packet.
 
 import { inflate } from 'pako';
 import { md5hex as defaultMd5 } from '../../flasher/md5.js';
+import { writeAppDescriptor } from './synthetic-image.mjs';
 
 export const OP = {
   FLASH_BEGIN: 0x02, FLASH_DATA: 0x03, FLASH_END: 0x04, MEM_BEGIN: 0x05, MEM_END: 0x06, MEM_DATA: 0x07, SYNC: 0x08,
   WRITE_REG: 0x09, READ_REG: 0x0a, SPI_SET_PARAMS: 0x0b, SPI_ATTACH: 0x0d, CHANGE_BAUDRATE: 0x0f,
   FLASH_DEFL_BEGIN: 0x10, FLASH_DEFL_DATA: 0x11, FLASH_DEFL_END: 0x12, SPI_FLASH_MD5: 0x13, GET_SECURITY_INFO: 0x14,
-  ERASE_FLASH: 0xd0
+  ERASE_FLASH: 0xd0, READ_FLASH: 0xd2
 };
 
 const SPI_BASE = 0x60002000;
@@ -81,9 +83,13 @@ const textBytes = (s) => new TextEncoder().encode(s);
  * @property {number} [loseDeviceAfterBlocks] the cable is pulled out after this many data blocks
  * @property {number} [loseDeviceAtCommand]   ... or when this command arrives (e.g. OP.SYNC)
  * @property {number} [commandDelayMs]        extra delay before every answer
+ * @property {boolean} [readFlashFails]       the stub refuses READ_FLASH (the page cannot see the installed firmware)
+ * @property {boolean} [readFlashStalls]      the stub accepts READ_FLASH but never sends the data
  * @property {(bytes: Uint8Array) => string} [md5hex]  independent MD5 (the tests pass Node's crypto)
  * @property {Uint8Array} [initialFlash]      flash content before the install
  * @property {Array<{ from: number, length: number, value: number }>} [initialFill]  the same, as a short recipe (survives JSON, for the browser tests)
+ * @property {{ version: string, project?: string }} [installedFirmware]  a firmware with this app descriptor is on the
+ *                                            flash before the install (image markers at 0x0 and 0x10000, descriptor at 0x10020)
  * @property {number} [usbVendorId]
  * @property {number} [usbProductId]
  */
@@ -99,6 +105,11 @@ export class FakeEsp32c3 {
     this.flash = new Uint8Array(this.flashBytes).fill(0xff);
     if (options.initialFlash) this.flash.set(options.initialFlash);
     for (const f of options.initialFill || []) this.flash.fill(f.value, f.from, f.from + f.length);
+    if (options.installedFirmware) {
+      this.flash[0] = 0xe9;
+      this.flash[0x10000] = 0xe9;
+      writeAppDescriptor(this.flash, 0x10020, options.installedFirmware.version, options.installedFirmware.project ?? 'flashka-fw');
+    }
 
     /** 'app' (normal start) | 'rom' (download mode) | 'stub' (helper program running) */
     this.mode = 'app';
@@ -122,6 +133,9 @@ export class FakeEsp32c3 {
     this.eraseAllBeforeWrite = false;
     this.writes = /** @type {Array<{ offset: number, size: number }>} */ ([]);
     this.md5Requests = /** @type {Array<{ addr: number, size: number, digest: string }>} */ ([]);
+    this.reads = /** @type {Array<{ addr: number, size: number }>} */ ([]);
+    /** @type {{ addr: number, size: number, packet: number, inflight: number, sent: number, acked: number } | null} */
+    this.readState = null;
     this.dataBlocks = 0;
     this.endFlags = /** @type {number[]} */ ([]);
     this.defl = null;
@@ -160,6 +174,7 @@ export class FakeEsp32c3 {
     this.regs.clear();
     this.mem = null;
     this.defl = null;
+    this.readState = null;
     if (download) {
       this.mode = 'rom';
       this.send(textBytes('ESP-ROM:esp32c3-api1-20210207\r\nBuild:Feb  7 2021\r\nrst:0x15 (USB_UART_CHIP_RESET),boot:0x5 (DOWNLOAD(USB/UART0/1))\r\nwaiting for download\r\n'));
@@ -250,6 +265,8 @@ export class FakeEsp32c3 {
 
   /** @param {Uint8Array} frame */
   onFrame(frame) {
+    /* during a READ_FLASH the host acknowledges each packet with the number of bytes received so far */
+    if (this.readState && this.mode === 'stub' && frame.length === 4) { this.onReadAck(rd32(frame, 0)); return; }
     if (this.mode === 'app' || this.options.silent || frame.length < 8 || frame[0] !== 0) return;
     const op = frame[1];
     const len = frame[2] | (frame[3] << 8);
@@ -362,9 +379,42 @@ export class FakeEsp32c3 {
         this.ok(op, 0, payload);
         break;
       }
+      case OP.READ_FLASH: {
+        if (this.mode !== 'stub') { this.fail(op, 0x05); break; }
+        const addr = rd32(data, 0), size = rd32(data, 4), packet = rd32(data, 8), inflight = rd32(data, 12);
+        if (this.options.readFlashFails || !packet || addr + size > this.flashBytes) { this.fail(op, 0x05); break; }
+        this.reads.push({ addr, size });
+        this.ok(op);
+        if (this.options.readFlashStalls) break;
+        this.readState = { addr, size, packet, inflight: Math.max(1, inflight), sent: 0, acked: 0 };
+        this.pumpRead();
+        break;
+      }
       default:
         this.fail(op, 0x05);       /* "invalid message" */
     }
+  }
+
+  /** READ_FLASH: send data packets while fewer than `inflight` packets are unacknowledged. */
+  pumpRead() {
+    const r = this.readState;
+    if (!r) return;
+    while (r.sent < r.size && r.sent - r.acked < r.packet * r.inflight) {
+      const n = Math.min(r.packet, r.size - r.sent);
+      this.send(slipEncode(this.flash.slice(r.addr + r.sent, r.addr + r.sent + n)));
+      r.sent += n;
+    }
+  }
+
+  /** @param {number} total bytes the host has received so far */
+  onReadAck(total) {
+    const r = this.readState;
+    if (!r) return;
+    r.acked = total;
+    if (r.acked < r.size) { this.pumpRead(); return; }
+    this.readState = null;
+    const digest = this.md5hex(this.flash.subarray(r.addr, r.addr + r.size));
+    this.send(slipEncode(Uint8Array.from(/** @type {string[]} */ (digest.match(/../g)).map((h) => parseInt(h, 16)))));
   }
 
   finishMem() {

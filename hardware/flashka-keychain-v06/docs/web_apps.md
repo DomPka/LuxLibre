@@ -1,14 +1,15 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
-# FlashKa v0.6 web pages: control app and firmware installer
+# FlashKa web pages (v0.7 and v0.6): control app and firmware installer
 
-Two small web pages belong to the FlashKa keychain (flashlight and presenter remote). Both run entirely inside the browser: no server, no
-account, nothing is uploaded, no CDN, no web fonts. Each page is **one file** and also works offline.
+Two small web pages belong to the FlashKa keychain (flashlight and presenter remote), for the FlashKa v0.7 and the v0.6 alike. Both run
+entirely inside the browser: no server, no account, nothing is uploaded, no CDN, no web fonts. Each page is **one file** and also works
+offline.
 
 | File (folder `app/`) | What it is | Works in |
 |---|---|---|
 | `index.html` | Start page with two big links. | Every browser. |
-| `flashka-app.html` | **Control app.** Switch the light, choose the brightness and the profile, see the battery, set up the presenter mode, ... over Bluetooth. Has a Demo mode that needs no flashlight. Also controls a v0.5 light (protocol 1) without the presenter features. | Chrome or Edge on Android, Windows, macOS, Linux, ChromeOS. On iPhone and iPad the free **Bluefy** browser. Not Firefox, not Safari. |
-| `flashka-flasher.html` | **Firmware installer.** Puts the firmware on the flashlight through the USB-C port (Web Serial). The firmware image is inside the file. | Chrome or Edge **on a computer** (Windows, macOS, Linux, ChromeOS). Not on phones or tablets, not Firefox, not Safari. |
+| `flashka-app.html` | **Control app.** Switch the light, choose the brightness and the profile, see the battery, set up the presenter mode, ... over Bluetooth. Reads from the light whether it is a FlashKa v0.7 or v0.6 and shows that board's numbers. Has a Demo mode that needs no flashlight. Also controls a v0.5 light (protocol 1) without the presenter features. | Chrome or Edge on Android, Windows, macOS, Linux, ChromeOS. On iPhone and iPad the free **Bluefy** browser. Not Firefox, not Safari. |
+| `flashka-flasher.html` | **Firmware installer.** Puts the firmware on the flashlight through the USB-C port (Web Serial). The firmware images of both boards are inside the file; the person chooses the board first. | Chrome or Edge **on a computer** (Windows, macOS, Linux, ChromeOS). Not on phones or tablets, not Firefox, not Safari. |
 
 Contents
 
@@ -39,10 +40,27 @@ and the Battery Service, notifications of Status and Battery Level, one GATT ope
 
 If a protocol 2 light does not offer the Presenter characteristic, the card is hidden too.
 
+### Two boards: FlashKa v0.7 and v0.6
+
+The protocol is the same on both boards, but the numbers behind it are not: the v0.7 (firmware 0.7.0) has its own built-in
+profiles, allows at most 2850 mA of turbo in a Custom profile instead of 3000 mA, holds its temperature just below the
+profile's temperature limit instead of dimming linearly above it (protocol document section 9), and its LED sits behind an
+optic whose output the app can estimate. The app reads the board from the light's **Info** characteristic (`docs/firmware.md` section 9):
+
+| Info text | Board | App shows |
+|---|---|---|
+| `FlashKa fw 0.7.x` | FlashKa v0.7 | the v0.7 profile tables (cards, Custom default), Custom Turbo up to 2850 mA, and the estimated light out of the front: "1530 mA · 601 lm" in the status, "High 1530 mA (601 lm)" on the profile cards, with a note that these are estimates (LED data at 85 °C inside the LED x the 87 % optic, not measured); in the Custom editor the temperature limit reads "The light keeps its temperature just below this." and the battery current limit "Protects the cell (rated 3 A). Near 3.0 A the battery protection can switch the light off until USB is plugged in; if that happens in turbo, use 2500."; in turbo from a part-empty cell the status shows the current the LED really gets (less than the set point, protocol document section 9) |
+| `FlashKa fw 0.6.x` | FlashKa v0.6 | the tables of the protocol document, Custom Turbo up to 3000 mA, currents only; temperature limit "Above this the light is dimmed." |
+| anything else, or not read yet | unknown (a v0.5 light, a future firmware) | as FlashKa v0.6 |
+
+The lumens use the firmware's own LED table and integer arithmetic, so the app and the firmware give the same numbers (a unit
+test compares them with `flashka-core/src/board.rs`). The light clamps every Custom value anyway (the profile is read back after
+each write), so a wrong guess could only show a range the light then corrects.
+
 ### What it shows
 
 * Battery percentage (large), voltage, charging / fully charged / USB power, board temperature,
-  LED current, estimated runtime, turbo countdown, lockout.
+  LED current (on a FlashKa v0.7 with the estimated lumens out of the front), estimated runtime, turbo countdown, lockout.
 * Badges "Too warm" (thermal limit) and "Battery protection" (low voltage or cell current limit).
 * Who changed the light last (button, app, automatic).
 * The banner **"App locked for N s - the button has priority"** while the flashlight ignores the app
@@ -56,7 +74,7 @@ If a protocol 2 light does not offer the Presenter characteristic, the card is h
 * Profile cards Extreme, Balanced, Endurance, Custom with one-line explanations and the numbers of the profile
   in use. "Save to flashlight" stores the selected profile and level (`SAVE`).
 * **Custom profile editor**: every field of the Profile characteristic with the ranges of the protocol
-  document, plain-language messages for out-of-range values, "Apply (try it)" and "Save to flashlight". After
+  document (Turbo: up to 2850 mA on a FlashKa v0.7), plain-language messages for out-of-range values, "Apply (try it)" and "Save to flashlight". After
   every write the profile is read back; if the flashlight adjusted a value the app says so and shows what is really
   used.
 * Lockout switch, "Find my flashlight" (`IDENTIFY`), "Keep Bluetooth on" (`KEEPALIVE`, see section 6).
@@ -112,8 +130,8 @@ mock of the screen: it receives the same 1 to 3 byte commands, 20-byte profile w
 20-byte (protocol 2) Status packets, produced by the same encoder and decoder that the real Bluetooth link uses. It returns the
 same ATT error codes. A "Demo tools" card acts like things a person does to a real flashlight: press the flashlight
 button (starts the 3 s app lock), lose the Bluetooth connection, plug in USB, a hot day (45 degC air), battery charge slider,
-a drain speed of real time, 20 x or 120 x, and the presenter features: "Light model" (FlashKa v0.6 or a v0.5 light with
-protocol 1, which restarts the demo), "A paired computer is in range", "Hold < and > for 10 s (forget computers)". While the
+a drain speed of real time, 20 x or 120 x, and the presenter features: "Light model" (FlashKa v0.7, FlashKa v0.6 - the default - or a
+v0.5 light with protocol 1; changing it restarts the demo), "A paired computer is in range", "Hold < and > for 10 s (forget computers)". While the
 demo light is in presenter mode the app is disconnected, so two more demo buttons appear in the banner: "A computer pairs
 with the light" and "Hold < and > for 2 s (leave presenter mode)", then Reconnect.
 
@@ -133,6 +151,7 @@ The model is small and simplified. It follows protocol document section 6 (and t
 | Presenter mode | `PRESENTER 1`: lockout 0x83, battery at 3 % or less 0x82; otherwise the main LED goes off, mode 1 and the link ends 0.4 s later. The light is not connectable until presenter mode ends. Idle timer (the demo speed-up applies to it), battery empty and 2 s of < + > end it. A computer that pairs gives mode 2; at most 4 bonds. About 20 mA extra (an estimate, like the firmware's). In presenter mode the main button is the B key and does not switch the light. |
 | Presenter settings | Written values are clamped (key set 0-1, idle 5-120); `SAVE` stores them; `FACTORY_RESET` restores 30 min / Page keys / no swap (paired computers are kept, assumption). |
 | v0.5 light | `createFlashlight({ protocol: 1 })`: 18-byte Status, no Presenter characteristic, opcodes 0x0A and 0x0B are "invalid" (0x81). |
+| FlashKa v0.7 | `createFlashlight({ model: 'v07' })`: Info "FlashKa fw 0.7.0", the v0.7 profiles (cell limit 2800 mA in Extreme and Balanced, low-voltage step-down 3.15 / 3.20 / 3.25 V, Endurance 47 degC), Custom Turbo clamped to 2850 mA; one Vapcell INR14500 F15 as 1400 mAh (the firmware's figure) with its open-circuit curve (3.00 V empty, 3.25 V at 5 %, 3.38 V at 10 %, 3.47 V at 20 %, 3.68 V at 50 %, 3.95 V at 80 %, 4.20 V full) and 0.132 ohm; LED 2.80 V + 0.15 V/A, converter efficiency 0.87; when the cell sags the converter runs at 100 % duty and the LED gets at most (V - 2.80 V) / 0.278 ohm, so turbo dims on a half-full cell (about 2.1 A at 50 %); charging at 475 mA; 85 % of the LED power becomes heat, 15.4 K/W to the air, time constant 450 s (the octagonal body of the v0.7 simulation in `docs/firmware.md` section 9 as one node); temperature: the profile limit is held by the regulator of `docs/firmware.md` section 9.11 (the same law, in floating point; with the one node the current settles more slowly than in the firmware's three-node simulation), Moon above 70 degC and off above 80 degC as above. The rows above describe the v0.6 light. |
 
 ---
 
@@ -144,11 +163,13 @@ for the ESP32-C3 and the firmware image are **all inside the one file**: no down
 
 ### What a person does
 
-1. **Plug in** the flashlight with a USB-C **data** cable, directly into the computer.
-2. **Connect**: click the button and choose the port named **"USB JTAG/serial debug unit"** (Windows: "USB Serial
+1. **Which FlashKa do you have?** Two pictures: **"FlashKa v0.7 - three keys in the middle"** and **"FlashKa v0.6 -
+   stainless button"**. Nothing can be installed before one is chosen; each shows the firmware version included for it.
+2. **Plug in** the flashlight with a USB-C **data** cable, directly into the computer.
+3. **Connect**: click the button and choose the port named **"USB JTAG/serial debug unit"** (Windows: "USB Serial
    Device (COMx)") in the browser's list.
-3. **Install firmware**: a progress bar shows preparing, writing, checking, restarting.
-4. **Done**: unplug the cable and plug it in again; press the flashlight's button once if the light does not come
+4. **Install firmware**: the firmware of the chosen board; a progress bar shows preparing, writing, checking, restarting.
+5. **Done**: unplug the cable and plug it in again; press the flashlight's button once if the light does not come
    on.
 
 A box "Something not working?" covers: no port in the list (different cable, charge-only cables have no data
@@ -162,26 +183,43 @@ and that Chrome or Edge on a computer is needed.
 * **Connect** opens the port at 115200 baud (the USB link is virtual, the speed does not matter) and resets the chip
   into its ROM download mode with the USB-Serial/JTAG reset sequence, so a running flashlight needs no button. It reads
   the chip type and refuses anything that is not an **ESP32-C3** before anything is written, loads esptool-js's small
-  helper program into RAM and reads the flash size. If any step fails the port is closed again.
-* **Install firmware** writes the image at address **0x0** (compressed), lets the chip compute the MD5 of what it
+  helper program into RAM and reads the flash size. If any step fails the port is closed again. It then reads the app
+  descriptor of the firmware already on the flashlight (96 bytes at flash address 0x10020, through the helper program)
+  and step 4 says what it found: FlashKa firmware 0.7.x is made for the v0.7, 0.6.x for the v0.6. A refused read only
+  means "could not be checked"; a read that does not finish within 8 s fails the connection (esptool-js would otherwise
+  wait on the port).
+* **Install firmware** writes the image of the chosen board at address **0x0** (compressed), lets the chip compute the MD5 of what it
   wrote and compares it with the image (**"Installed and checked"**), then restarts the chip with the RTS line. The
   flashlight's USB port disappears and comes back while it restarts; the page expects that.
 * Every installation resets the flashlight's saved settings (custom profile, remembered level) to the factory
   defaults, because the image covers the settings region at 0x9000 (it is 0xFF in the image, `docs/firmware.md`
   section 2.10 and 4). To keep the settings, flash only the app, for example
-  `espflash flash --partition-table firmware/partitions.csv firmware/dist/flashka-fw-v0.6.0.elf`. The page says this in
-  step 3.
+  `espflash flash --partition-table firmware/partitions.csv firmware/dist/flashka-fw-v0.7.0.elf` on a v0.7
+  (`flashka-fw-v0.6.0.elf` on a v0.6). The page says this in step 4.
 * The unchecked box **"Factory reset (clear the whole flash first)"** additionally erases the whole flash chip before
   writing, which is only useful if the flashlight misbehaves after an update.
 
 ### Safety
 
+* **The board.** The two images are not interchangeable: each firmware sets the LED current with its own board's
+  current scale and limits. The v0.7 firmware runs the LED up to 2.85 A and lets up to 3.0 A flow from the v0.7's
+  14500 cell (rated 3 A), more than the cells of a v0.6 are rated for; the v0.6 firmware would drive a v0.7's LED about 10 %
+  above every set point (a Custom turbo of 3000 mA would become 3.3 A, above the LED's 3.0 A rating). So:
+  * the board must be chosen in step 1 before Install is possible;
+  * the build puts each image only into its own board's slot: it reads the image's app descriptor (project
+    `flashka-fw`, version 0.7.x = v0.7, 0.6.x = v0.6) and refuses an image of the other board; the page checks the
+    embedded images again when it loads;
+  * if the firmware already on the flashlight belongs to the other board, step 4 explains it in a yellow box, and
+    Install stays disabled until the person ticks "I have checked: this flashlight is a FlashKa v0.7 (three keys in the
+    middle). Install its firmware anyway." (a v0.6 board wrongly flashed with the v0.7 firmware can be put right this
+    way). No firmware found, other firmware or a failed read are reported too, without the tick;
+  * a file chosen under Advanced that is FlashKa firmware for the other board is refused.
 * Only an ESP32-C3 is accepted; the image must fit the flash chip.
 * The page checks the image: a merged image for address 0x0 has the ESP image marker, the ESP32-C3 chip id, the
   partition table at 0x8000 and the app at 0x10000. The SHA-256 of the firmware inside the page is recomputed when the
   page loads and compared with the value stored at build time; one changed byte shows "The firmware inside this page is
   damaged" and disables Install.
-* The firmware card in step 3 shows name, version, size and SHA-256 of what will be written.
+* The firmware card in step 4 shows the board, name, version, size and SHA-256 of what will be written.
 * A failed installation cannot break the flashlight for good: the chip's download mode lives in ROM and is reachable
   by holding the button while plugging in USB.
 * While installing: the browser asks before the tab is closed, the screen is kept awake where the browser allows it,
@@ -200,12 +238,15 @@ Connect. It decides by looking for Web Serial, not by guessing the device, so an
 
 ## 3. Rebuilding the installer with new firmware
 
-**State of the folder:** `app/flashka-flasher.html` is the **release build**: it embeds
-`firmware/dist/flashka-fw-v0.6.0-merged.bin` (534,736 bytes, SHA-256
-`e21058791bab990439835fbd977eecfed385af5837405e36ae923cb6083a8fdd`), built with `npm run build:release`.
+**State of the folder:** `app/flashka-flasher.html` is the **release build** (`npm run build:release`): it embeds
 
-`app/flashka-flasher.html` is **generated**. It contains a copy of the firmware, so it must be rebuilt every time
-`firmware/build.sh` produces a new `firmware/dist/flashka-fw-v0.6.0-merged.bin`.
+| Board | Image | Size | SHA-256 |
+|---|---|---|---|
+| FlashKa v0.7 | `firmware/dist/flashka-fw-v0.7.0-merged.bin` | 535,328 bytes | `6554028f31b3e86c958335a1b03b4fd6f2a95000f727d752f4cb891318e79f96` |
+| FlashKa v0.6 | `firmware/dist/flashka-fw-v0.6.0-merged.bin` | 534,736 bytes | `e21058791bab990439835fbd977eecfed385af5837405e36ae923cb6083a8fdd` |
+
+The page is about 1.6 MB. `app/flashka-flasher.html` is **generated**. It contains copies of both images, so it must be
+rebuilt every time `firmware/build.sh` produces a new one (`BOARD=v07` for the v0.7, `BOARD=v06` or nothing for the v0.6).
 
 ```
 cd tools/web
@@ -217,33 +258,40 @@ The script prints what it embedded, for example
 
 ```
 Wrote .../app/flashka-flasher.html
-  page: about 0.8 MB  (script 195 KB, esptool-js 0.7.0, minified)
-  firmware: flashka-fw-v0.6.0-merged.bin  v0.6.0  <size> KB (<size> bytes)
-  SHA-256:  <64 hex digits>
+  page: 1.60 MB  (script 202 KB, esptool-js 0.7.0, minified)
+  FlashKa v0.7: flashka-fw-v0.7.0-merged.bin  v0.7.0  523 KB (535328 bytes)  SHA-256 6554028f...
+  FlashKa v0.6: flashka-fw-v0.6.0-merged.bin  v0.6.0  522 KB (534736 bytes)  SHA-256 e2105879...
 ```
 
-Compare the SHA-256 with `sha256sum firmware/dist/flashka-fw-v0.6.0-merged.bin`; the page shows the same value in step 3.
+Compare the SHA-256 values with `sha256sum firmware/dist/*-merged.bin`; the page shows the value of the chosen board in
+step 4.
 The output depends only on its inputs (no time stamps): building twice gives byte-identical pages. After a rebuild,
 upload the new `flashka-flasher.html` again (section 4).
 
 | Option | Meaning |
 |---|---|
-| `--bin <file>` | Firmware image to embed. Default `firmware/dist/flashka-fw-v0.6.0-merged.bin`. Pass it when the version changes. |
+| `--bin-v07 <file>` | FlashKa v0.7 image. Default `firmware/dist/flashka-fw-v0.7.0-merged.bin`. Pass it when the version changes. |
+| `--bin-v06 <file>` | FlashKa v0.6 image. Default `firmware/dist/flashka-fw-v0.6.0-merged.bin`. |
 | `--out <file>` | Page to write. Default `app/flashka-flasher.html`. |
-| `--version <x.y.z>` | Version shown on the page. Default: from the file name (`flashka-fw-vX.Y.Z-merged.bin`), else `package.json`. |
 | `--require-firmware` | Fail instead of building the placeholder when the image is missing (`npm run build:release`). |
 | `--placeholder` | Build the placeholder page even if the image exists (`npm run build:placeholder`). |
 | `--allow-unmerged` | Embed an image that does not look like a merged bootloader + partition table + app image. |
+| `--allow-board-mismatch` | Embed an image whose app descriptor names the other board (tests only; the page still refuses to install it). |
 | `--no-minify` | Readable JavaScript in the page, for debugging. |
 | `--help` | List the options. |
 
-**No firmware yet?** If the image does not exist the script still builds the page, but says so loudly (a box of
-asterisks "PLACEHOLDER BUILD - NO FIRMWARE IS EMBEDDED IN THIS PAGE" on the console) and the page shows a yellow banner,
-keeps its Install button disabled and still lets a person pick a `.bin` under Advanced. Nothing is embedded and no
-hash is shown. Run the command again once the firmware exists.
+The version shown for each board is read from the image's app descriptor (`--bin` and `--version` of earlier versions
+are gone).
+
+**No firmware yet?** If an image does not exist the script still builds the page, but says so loudly (a box of
+asterisks "PLACEHOLDER BUILD - NO FIRMWARE IS EMBEDDED ..." on the console). That board then says "No firmware for it in
+this page" in step 1; with no image at all the page shows a yellow banner, keeps its Install button disabled and still
+lets a person pick a `.bin` under Advanced. Nothing is embedded and no hash is shown for a missing image. Run the command
+again once the firmware exists.
 
 The build refuses an image that would not work at address 0x0: too small, not an ESP image, made for another chip, or
-not a complete merged image (unless `--allow-unmerged`). It bundles only the ESP32-C3 helper program of esptool-js, not
+not a complete merged image (unless `--allow-unmerged`), and an image of the other board (unless
+`--allow-board-mismatch`). It bundles only the ESP32-C3 helper program of esptool-js, not
 the other 13 chips, and keeps esptool-js's error class names (the page decides on them).
 
 ---
@@ -319,7 +367,8 @@ because they have neither API.
 | `KEEPALIVE` argument | "u8 seconds" but "max 600 s" (a byte holds 255). | Sends the literal one-byte form with 255 s first (about 4 minutes, which the firmware accepts). Only if the flashlight refuses that as invalid does it try a 3-byte form with a u16 of 600 s. |
 | `LEVEL` and `OUTPUT_MA` while the light is off | Silent whether they switch the light on. | The level buttons send `LEVEL`, then `ON`, then read Status and repeat `LEVEL` if the light came up at another level (switch-on uses the remembered level). The slider sends `OUTPUT_MA` and shows what Status reports. The firmware switches on for all three. |
 | Turbo as remembered level | Silent. | Turbo is never the level used at the next switch-on (the firmware does the same). |
-| Built-in profiles | No flag bits; Endurance turbo "none". | Extreme and Balanced: turbo allowed, remember level, battery on RGB. Endurance: no turbo flag, turbo = High, 0 s, step-down = High. Custom starts as Balanced. Same values as `firmware/flashka-core/src/profile.rs`. |
+| Built-in profiles | No flag bits; Endurance turbo "none". | Extreme and Balanced: turbo allowed, remember level, battery on RGB. Endurance: no turbo flag, turbo = High, 0 s, step-down = High. Custom starts as Balanced. Same values as `firmware/flashka-core/src/profile.rs` (on a FlashKa v0.7 its `board-v07` tables, compared by a unit test). |
+| Board | Not named by the protocol. | Read from the Info text (section 1): `FlashKa fw 0.7.x` = FlashKa v0.7, `0.6.x` = v0.6. |
 | When "turbo" exists | "turbo time 0 = turbo = High". | Turbo exists when the flag is set, the time is above 0 and the turbo current is above High. |
 | ATT error codes | "returned to the write". | Browsers differ in how they report an ATT application error, and often not as a number. The app looks for 0x80 to 0x83 in numeric error properties and in the error text (hex, or decimal after a word like "error"), and otherwise infers the reason from the last Status (lockout, app lock, temperature, battery); inferred reasons are worded as guesses. |
 | Status interval | "at least every 2 s". | The app does not rely on it: countdowns are computed locally between packets, and Status is read when none arrived for 6 s. (The firmware sends on change and every 2 s.) |
@@ -329,8 +378,9 @@ because they have neither API.
 | Presenter mode and the app | "The phone app cannot connect while presenter mode is active." | Explained in the card and in the banner; Reconnect gives a hint if it fails. |
 | Battery level | Read and notify. | Used when present; Status byte 8 is the fallback if the Battery Service is missing (tested). |
 
-The cells are two LP601646 in parallel, about 800 mAh (v0.4 had one 102050 pouch of about 1000 mAh); the app only
-shows what the firmware reports.
+The cells are two LP601646 in parallel, about 800 mAh, on the v0.6 (v0.4 had one 102050 pouch of about 1000 mAh) and
+one Vapcell INR14500 F15, 1500 mAh (1400 mAh in the firmware's estimates), on the v0.7; the app only shows what the
+firmware reports.
 
 ---
 
@@ -340,7 +390,7 @@ shows what the firmware reports.
 cd tools/web
 npm install
 npm run typecheck           # TypeScript checks the installer's JavaScript (JSDoc types), no output = clean
-npm test                    # Node unit tests, about 30 s
+npm test                    # Node unit tests, about 2 minutes
 npm run test:browser        # headless Chromium: both pages, writes the screenshots
 ```
 
@@ -354,16 +404,22 @@ The browser tests need a Chromium that Playwright can find. Where one is preinst
 * `protocol.test.mjs`: encoder and decoder of the app's protocol module against byte vectors worked out by hand from
   the document, both directions: Status (18 bytes for protocol 1, 20 bytes for protocol 2, other versions), the Presenter characteristic, every command
   including 0x0A and 0x0B and their error cases, the 20-byte profile with clamping, built-in profiles, the ATT error
-  mapping, KEEPALIVE forms.
+  mapping, KEEPALIVE forms; the boards: Info text to board, the v0.7 built-in profiles against the `board-v07` tables of
+  `flashka-core/src/profile.rs`, the turbo limit per board, and the v0.7 lumens against the LED table of `board.rs` for
+  every mA from 1 to 3000.
 * `sim.test.mjs`: the demo flashlight (commands, errors, button priority, turbo, protection, charging; presenter mode,
-  pairing, forgetting, idle timer, saved settings, and a protocol 1 light).
+  pairing, forgetting, idle timer, saved settings, a protocol 1 light, and the FlashKa v0.7 model: tables, 2850 mA turbo
+  and its clamp, timer, the regulator holding the temperature limit (steady, at most 2 % change, High at least 150 s from
+  cold) while the v0.6 keeps the linear law, the F15: a full cell gives the whole turbo, a half-full one dims it (the
+  2800 mA cell limit and the converter at 100 % duty), drain and runtime from 1400 mAh, charging at 475 mA).
 * `flasher-backend.test.mjs`: the real esptool-js 0.7.0 running against a pretend ESP32-C3 (reset sequence, ROM
   protocol, helper program upload, compressed write, MD5 check, erase, restart), including no answer, wrong chip,
-  failed verification, a pulled cable and a busy port.
-* `friendly.test.mjs`, `image.test.mjs`, `md5.test.mjs`: error explanations, image checks, the MD5 used for
-  verification.
-* `build.test.mjs`: the build script (embedding, hash, version, placeholder, refusals, reproducible output, one
-  self-contained file, only the ESP32-C3 helper program).
+  failed verification, a pulled cable and a busy port, and reading the installed firmware's app descriptor.
+* `friendly.test.mjs`, `image.test.mjs`, `md5.test.mjs`: error explanations, image checks (including the board named by
+  the app descriptor, also of the published images), the MD5 used for verification.
+* `build.test.mjs`: the build script (both board slots, embedding, hash, version from the app descriptor, a placeholder
+  per board, refusals including an image of the other board, reproducible output, one self-contained file, only the
+  ESP32-C3 helper program, and that the published page embeds the two images of `firmware/dist/`).
 
 **Browser tests** (`browser/`, Playwright with headless Chromium):
 
@@ -375,9 +431,14 @@ The browser tests need a Chromium that Playwright can find. Where one is preinst
   errors, automatic reconnect, adapter off, cancelled chooser); the presenter card (demo and over the pretend
   Bluetooth link: bytes on the wire, validation, the app disconnecting and not retrying, Reconnect hints, the forget
   confirmation, a protocol 1 light, a refused 0x0A, a missing Presenter characteristic); colour contrast (4.5:1) of the
-  presenter screens in both themes; no horizontal scroll at 320, 360, 390 and 1280 px.
+  presenter screens in both themes; no horizontal scroll at 320, 360, 390 and 1280 px; a FlashKa v0.7 in demo mode and
+  over the pretend Bluetooth link (board read from Info, v0.7 tables with lumens, the lumens note, Turbo up to 2850 mA and
+  the temperature-limit and battery-current help in the editor, turbo dimming at 50 % charge, and back to a v0.6
+  without lumens).
 * `run-flasher-tests.mjs`: builds the page (real firmware, placeholder, synthetic and tampered variants) and runs it
-  against a pretend ESP32-C3 behind a pretend `navigator.serial`: placeholder, firmware card, the happy path with phases
+  against a pretend ESP32-C3 behind a pretend `navigator.serial`: the board choice (nothing can be installed before it,
+  each board installs its own image), the firmware found on the flashlight (matching, other board with the confirmation
+  tick, none, unreadable), a file for the other board refused, placeholder, firmware card, the happy path with phases
   and flash content check, factory reset, log and copy, closing the tab while installing, cancelled chooser, a
   flashlight that does not answer (hold the button, then Try again), wrong chip, busy port, failed verification, a
   cable pulled mid-install and replugged, unplugged while connected, the Advanced panel, unsupported browsers,
@@ -402,7 +463,10 @@ The browser tests need a Chromium that Playwright can find. Where one is preinst
 | `app-presenter-help-390.png` | "How to pair a computer or phone" opened |
 | `app-presenter-mode-*.png`, `app-dark-presenter-mode-*.png` | After "Start presenter mode": the app has let go (demo helpers shown in the demo) |
 | `app-presenter-forget-*.png` | Confirmation before forgetting the paired computers |
-| `flasher-start-*.png`, `flasher-start-390-full.png` | Installer, steps 1 to 4 and the troubleshooting box |
+| `app-v07-demo-on-*.png`, `app-v07-profiles-*.png` | Demo light "FlashKa v0.7": High with the estimated lumens, the v0.7 profile cards and the lumens note |
+| `flasher-start-*.png`, `flasher-start-390-full.png` | Installer, steps 1 to 5 and the troubleshooting box |
+| `flasher-board-*.png` | Step 1, the board choice with the two pictures |
+| `flasher-mismatch-*.png` | A FlashKa v0.6 firmware found on the flashlight after choosing the v0.7: the warning and the confirmation tick |
 | `flasher-connected-*.png` | Flashlight found, firmware card, factory-reset box, Install button |
 | `flasher-installing-*.png`, `flasher-done-*.png` | Progress bar, finished installation |
 | `flasher-error-*.png` | Flashlight does not answer: the download-mode steps |
@@ -421,13 +485,14 @@ real run before the pages are given to people:
 * **Real Bluetooth.** The app was tested against a pretend `navigator.bluetooth` written from the protocol document and
   against the demo flashlight. Not tested: a real FlashKa (or v0.5 Aurora++) (the firmware's own host tests cover its side), pairing a real computer or
   phone with the light (the app only sends commands; the keyboard itself is the firmware's job), what Chrome does with a
-  device that stops offering the control service in presenter mode, the error
+  device that stops offering the control service in presenter mode, the Info text of a real FlashKa v0.7 (the board
+  detection), the error
   text real browsers produce for an ATT error (Chrome on Android, Chrome on Windows and macOS, Edge, Bluefy differ and the
   app's inference is the fallback), Bluefy on a real iPhone, Web Bluetooth on Linux (Chrome may still keep it behind
   `chrome://flags/#enable-web-bluetooth`), and long sessions (battery drain, reconnect after a day).
 * **Real serial hardware.** The installer was tested with the real esptool-js and the real page, against a pretend
   ESP32-C3 that implements the USB-Serial/JTAG reset behaviour (DTR/RTS), the ROM and helper-program protocol, flash
-  write with MD5, erase and a pulled cable. Not tested: how a real ESP32-C3 re-enumerates over USB after the reset
+  write with MD5, erase, reading flash and a pulled cable. Not tested: reading the installed firmware from a real chip, how a real ESP32-C3 re-enumerates over USB after the reset
   (timing, whether Chrome offers the same port again), the real port names in Chrome's chooser on Windows, macOS and
   Linux (this page names them from documentation), Linux permissions for `/dev/ttyACM0` (the page explains the
   `dialout` group), real flash timing, throttling of a tab in the background, and Web Serial from a `file://` page
@@ -444,7 +509,7 @@ real run before the pages are given to people:
 app/
   index.html                start page
   flashka-app.html           control app (hand-written, single file; protocol and demo flashlight are inline <script> blocks)
-  flashka-flasher.html       firmware installer (GENERATED by tools/web/build_flasher.mjs, contains the firmware)
+  flashka-flasher.html       firmware installer (BUILT by tools/web/build_flasher.mjs, contains the firmware of both boards)
   screenshots/              pictures made by the browser tests (not part of the web site)
 tools/web/
   build_flasher.mjs         builds app/flashka-flasher.html (section 3)
@@ -453,7 +518,8 @@ tools/web/
     main.js                   the page's logic (steps, progress, errors)
     backend.js                connect and install with esptool-js (the part that talks to the chip)
     friendly.js               error text for people
-    image.js, md5.js          image checks, MD5 and SHA-256 helpers
+    image.js, md5.js          image checks, the two boards and the app descriptor, MD5 and SHA-256 helpers
+    board-v07.webp, board-v06.webp   the pictures of step 1 (renders of the two lights)
     stubs.js                  replaces esptool-js's list of helper programs by the ESP32-C3's
   test/                     Node unit tests and helpers (a pretend ESP32-C3, synthetic images)
   browser/                  Playwright test runners, pretend navigator.bluetooth / navigator.serial

@@ -85,8 +85,16 @@ pub const PROTOCOL_MODE_REPORT: u8 = 0x01;
 
 /// PnP ID (0x2A50): vendor ID source 2 (USB-IF), VID 0x1209 (pid.codes),
 /// PID 0x0001 (pid.codes test PID - apply for a free PID before
-/// distributing), product version 0x0060 (0.6.0). Little-endian.
-pub const PNP_ID: [u8; 7] = [0x02, 0x09, 0x12, 0x01, 0x00, 0x60, 0x00];
+/// distributing), product version 0x0060 (0.6.0) or 0x0070 (0.7.0, v0.7 board). Little-endian.
+pub const PNP_ID: [u8; 7] = [
+    0x02,
+    0x09,
+    0x12,
+    0x01,
+    0x00,
+    crate::board::PNP_VERSION as u8,
+    (crate::board::PNP_VERSION >> 8) as u8,
+];
 
 /// GAP appearance "Keyboard" (category 0x00F, subcategory 0x001).
 pub const APPEARANCE_KEYBOARD: u16 = 0x03c1;

@@ -23,6 +23,7 @@ Either way, the result is only finished when the board has been measured and tes
 | `boards/example-ch32v003-buck/` | CH32V003 with a regulated driver: PWM filtered into a current set point, an enable pin, an NTC |
 | `boards/flashka-keychain-v05/` | ESP32-C3 with charger, RGB indicator, laser and console |
 | `boards/flashka-keychain-v06/` | the same with several buttons on one pin ([resistor ladder](#resistor-ladder-buttons-esp32-c3)) |
+| `boards/flashka-keychain-v07/` | the v0.6 pins and ladder with a stronger LED driver and high-drain cells; its header also describes the body, cells, LED flux and optic for the simulator ([simulator.md](simulator.md#simulating-your-own-board)) |
 
 ```sh
 cd firmware/boards
@@ -46,6 +47,7 @@ cp -r example-ch32v003-buck my-light
 | `LX_HAS_CHARGER` | charger with status signals | 0 |
 | `LX_HAS_TEMP` | temperature sensor (NTC or the MCU's own) | 1 |
 | `LX_BAT_CELLS` | cells in series | 1 |
+| `LX_BAT_OCV_MV` | the Li-ion cell's own open-circuit curve for the charge estimate (`BAT_CHEM` 0): 11 values in mV per cell at 100, 90, ... 0 %; for a cell whose curve differs from the built-in one (3.82 V at 50 %), e.g. a 3.6 V-nominal 14500 | the built-in curve |
 
 **Main channel and LED model** (measure these, [FW-2](../design-rules.md#fw-2))
 

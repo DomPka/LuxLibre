@@ -1,6 +1,12 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
 # FlashKa Keychain v0.6
 
+> **Superseded by [FlashKa Keychain v0.7](../flashka-keychain-v07/README.md).** This folder stays as
+> published apart from the shared firmware, the web pages and their documents, which now also
+> serve v0.7. Its firmware sources also build firmware 0.7.0 for the v0.7 board
+> (`BOARD=v07 firmware/build.sh`, [firmware.md, section 9](docs/firmware.md#9-flashka-keychain-v07-firmware-070)),
+> and its web pages serve both versions.
+
 FlashKa is LuxLibre reference design #1: a 94.4 × 20 × 16 mm aluminium keychain light. It has a
 white LED from 2 mA moonlight to a 2.2 A turbo burst, a Class 2 green laser behind a hardware
 safety switch, USB-C charging, two small LiPo cells (about 800 mAh) and Bluetooth. Version 0.6

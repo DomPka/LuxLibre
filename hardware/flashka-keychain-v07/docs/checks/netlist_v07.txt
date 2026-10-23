@@ -1,0 +1,55 @@
+FlashKa Keychain v0.7 - netlist check across the main PCB and the key board
+main PCB:  FlashKa_main.kicad_pcb   key board: FlashKa_keys.kicad_pcb
+reference: v0.6 schematic netlist flashka-keychain-v06/flashka.net
+
+1. Pogo contacts (housing X/Y; J6 on the main PCB's bottom face, Pn on the key board's top face)
+   pad   net     J6 at (X, Y)       Pn at (X, Y)       offset  faces  net  tip in pad (margin)
+   J6.1  GND     (15.000,  2.500)  (15.000,  2.500)  0.000   B/F    ok  0.80 mm ok
+   J6.2  3V3     (17.800,  2.500)  (17.800,  2.500)  0.000   B/F    ok  0.80 mm ok
+   J6.3  RGB_R   (20.600,  2.500)  (20.600,  2.500)  0.000   B/F    ok  0.80 mm ok
+   J6.4  RGB_G   (25.000,  2.500)  (25.000,  2.500)  0.000   B/F    ok  0.80 mm ok
+   J6.5  RGB_B   (27.800,  2.500)  (27.800,  2.500)  0.000   B/F    ok  0.80 mm ok
+   J6.6  BTN     (30.600,  2.500)  (30.600,  2.500)  0.000   B/F    ok  0.80 mm ok
+   the plunger axis may move 0.80 mm off the pad centre before it leaves the d1.6 pad; design allowance 0.40 mm
+
+2. Connectivity: both boards joined through J6.n <-> Pn, compared with the v0.6 netlist
+   nets: v0.6 44, v0.7 (both boards joined) 44, different: 0
+   nets that cross the contact: 3V3, BTN, GND, RGB_B, RGB_G, RGB_R (= the pogo nets GND, 3V3, RGB_R, RGB_G, RGB_B, BTN)
+   nets on the key board only: BTN_NX, BTN_PV, B_K, B_K2, G_K, G_K2, R_K, R_K2
+   (pins of the power-stage parts C22, C23, C24, J2, Q3, R35, R36, U2, U6 left out here, see 2b)
+
+2b. Power stage (v0.7): pad nets of C22, C23, C24, J2, Q3, R35, R36, U2, U6 against the intended connections
+   BATN      C24.2 J2.2 Q3.1 U6.6
+   SW        U2.1 U2.2
+   VOUT      C22.1 U2.16
+   BUCK_CP   C23.1 U2.7
+   BUCK_CN   C23.2 U2.8
+   PROT_OD   Q3.6 U6.1
+   PROT_OC   Q3.4 U6.3
+   PROT_CS   R36.1 U6.2
+   PROT_VCC  C24.1 R35.2 U6.5
+   PROT_D    Q3.2 Q3.5
+   38 power-stage pins checked, open pins U2.4, U2.9, U6.4, removed C7, C9: all as intended
+
+3. Parts: values and footprints against v0.6
+   intended change J2: v0.6 CELL WirePad_SMD_2_P3.0mm -> v0.7 CELL WirePad_SMD_2_P3.0mm_24AWG
+   intended change J3: v0.6 LED WirePad_SMD_TopBottom_1.6x1.8 -> v0.7 LED WirePad_LED_Split_24AWG
+   intended change R16: v0.6 2k R_0402_1005Metric -> v0.7 2.2k R_0402_1005Metric
+   intended change R3: v0.6 3.3k R_0402_1005Metric -> v0.7 2k R_0402_1005Metric
+   intended change U2: v0.6 TLV62585DRLR SOT-563 -> v0.7 TPS62095RGTR VQFN-16-1EP_3x3mm_P0.5mm_EP1.68x1.68mm_TV2
+   v0.6 parts 71: all present except C7, C9 (removed), value and footprint unchanged apart from the intended changes: yes
+   new in v0.7: C22, C23, C24, J6, P1, P2, P3, P4, P5, P6, Q3, R35, R36, U6 (expected C22, C23, C24, J6, P1, P2, P3, P4, P5, P6, Q3, R35, R36, U6 plus the screw holes H1, H2 without pads)
+   R9   10k    (main)
+   R30  1k     (key board)
+   R31  2.2k   (key board)
+   R23  330Ω   (key board)
+   R32  330Ω   (key board)
+   R24  100Ω   (key board)
+   R25  100Ω   (key board)
+   R33  100Ω   (key board)
+   R34  100Ω   (key board)
+
+4. v0.7 schematic netlist (flashka.net) against the two boards
+   nets: schematic 52, boards 52, different: 0
+
+RESULT: PASS - main PCB + key board through J6/P1-P6 equal the v0.6 netlist apart from the v0.7 power stage, which matches its intended connections; the six pogo contacts and the power-stage parts are the only new items

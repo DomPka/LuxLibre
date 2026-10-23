@@ -1,0 +1,134 @@
+FIT CHECK v0.7 (body 99.2 mm; boards moved by 2.75 along X from their PCB frame) - FlashKa_main_pcb.step + key board FlashKa_keys_pcb.step
+
+main board assembly bbox: X 11.55..40.95  Y -8.25..8.98  Z 5.99..12.40
+key board assembly bbox:  X 16.15..35.15  Y -7.40..7.40  Z 2.35..10.24
+stand-in: U4: ESP32-C3-MINI-1 stand-in: module PCB + can, antenna overhang (build_dummies)
+stand-in: J1: USB-C receptacle stand-in 8.94 x 7.35 x 3.21 (build_dummies)
+stand-in: L1: inductor 4.0 x 4.0 x 2.0 stand-in at the KiCad position
+
+[key board vs housing parts, keys at rest] collisions (> 0.001 mm^3): 0
+   min clearance key board -> part:
+      tray            1.200 mm  (LED3)
+      key_main        0.150 mm  (SW1)
+      key_next        0.250 mm  (SW2)
+      key_prev        0.250 mm  (SW3)
+      antenna_spacer  0.550 mm  (KB_PCB)
+
+[main board centred]  collisions (> 0.001 mm^3): 0
+   pogo plungers pressing into the main board (intended compression): 0; plungers vs components: 0
+   min clearance (components; board vs all but the tray):
+      tray            0.211 mm  (J1)
+      lid             0.435 mm  (U2)
+      rf_window       3.900 mm  (U4)
+      antenna_spacer  0.150 mm  (PCB)
+      key_main        3.389 mm  (J1)
+      key_next        3.890 mm  (J1)
+      key_prev        more than 5 mm
+      cell            1.200 mm  (U4)
+      cell_strip_front 1.000 mm  (U4)
+      cell_strip_rear more than 5 mm
+      cell_joint_front 1.900 mm  (U4)
+      cell_joint_rear more than 5 mm
+      laser           0.300 mm  (PCB)
+      optic_holder    4.420 mm  (PCB)
+      optic_lens      more than 5 mm
+      mcpcb           2.820 mm  (PCB)
+      led             4.420 mm  (PCB)
+   smallest main-board component -> key-board part clearances: KB:R30 0.400 (J1), KB:P6 0.460 (R9), KB:P1 0.584 (R1), KB:P2 0.633 (R1), KB:KB_PCB 0.800 (J1), KB:P5 0.823 (R22)
+
+[main board at the -Y wall (-0.24)]  collisions (> 0.001 mm^3): 1
+        PCB x tray               0.0013 mm^3 at X 12.02 Y -7.55 Z 9.60   (contact-level sliver)
+   pogo plungers pressing into the main board (intended compression): 0; plungers vs components: 0
+   min clearance (components; board vs all but the tray):
+      tray            0.000 mm  (J1)
+      lid             0.673 mm  (C23)
+      rf_window       3.900 mm  (U4)
+      antenna_spacer  0.150 mm  (PCB)
+      key_main        3.389 mm  (J1)
+      key_next        3.893 mm  (J1)
+      key_prev        more than 5 mm
+      cell            1.200 mm  (U4)
+      cell_strip_front 1.000 mm  (U4)
+      cell_strip_rear more than 5 mm
+      cell_joint_front 1.900 mm  (U4)
+      cell_joint_rear more than 5 mm
+      laser           0.300 mm  (PCB)
+      optic_holder    4.420 mm  (PCB)
+      optic_lens      more than 5 mm
+      mcpcb           2.820 mm  (PCB)
+      led             4.420 mm  (PCB)
+   smallest main-board component -> key-board part clearances: KB:P6 0.295 (R9), KB:R30 0.400 (J1), KB:P1 0.573 (R18), KB:P3 0.604 (Q1), KB:P2 0.799 (R1), KB:KB_PCB 0.800 (J1)
+
+[main board at the +Y wall (+0.24)]  collisions (> 0.001 mm^3): 1
+        PCB x tray               0.0013 mm^3 at X 12.03 Y 7.55 Z 9.60   (contact-level sliver)
+   pogo plungers pressing into the main board (intended compression): 0; plungers vs components: 0
+   min clearance (components; board vs all but the tray):
+      tray            0.085 mm  (C10)
+      lid             0.195 mm  (U2)
+      rf_window       3.900 mm  (U4)
+      antenna_spacer  0.150 mm  (PCB)
+      key_main        3.389 mm  (J1)
+      key_next        3.890 mm  (J1)
+      key_prev        more than 5 mm
+      cell            1.200 mm  (U4)
+      cell_strip_front 1.000 mm  (U4)
+      cell_strip_rear more than 5 mm
+      cell_joint_front 1.900 mm  (U4)
+      cell_joint_rear more than 5 mm
+      laser           0.300 mm  (PCB)
+      optic_holder    4.420 mm  (PCB)
+      optic_lens      more than 5 mm
+      mcpcb           2.820 mm  (PCB)
+      led             4.420 mm  (PCB)
+   smallest main-board component -> key-board part clearances: KB:R30 0.400 (J1), KB:P1 0.444 (R1), KB:P2 0.496 (R1), KB:P5 0.600 (R22), KB:P6 0.672 (R9), KB:KB_PCB 0.800 (J1)
+
+Pogo pins:
+   main_board_bottom_z: 9.2
+   kb_top_z: 5.19
+   kb_top_to_main_board_mm: 4.01
+   pogo_base_z (on its solder): [5.24, 5.24]
+   working_height_mm (pin base to J6 pad): 3.96
+   working_height_in_range: True
+   plunger_tips (name, X, Y, Z top as modelled): [('P4_pl', 27.75, 2.5, 10.24), ('P1_pl', 17.75, 2.5, 10.24), ('P2_pl', 20.55, 2.5, 10.24), ('P3_pl', 23.35, 2.5, 10.24), ('P5_pl', 30.55, 2.5, 10.24), ('P6_pl', 33.35, 2.5, 10.24)]
+   plunger_to_nearest_J6_pad_mm: [('P4_pl', 'J6.4', 0.0), ('P1_pl', 'J6.1', 0.0), ('P2_pl', 'J6.2', 0.0), ('P3_pl', 'J6.3', 0.0), ('P5_pl', 'J6.5', 0.0), ('P6_pl', 'J6.6', 0.0)]
+   max_offset_mm: 0.0
+
+Free travel of the main-board assembly from the centred position (mm, until it touches):
+   +Y          0.236   [('PCB', 'tray')]
+   -Y          0.236   [('PCB', 'tray')]
+   +X (rear)   0.149   [('PCB', 'antenna_spacer')]
+   -X (front)  0.062   [('PCB', 'tray')]
+   +Z (up)     0.393   [('S2', 'tray')]
+   (-Z: the board rests on the ledges at Z = 9.20 by design)
+
+Insertion path: tilt about the X axis through Y 8.80 / Z 10.70, +Y edge low, 9 -> 0 deg in 12 steps,
+  over the installed key board (pogo plungers at their free height)
+  (bottom-side parts of the main board checked against the plungers: 28)
+    9.00 deg: hits 0   components on plungers 0
+    8.25 deg: hits 0   components on plungers 0
+    7.50 deg: hits 0   components on plungers 0
+    6.75 deg: hits 0   components on plungers 0
+    6.00 deg: hits 0   components on plungers 0
+    5.25 deg: hits 0   components on plungers 0
+    4.50 deg: hits 0   components on plungers 0
+    3.75 deg: hits 0   components on plungers 0
+    3.00 deg: hits 0   components on plungers 0
+    2.25 deg: hits 0   components on plungers 0
+    1.50 deg: hits 0   components on plungers 0
+    0.75 deg: hits 0   components on plungers 0
+    0.00 deg: hits 0   components on plungers 0
+
+Wire paths (24 AWG, OD 1.05; flashka_housing.wire_corridors) against both boards, main board centred:
+   LED+ wire                      board hits 0, housing hits 0, nearest board item 0.207 mm (PCB)
+   LED- wire                      board hits 0, housing hits 0, nearest board item 0.538 mm (PCB)
+   cell wire, far end (BAT-)      board hits 0, housing hits 0, nearest board item 0.346 mm (PCB)
+   cell wire, front end (BAT+)    board hits 0, housing hits 0, nearest board item 0.077 mm (PCB)
+
+SUMMARY
+-------
+main board: collisions >= 0.01 mm^3 in the three poses: 0
+main board: contact-level slivers (< 0.01 mm^3): 2
+pogo plungers touching main-board components (not the board): 0
+key board vs housing parts: 0 collisions
+wire paths (LED wires, cell wires) hitting a board part, a housing part or the cell: 0
+insertion path: poses with a hit above 0.002 mm^3: 0; components meeting a plunger: 0

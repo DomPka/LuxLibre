@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#0b7a86">
 <title>LuxLibre - open-source flashlights</title>
-<meta name="description" content="Open-source firmware, design rules and reference designs for flashlights. Control app and firmware installer for the FlashKa Keychain v0.6.">
+<meta name="description" content="Open-source firmware, design rules and reference designs for flashlights. Control app and firmware installer for the FlashKa Keychain (v0.7 and v0.6).">
 <meta property="og:type" content="website">
 <meta property="og:title" content="LuxLibre">
 <meta property="og:description" content="Open-source firmware, design rules and reference designs for flashlights.">
@@ -106,15 +106,15 @@ a{color:var(--accent)}
   <main>
     <section class="card design" aria-labelledby="flashka-title">
       <figure class="shot">
-        <img src="img/housing_closed_bottom.png" width="800" height="466" decoding="async"
-             alt="Computer render of the FlashKa Keychain v0.6 seen from below: a black keychain light with dotted panel lines, a round button in a glowing cyan ring, two small buttons beside it and a split ring at one end.">
+        <img src="img/housing_closed_bottom.png" width="800" height="460" decoding="async"
+             alt="Computer render of the FlashKa Keychain v0.7 seen from below: a black keychain light with textured panels, a clear square key with a glowing cyan ring between two black rubber keys, and a split ring at one end.">
         <figcaption>Render &mdash; not yet built</figcaption>
       </figure>
       <div>
         <p class="kicker">Reference design</p>
-        <h2 id="flashka-title">FlashKa Keychain v0.6</h2>
-        <p class="lead">A keychain flashlight with a laser pointer, USB-C charging and Bluetooth. In presenter mode it becomes a Bluetooth keyboard that turns your slides.</p>
-        <p class="status">Designed and checked by software. The first one has not been built yet.</p>
+        <h2 id="flashka-title">FlashKa Keychain v0.7</h2>
+        <p class="lead">A keychain flashlight with a laser pointer, USB-C charging and Bluetooth. In presenter mode it becomes a Bluetooth keyboard that turns your slides. Version 0.7 is the 1000&nbsp;lm FlashKa: a TIR optic throws the beam about 160&nbsp;m (simulated), one 14500 cell powers it, the body is a faceted octagon, and the three keys sit on the centre line, a clear main key with a glowing ring between two rubber keys.</p>
+        <p class="status">Designed and checked by software; the light figures are simulated. The first one has not been built yet.</p>
       </div>
       <div class="actions">
         <div>
@@ -123,7 +123,7 @@ a{color:var(--accent)}
         </div>
         <div>
           <a class="btn" href="flashka/flashka-flasher.html" aria-describedby="need-fw">Install the firmware</a>
-          <p id="need-fw" class="need">Uses Web Serial: Chrome or Edge on a computer, with a USB-C data cable. Phones and tablets cannot do this.</p>
+          <p id="need-fw" class="need">Uses Web Serial: Chrome or Edge on a computer, with a USB-C data cable. Phones and tablets cannot do this. The installer asks whether you have a FlashKa v0.7 or v0.6.</p>
         </div>
       </div>
       <p class="demo wide"><b>Try the demo.</b> No FlashKa yet? Open the control app and press <b>Try demo mode</b>: a simulated light runs inside the page, in any browser.</p>
@@ -134,9 +134,11 @@ a{color:var(--accent)}
       <h2 id="more-title">Read more on GitHub</h2>
       <ul class="links">
         <li><a href="https://github.com/DomPka/LuxLibre"><span class="t">LuxLibre repository</span><span class="d">Firmware, documentation, tools and all design files</span></a></li>
-        <li><a href="https://github.com/DomPka/LuxLibre/tree/main/hardware/flashka-keychain-v06"><span class="t">FlashKa v0.6 design</span><span class="d">Specifications, pictures, cost, CAD, PCB and firmware</span></a></li>
+        <li><a href="https://github.com/DomPka/LuxLibre/tree/main/hardware/flashka-keychain-v07"><span class="t">FlashKa v0.7 design</span><span class="d">Specifications, pictures, cost, CAD and both circuit boards</span></a></li>
+        <li><a href="https://github.com/DomPka/LuxLibre/blob/main/hardware/flashka-keychain-v07/docs/build_guide_v0.7.md"><span class="t">Build guide</span><span class="d">Orders, casting the keys, firmware, assembly and first use of a FlashKa v0.7</span></a></li>
+        <li><a href="https://github.com/DomPka/LuxLibre/blob/main/hardware/flashka-keychain-v07/README.md#compared-with-the-rovyvon-aurora-a2"><span class="t">FlashKa vs RovyVon Aurora A2</span><span class="d">Beams, size and output over fifteen minutes, with every source</span></a></li>
         <li><a href="https://github.com/DomPka/LuxLibre/blob/main/docs/design-rules.md"><span class="t">Design rules</span><span class="d">Rules with reasons and checks for designing any flashlight</span></a></li>
-        <li><a href="https://github.com/DomPka/LuxLibre/blob/main/hardware/flashka-keychain-v06/docs/build_guide_v0.6.md"><span class="t">Build guide</span><span class="d">Orders, firmware, assembly and first use of a FlashKa v0.6</span></a></li>
+        <li><a href="https://github.com/DomPka/LuxLibre/tree/main/hardware/flashka-keychain-v06"><span class="t">FlashKa v0.6 design</span><span class="d">The previous design, with the firmware of both versions and the web pages</span></a></li>
       </ul>
     </section>
   </main>

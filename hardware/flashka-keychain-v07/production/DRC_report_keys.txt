@@ -1,0 +1,13 @@
+** Drc report for kicad/FlashKa_keys/FlashKa_keys.kicad_pcb **
+
+** Found 1 DRC violations **
+[silk_overlap]: Silkscreen overlap
+    Rule: board setup constraints silk; Severity: warning
+    @(124.9700 mm, 98.4300 mm): Line on B.Silkscreen
+    @(121.9500 mm, 98.5500 mm): Circle on B.Silkscreen
+
+** Found 0 unconnected pads **
+
+** Found 0 Footprint errors **
+
+** End of Report **

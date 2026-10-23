@@ -30,16 +30,17 @@ of every type follows from its surface area ([THM-2](design-rules.md#thm-2)): co
 ## Keychain and mini lights
 
 **Use:** always with you, short tasks, finding things in the dark. **Reference design:** the
-FlashKa ([hardware/flashka-keychain-v06/](../hardware/flashka-keychain-v06/README.md), the
-current design; [hardware/flashka-keychain-v05/](../hardware/flashka-keychain-v05/README.md),
+FlashKa ([hardware/flashka-keychain-v07/](../hardware/flashka-keychain-v07/README.md), the
+current design; [hardware/flashka-keychain-v06/](../hardware/flashka-keychain-v06/README.md),
 the previous one).
 
-- **Cells:** pouch cells, 10180, 10440 or AAA. With built-in pouch cells, plan replacement with
-  common tools ([BAT-2](design-rules.md#bat-2)) and add a protection circuit
-  ([BAT-3](design-rules.md#bat-3)).
-- **Heat:** a very small surface. The FlashKa (about 68 cm²) can lose roughly 1.7 W at a 23 K
-  rise, so its turbo is a burst and its sustained output is in the low hundreds of lumens
-  (simulated: about 250 lm at the limit).
+- **Cells:** pouch cells, 10180, 10440 or AAA, or in a longer body a 14500 (FlashKa v0.7 has one
+  Vapcell INR14500 F15). With built-in cells, plan replacement with common tools
+  ([BAT-2](design-rules.md#bat-2)) and add a protection circuit ([BAT-3](design-rules.md#bat-3)).
+- **Heat:** a very small surface. The FlashKa (about 69 cm² of aluminium) can lose roughly 1.7 W
+  at a 23 K rise, so its turbo is a burst and its sustained output is in the low hundreds of
+  lumens (simulated for FlashKa v0.7 with its TIR optic: about 1,000 lm for about 58 s, then
+  about 280 lm out of the front).
 - **Parts:** small efficient LEDs (SST-20, 519A), a buck driver or linear regulator, an MCU that
   sleeps at a few microamps: the standby budget is tiny (33 µA for 800 mAh,
   [BAT-6](design-rules.md#bat-6)).

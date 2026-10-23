@@ -3,6 +3,7 @@
 firmware/build/
 firmware/ports/esp32c3/build/
 firmware/ports/esp32c3/build-v06/
+firmware/ports/esp32c3/build-v07/
 firmware/ports/esp32c3/sdkconfig
 firmware/ports/esp32c3/sdkconfig.old
 firmware/ports/esp32c3/managed_components/
@@ -12,6 +13,8 @@ hardware/*/firmware/target/
 _site/
 # also hardware/*/tools/web/node_modules/
 node_modules/
+# web test runs (hardware/*/tools/web/.test-output/)
+.test-output/
 __pycache__/
 .fk_cache/
 *.pyc

@@ -4,12 +4,21 @@
 //   state machine:  idle -> connecting -> connected -> installing -> done
 //                              \-> error  <------------------------/        (any failure; "Try again" starts at idle)
 //
-// All talking to the chip is in backend.js; this file only does the interface: the four numbered steps, the
-// firmware card, the progress bar, the error card, the "use another .bin" panel and the log.
+// All talking to the chip is in backend.js; this file only does the interface: the board choice, the four numbered
+// steps, the firmware card, the progress bar, the error card, the "use another .bin" panel and the log.
+//
+// Two FlashKa boards, two firmware images in the page. Each firmware sets the LED current with its own board's current
+// scale and limits: the v0.7 firmware runs the LED up to 2.85 A and lets up to 3.0 A flow from the v0.7's 14500 cell
+// (rated 3 A), more than the cells of a v0.6 are rated for; the v0.6 firmware would drive a v0.7's LED about 10 % above every
+// set point (a Custom turbo of 3000 mA would become 3.3 A, above the LED's 3.0 A rating). So nothing can be installed
+// before the person has said which FlashKa they have, and the page refuses (or asks for an explicit confirmation) when
+// the image or the firmware already on the flashlight belongs to the other board.
 
 import { createEspBackend } from './backend.js';
 import { explainError } from './friendly.js';
-import { inspectImage, formatBytes, base64ToBytes, sha256hex, versionFromFileName } from './image.js';
+import {
+  inspectImage, formatBytes, base64ToBytes, sha256hex, versionFromFileName, BOARDS, boardById, boardLabel, readAppDescriptor
+} from './image.js';
 
 /** @param {string} id @returns {HTMLElement} */
 function $(id) {
@@ -26,6 +35,7 @@ const smooth = () => (window.matchMedia && window.matchMedia('(prefers-reduced-m
 
 /**
  * @typedef {import('./image.js').ImageInfo} ImageInfo
+ * @typedef {'v07' | 'v06'} BoardId
  * @typedef {Object} Firmware
  * @property {'embedded' | 'custom'} source
  * @property {string} name        file name
@@ -35,6 +45,7 @@ const smooth = () => (window.matchMedia && window.matchMedia('(prefers-reduced-m
  * @property {string | null} sha256     null when this browser has no WebCrypto
  * @property {boolean | null} fingerprintOk  embedded only: the bytes match the fingerprint stored by the build
  * @property {ImageInfo} info
+ * @property {BoardId | null} board     the FlashKa board named by the image's app descriptor (null: not FlashKa firmware)
  *
  * @typedef {'idle' | 'connecting' | 'connected' | 'installing' | 'done' | 'error'} State
  */
@@ -43,11 +54,13 @@ const S = {
   /** @type {State} */ state: 'idle',
   /** @type {'connect' | 'install'} */ stage: 'connect',
   /** @type {import('./backend.js').ConnectResult | null} */ device: null,
-  /** @type {Firmware | null} */ firmware: null,
-  /** @type {Firmware | null} */ embedded: null,
-  placeholder: false,
-  damaged: '',
+  /** the person's answer to "Which FlashKa do you have?" @type {BoardId | null} */ board: null,
+  /** @type {Record<BoardId, Firmware | null>} */ embedded: { v07: null, v06: null },
+  /** @type {Record<BoardId, boolean>} */ placeholder: { v07: false, v06: false },
+  /** @type {Record<BoardId, string>} */ damaged: { v07: '', v06: '' },
+  /** a file chosen under "Advanced" @type {Firmware | null} */ custom: null,
   ack: false,
+  /** the person confirmed the board although the flashlight runs the other board's firmware */ boardAck: false,
   /** @type {import('./friendly.js').Explained | null} */ error: null,
   notice: '',
   connectMessage: '',
@@ -57,6 +70,11 @@ const S = {
   /** @type {any} */ wake: null,
   titleBefore: document.title
 };
+
+/** The firmware Install would write: the person's own file, else the one included for the chosen board. */
+function firmware() {
+  return S.custom || (S.board ? S.embedded[S.board] : null);
+}
 
 /* ------------------------------------------------------------------------------------------------------------ *
  * log
@@ -128,15 +146,17 @@ function supportProblem() {
  */
 async function makeFirmware(p) {
   const sha256 = await sha256hex(p.bytes);
+  const app = readAppDescriptor(p.bytes);
   return {
     source: p.source,
     name: p.name,
-    version: p.version,
+    version: p.version || (app.found && app.version ? app.version : null),
     bytes: p.bytes,
     size: p.bytes.length,
     sha256,
     fingerprintOk: p.expectedSha && sha256 ? sha256 === p.expectedSha : null,
-    info: inspectImage(p.bytes)
+    info: inspectImage(p.bytes),
+    board: /** @type {BoardId | null} */ (app.board)
   };
 }
 
@@ -145,38 +165,63 @@ async function loadEmbedded() {
   try {
     meta = JSON.parse($('firmware-data').textContent || '');
   } catch (e) {
-    S.damaged = 'Its data cannot be read.';
+    for (const b of BOARDS) S.damaged[/** @type {BoardId} */ (b.id)] = 'Its data cannot be read.';
     return;
   }
-  if (meta.placeholder) {
-    S.placeholder = true;
-    return;
+  for (const b of BOARDS) {
+    const id = /** @type {BoardId} */ (b.id);
+    const d = meta && meta.boards ? meta.boards[id] : null;
+    if (!d || d.placeholder) {
+      S.placeholder[id] = true;
+      continue;
+    }
+    let bytes;
+    try {
+      bytes = base64ToBytes(String(d.base64 || ''));
+    } catch (e) {
+      S.damaged[id] = 'Its data cannot be decoded.';
+      continue;
+    }
+    if (bytes.length !== d.size) {
+      S.damaged[id] = `Its size is ${bytes.length} bytes instead of ${d.size}.`;
+      continue;
+    }
+    const fw = await makeFirmware({ source: 'embedded', name: String(d.fileName || 'firmware.bin'), version: d.version || null, bytes, expectedSha: d.sha256 });
+    if (fw.fingerprintOk === false) {
+      S.damaged[id] = 'Its SHA-256 fingerprint does not match.';
+      continue;
+    }
+    if (fw.board !== id) {
+      S.damaged[id] = `It is not the ${b.title} firmware.`;
+      continue;
+    }
+    S.embedded[id] = fw;
   }
-  let bytes;
-  try {
-    bytes = base64ToBytes(String(meta.base64 || ''));
-  } catch (e) {
-    S.damaged = 'Its data cannot be decoded.';
-    return;
-  }
-  if (bytes.length !== meta.size) {
-    S.damaged = `Its size is ${bytes.length} bytes instead of ${meta.size}.`;
-    return;
-  }
-  const fw = await makeFirmware({ source: 'embedded', name: String(meta.fileName || 'firmware.bin'), version: meta.version || null, bytes, expectedSha: meta.sha256 });
-  if (fw.fingerprintOk === false) {
-    S.damaged = 'Its SHA-256 fingerprint does not match.';
-    return;
-  }
-  S.embedded = fw;
-  S.firmware = fw;
 }
 
-/** The firmware can be installed (valid, and any warning has been acknowledged). */
+/**
+ * What stands between the chosen board and an install, if anything.
+ * 'image': the firmware to be written is made for the other board (refused; choose the other board or file).
+ * 'installed': the flashlight runs the other board's firmware (allowed only after an explicit confirmation).
+ * @returns {{ kind: 'image' | 'installed', other: BoardId } | null}
+ */
+function boardConflict() {
+  const f = firmware();
+  if (!S.board) return null;
+  if (f && f.board && f.board !== S.board) return { kind: 'image', other: f.board };
+  const inst = S.device && S.device.installed;
+  if (inst && inst.found && inst.board && inst.board !== S.board) return { kind: 'installed', other: /** @type {BoardId} */ (inst.board) };
+  return null;
+}
+
+/** The firmware can be installed: a board is chosen, the image is valid and belongs to it, warnings acknowledged. */
 function canInstall() {
-  const f = S.firmware;
-  if (!f || !f.info.ok) return false;
+  const f = firmware();
+  if (!S.board || !f || !f.info.ok) return false;
   if (f.source === 'custom' && f.info.warnings.length > 0 && !S.ack) return false;
+  const c = boardConflict();
+  if (c && c.kind === 'image') return false;
+  if (c && c.kind === 'installed' && !S.boardAck) return false;
   return true;
 }
 
@@ -208,20 +253,50 @@ function line(el, text, cls) {
   el.appendChild(d);
 }
 
+/** The board cards of step 1: which one is chosen, what each page slot holds. */
+function renderBoards() {
+  for (const b of BOARDS) {
+    const id = /** @type {BoardId} */ (b.id);
+    const radio = input('board-' + id);
+    radio.checked = S.board === id;
+    radio.disabled = S.state === 'installing';
+    radio.closest('label')?.classList.toggle('chosen', S.board === id);
+    const fw = S.embedded[id];
+    $('board-fw-' + id).textContent = fw && fw.version
+      ? `Firmware ${fw.version} is included`
+      : S.placeholder[id] ? 'No firmware for it in this page' : 'Its firmware in this page is damaged';
+  }
+  const chosen = S.board ? boardById(S.board) : null;
+  $('board-status').textContent = chosen
+    ? `✓ ${boardLabel(chosen.id)}. The page installs only the firmware made for it.`
+    : 'Choose your FlashKa: nothing can be installed before that.';
+  $('board-status').className = 'status' + (chosen ? ' ok' : '');
+}
+
 function renderFirmware() {
-  const f = S.firmware;
+  const f = firmware();
   const tag = $('fw-tag');
   const check = $('fw-check');
   check.textContent = '';
+  $('fw-board').textContent = S.board ? boardLabel(S.board) : 'Not chosen yet (step 1)';
   if (!f) {
-    $('fw-name').textContent = S.placeholder ? 'None included in this page' : 'Not available';
+    tag.hidden = true;
     $('fw-size').textContent = '-';
     $('fw-sha').textContent = '-';
-    tag.hidden = true;
-    line(check, S.placeholder ? 'Nothing to install yet (placeholder build).' : 'The firmware inside this page is damaged.', 'badtxt');
+    if (!S.board) {
+      $('fw-name').textContent = 'Choose your FlashKa first (step 1)';
+      line(check, 'The page has firmware for both boards and installs the one you choose.');
+    } else if (S.placeholder[S.board]) {
+      $('fw-name').textContent = 'None included in this page';
+      line(check, 'Nothing to install yet (placeholder build).', 'badtxt');
+    } else {
+      $('fw-name').textContent = 'Not available';
+      line(check, 'The firmware inside this page is damaged.', 'badtxt');
+    }
     return;
   }
-  $('fw-name').textContent = f.source === 'embedded' && f.version ? `FlashKa firmware v${f.version}` : f.name;
+  const forBoard = f.board ? ` for ${boardById(f.board)?.title}` : '';
+  $('fw-name').textContent = (f.source === 'embedded' || f.board) && f.version ? `FlashKa firmware v${f.version}${forBoard}` : f.name;
   tag.hidden = false;
   tag.textContent = f.source === 'embedded' ? 'included in this page' : 'your own file';
   tag.classList.toggle('custom', f.source === 'custom');
@@ -229,12 +304,57 @@ function renderFirmware() {
   $('fw-sha').textContent = f.sha256 || 'not available in this browser';
   if (f.fingerprintOk === true) line(check, '✓ The fingerprint matches: the file is intact.', 'good');
   if (f.info.ok && f.info.merged) line(check, '✓ A complete image for an ESP32-C3.', 'good');
+  if (S.board && f.board === S.board) line(check, `✓ Made for ${boardById(S.board)?.title}, the board you chose.`, 'good');
   for (const w of f.info.warnings) line(check, '! ' + w);
   for (const e of f.info.errors) line(check, '✗ ' + e, 'badtxt');
 }
 
+/** The box above the firmware card: the firmware on the flashlight now, and any conflict with the chosen board. */
+function renderBoardCheck() {
+  const box = $('board-check');
+  const msg = $('board-check-text');
+  const c = boardConflict();
+  const inst = S.device && (S.state === 'connected' || S.state === 'installing' || S.state === 'done') ? S.device.installed : undefined;
+  let text = '';
+  let cls = 'filecheck';
+  if (c && c.kind === 'image') {
+    const chosen = boardById(/** @type {string} */ (S.board));
+    const other = boardById(c.other);
+    text = `This file is the firmware for ${other?.title}, but you chose ${chosen?.title}. It cannot be installed on a ${chosen?.title}: ` +
+      `the firmware sets the LED current for its own board. Choose ${boardLabel(c.other)} in step 1 if that is your flashlight, or use the firmware included in this page.`;
+    cls += ' bad';
+  } else if (inst !== undefined && S.board) {
+    const chosen = boardById(S.board);
+    if (inst === null) {
+      text = `The firmware on this flashlight could not be checked. Make sure it really is a ${boardLabel(S.board)}.`;
+    } else if (!inst.found) {
+      text = `No firmware was found on this flashlight (new or erased). Make sure it is a ${boardLabel(S.board)}.`;
+    } else if (!inst.board) {
+      text = `This flashlight runs other firmware (${inst.project || 'unknown'} ${inst.version || ''}). Make sure it is a ${boardLabel(S.board)}.`.replace(' )', ')');
+    } else if (c && c.kind === 'installed') {
+      const other = boardById(c.other);
+      text = `This flashlight runs FlashKa firmware ${inst.version}, which is made for ${other?.title} (${other?.hint}). You chose ${chosen?.title}. ` +
+        `If it is a ${other?.title}, choose it in step 1: the ${chosen?.title} firmware sets the LED current for another board (it can overload the battery of a v0.6 or drive the LED of a v0.7 above its rating). ` +
+        `Install the ${chosen?.title} firmware only if you have checked that this flashlight is a ${boardLabel(S.board)}.`;
+      cls += ' warn';
+    } else {
+      text = `This flashlight runs FlashKa firmware ${inst.version} for ${chosen?.title}: it matches your choice.`;
+      cls += ' okbox';
+    }
+  }
+  box.hidden = !text;
+  box.className = cls;
+  msg.textContent = text;
+  const needAck = !!(c && c.kind === 'installed');
+  if (!needAck) S.boardAck = false;
+  $('board-ack-row').hidden = !needAck;
+  $('board-ack-text').textContent = needAck && S.board ? `I have checked: this flashlight is a ${boardLabel(S.board)}. Install its firmware anyway.` : '';
+  input('board-ack').checked = S.boardAck;
+  input('board-ack').disabled = S.state === 'installing';
+}
+
 function renderCustomPanel() {
-  const f = S.firmware && S.firmware.source === 'custom' ? S.firmware : null;
+  const f = S.custom;
   const report = $('file-report');
   report.hidden = !f;
   report.className = 'filecheck';
@@ -245,16 +365,19 @@ function renderCustomPanel() {
       report.classList.add('bad');
       line(report, 'This file cannot be installed:');
       for (const e of f.info.errors) line(report, '✗ ' + e);
+    } else if (f.board && S.board && f.board !== S.board) {
+      report.classList.add('bad');
+      line(report, `✗ This is the firmware for ${boardLabel(f.board)}; you chose ${boardById(S.board)?.title} in step 1.`);
     } else if (f.info.warnings.length) {
       report.classList.add('warn');
       for (const w of f.info.warnings) line(report, '! ' + w);
     } else {
-      line(report, '✓ Looks like a complete firmware image for an ESP32-C3.', 'good');
+      line(report, '✓ Looks like a complete firmware image for an ESP32-C3.' + (f.board ? ` It is FlashKa firmware ${f.version} for ${boardById(f.board)?.title}.` : ''), 'good');
     }
   }
   $('file-ack-row').hidden = !(f && f.info.ok && f.info.warnings.length > 0);
   input('file-ack').checked = S.ack;
-  button('btn-use-embedded').hidden = !(f && S.embedded);
+  button('btn-use-embedded').hidden = !f;
 }
 
 function render() {
@@ -264,12 +387,14 @@ function render() {
 
   /* steps */
   const sup = !!navigator.serial;
+  stepStatus('step-board', S.board ? 'done' : 'active');
   stepStatus('step-1', st === 'idle' || st === 'connecting' || st === 'error' ? 'active' : 'done');
   stepStatus('step-2', st === 'connected' || st === 'installing' || st === 'done' ? 'done' : st === 'error' && S.stage === 'connect' ? 'error' : 'active');
   stepStatus('step-3', st === 'done' ? 'done' : st === 'error' && S.stage === 'install' ? 'error' : st === 'connected' || st === 'installing' ? 'active' : 'todo');
   stepStatus('step-4', st === 'done' ? 'active' : 'todo');
+  renderBoards();
 
-  /* step 2 */
+  /* Connect (id step-2, shown as step 3) */
   const connect = button('btn-connect');
   connect.disabled = !sup || st === 'connecting' || st === 'connected' || st === 'installing';
   connect.classList.toggle('busy', st === 'connecting');
@@ -285,7 +410,7 @@ function render() {
   $('connect-extra').hidden = st !== 'connected';
   button('btn-showall').disabled = !sup || st === 'connecting' || st === 'installing';
 
-  /* step 3 */
+  /* Install (id step-3, shown as step 4) */
   const install = button('btn-install');
   install.disabled = !(st === 'connected' && canInstall());
   install.classList.toggle('busy', st === 'installing');
@@ -311,7 +436,7 @@ function render() {
     installStatus.textContent = `✓ ${formatBytes(S.result.bytes)} written in ${Math.round(S.result.seconds)} seconds. The data on the flashlight was compared with the file and is identical.`;
   } else installStatus.textContent = '';
 
-  /* step 4 */
+  /* Done (id step-4, shown as step 5) */
   $('done-actions').hidden = st !== 'done';
 
   /* problem */
@@ -334,11 +459,16 @@ function render() {
     button('btn-error-showall').hidden = !e.showAllPorts;
   }
 
-  /* firmware banners and panels */
-  $('placeholder-banner').hidden = !S.placeholder;
-  $('damaged-banner').hidden = !S.damaged;
-  $('damaged-text').textContent = S.damaged;
+  /* firmware banners and panels: about the chosen board's slot (or every slot, before a choice) */
+  const slots = S.board ? [S.board] : /** @type {BoardId[]} */ (BOARDS.map((b) => b.id));
+  const noFirmware = !S.custom && slots.every((id) => S.placeholder[id]);
+  $('placeholder-banner').hidden = !noFirmware;
+  $('placeholder-what').textContent = S.board ? `firmware for ${boardById(S.board)?.title}` : 'firmware';
+  const damaged = S.board && !S.custom ? S.damaged[S.board] : '';
+  $('damaged-banner').hidden = !damaged;
+  $('damaged-text').textContent = damaged;
   renderFirmware();
+  renderBoardCheck();
   renderCustomPanel();
 }
 
@@ -352,6 +482,15 @@ function setState(state) {
  * actions
  * ------------------------------------------------------------------------------------------------------------ */
 
+/** @param {BoardId} id */
+function chooseBoard(id) {
+  if (S.state === 'installing' || !boardById(id)) return;
+  if (S.board !== id) pageLog('Board: ' + boardLabel(id));
+  S.board = id;
+  S.boardAck = false;
+  render();
+}
+
 /** @param {{ showAll: boolean }} opts */
 async function onConnect(opts) {
   if (S.state === 'connecting' || S.state === 'installing' || !navigator.serial) return;
@@ -360,6 +499,7 @@ async function onConnect(opts) {
   S.notice = '';
   S.result = null;
   S.device = null;
+  S.boardAck = false;
   S.connectMessage = 'Choose the flashlight in the pop-up window...';
   pageLog(`Connect${opts.showAll ? ' (all serial ports)' : ''}`);
   setState('connecting');
@@ -371,7 +511,9 @@ async function onConnect(opts) {
         render();
       }
     });
-    pageLog('Connected: ' + S.device.description);
+    const inst = S.device.installed;
+    pageLog('Connected: ' + S.device.description + '; installed firmware: ' +
+      (inst === null ? 'could not be read' : !inst.found ? 'none' : `${inst.project} ${inst.version}` + (inst.board ? ` (${boardLabel(inst.board)})` : '')));
     setState('connected');
     $('step-3').scrollIntoView({ block: 'nearest', behavior: smooth() });
   } catch (e) {
@@ -410,14 +552,15 @@ async function keepAwake(on) {
 }
 
 async function onInstall() {
-  const fw = S.firmware;
+  const fw = firmware();
   if (S.state !== 'connected' || !fw || !canInstall()) return;
   S.stage = 'install';
   S.error = null;
   S.result = null;
   S.phase = input('chk-erase').checked ? 'erasing' : 'preparing';
   S.fraction = 0;
-  pageLog(`Install ${fw.name} (${fw.size} bytes)${input('chk-erase').checked ? ' with factory reset' : ''}`);
+  pageLog(`Install ${fw.name} (${fw.size} bytes) on a ${boardLabel(/** @type {string} */ (S.board))}` +
+    `${S.boardAck ? ' (confirmed by the person although the flashlight ran the other board\'s firmware)' : ''}${input('chk-erase').checked ? ' with factory reset' : ''}`);
   setState('installing');
   window.addEventListener('beforeunload', leaveGuard);
   S.titleBefore = document.title;
@@ -456,19 +599,19 @@ async function onFileChosen() {
   if (!file) return;
   S.ack = false;
   if (file.size > 20 * 1024 * 1024) {
-    S.firmware = { source: 'custom', name: file.name, version: null, bytes: new Uint8Array(0), size: file.size, sha256: null, fingerprintOk: null, info: inspectImage(new Uint8Array(0)) };
-    S.firmware.info.errors = ['The file is far larger than any firmware for this flashlight.'];
+    S.custom = { source: 'custom', name: file.name, version: null, bytes: new Uint8Array(0), size: file.size, sha256: null, fingerprintOk: null, info: inspectImage(new Uint8Array(0)), board: null };
+    S.custom.info.errors = ['The file is far larger than any firmware for this flashlight.'];
     render();
     return;
   }
   const bytes = new Uint8Array(await file.arrayBuffer());
-  S.firmware = await makeFirmware({ source: 'custom', name: file.name, version: versionFromFileName(file.name), bytes });
-  pageLog(`Chose ${file.name}: ${formatBytes(bytes.length)}, ${S.firmware.info.ok ? 'accepted' : 'rejected'}`);
+  S.custom = await makeFirmware({ source: 'custom', name: file.name, version: versionFromFileName(file.name), bytes });
+  pageLog(`Chose ${file.name}: ${formatBytes(bytes.length)}, ${S.custom.info.ok ? 'accepted' : 'rejected'}` + (S.custom.board ? ` (FlashKa firmware for ${boardLabel(S.custom.board)})` : ''));
   render();
 }
 
 function useEmbeddedAgain() {
-  S.firmware = S.embedded;
+  S.custom = null;
   S.ack = false;
   input('file-input').value = '';
   render();
@@ -495,6 +638,9 @@ async function copyLog() {
  * ------------------------------------------------------------------------------------------------------------ */
 
 async function init() {
+  for (const b of BOARDS) {
+    input('board-' + b.id).addEventListener('change', () => chooseBoard(/** @type {BoardId} */ (b.id)));
+  }
   button('btn-connect').addEventListener('click', () => onConnect({ showAll: false }));
   button('btn-showall').addEventListener('click', () => onConnect({ showAll: true }));
   button('btn-error-showall').addEventListener('click', () => onConnect({ showAll: true }));
@@ -502,12 +648,13 @@ async function init() {
   button('btn-install').addEventListener('click', onInstall);
   button('btn-disconnect').addEventListener('click', onDisconnect);
   button('btn-again').addEventListener('click', () => {
-    S.result = null; S.device = null; S.notice = ''; S.phase = ''; S.fraction = 0;
+    S.result = null; S.device = null; S.notice = ''; S.phase = ''; S.fraction = 0; S.boardAck = false;
     setState('idle');
     window.scrollTo({ top: 0, behavior: smooth() });
   });
   input('file-input').addEventListener('change', onFileChosen);
   input('file-ack').addEventListener('change', () => { S.ack = input('file-ack').checked; render(); });
+  input('board-ack').addEventListener('change', () => { S.boardAck = input('board-ack').checked; render(); });
   button('btn-use-embedded').addEventListener('click', useEmbeddedAgain);
   button('btn-copy-log').addEventListener('click', copyLog);
 
@@ -518,8 +665,13 @@ async function init() {
     $('unsupported-reason').textContent = problem.reason;
   }
   await loadEmbedded();
-  pageLog(S.placeholder ? 'Placeholder build: no firmware inside.' : S.embedded ? `Firmware in this page: ${S.embedded.name}, ${S.embedded.size} bytes, SHA-256 ${S.embedded.sha256 || 'n/a'}` : 'Firmware in this page: damaged (' + S.damaged + ')');
-  $('foot-text').textContent = 'FlashKa firmware installer' + (S.embedded && S.embedded.version ? ' · firmware v' + S.embedded.version : '');
+  for (const b of BOARDS) {
+    const id = /** @type {BoardId} */ (b.id);
+    const fw = S.embedded[id];
+    pageLog(`${b.title} firmware in this page: ` + (S.placeholder[id] ? 'none (placeholder build)' : fw ? `${fw.name}, ${fw.size} bytes, SHA-256 ${fw.sha256 || 'n/a'}` : 'damaged (' + S.damaged[id] + ')'));
+  }
+  const versions = BOARDS.map((b) => S.embedded[/** @type {BoardId} */ (b.id)]).filter((f) => f && f.version).map((f) => `v${f?.version} (${boardById(/** @type {string} */ (f?.board))?.title})`);
+  $('foot-text').textContent = 'FlashKa firmware installer' + (versions.length ? ' · firmware ' + versions.join(', ') : '');
   render();
   /* for the automated tests and for debugging in the console */
   /** @type {any} */ (window).__flasher = { state: S, backend };

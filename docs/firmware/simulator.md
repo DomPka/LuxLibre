@@ -55,7 +55,7 @@ The last argument is a time line of button presses and events, separated by spac
 
 | Option | Meaning |
 |---|---|
-| `--preset keychain` / `--preset 18650` | body and cell model (table below); default keychain |
+| `--preset keychain` / `--preset 18650` / `--preset board` | body and cell model (table below); default keychain, or `board` when the board header has a model of its own |
 | `--ambient C` | ambient temperature at the start (default 25 °C) |
 | `--soc 0..1` | state of charge at the start (default 1.0 = full) |
 | `--capacity mAh` | cell capacity |
@@ -100,6 +100,40 @@ make sim BOARD=example-ch32v003-buck
 build/luxsim-example-ch32v003-buck --preset 18650 --set TURBO_S=0 "2C W600000"
 ```
 
+A header can also describe its own body, cell and LED: the `board` preset. The `LX_SIM_` macros
+go together, and a header that has them gets `board` as its default preset. The flux table and
+the optic factor are optional; whatever the header does not describe keeps the keychain value:
+
+| Macro | Meaning |
+|---|---|
+| `LX_SIM_CAPACITY_MAH`, `LX_SIM_RINT_MOHM` | cell capacity and resistance of the whole cell path |
+| `LX_SIM_C_HEAD_MJ`, `LX_SIM_C_BODY_MJ` | heat capacities of head and body, mJ/K |
+| `LX_SIM_R_HEAD_BODY_MK`, `LX_SIM_R_BODY_AMB_MK` | head to body and body to air, mK/W |
+| `LX_SIM_SENSOR_TAU_MS` | sensor lag |
+| `LX_SIM_OCV_V` | optional: the cell's own open-circuit curve, 13 values in V at 0, 3, 5, 10, 20, 30 ... 100 % (default: the built-in NMC curve) |
+| `LX_SIM_DROP_MOHM` | optional: resistance from the battery (under load) to the LED when the driver runs at 100 % duty, mΩ; the LED current is then at most (V - Vf0) / (Rs + this), so the light dims as the cell sags (default: not modelled) |
+| `LX_LED_LM_MA`, `LX_LED_LM` | flux table of the LED: currents in mA and lumens at the LED (the datasheet's rating temperature), same number of points |
+| `LX_OPTIC_PCT` | part of the light that leaves the front (optic, window), in % |
+
+The FlashKa Keychain v0.7 header
+([boards/flashka-keychain-v07/board.h](../../firmware/boards/flashka-keychain-v07/board.h))
+has all of them, from the housing CAD and the LED and optic datasheets:
+
+```sh
+make sim BOARD=flashka-keychain-v07
+build/luxsim-flashka-keychain-v07 --csv v07.csv "2C W3600000"
+```
+
+```text
+simulated 3602.7 s
+peak output       1111 lm
+output at 30 s    1111 lm   (ANSI FL 1 measures from 30 s)
+output at 120 s    545 lm
+peak sensor       51.0 degC
+final           level 123, 349 lm, 50.1 degC, 3.67 V, 58 %
+(lumens are at the LED; out of the front x 0.87: peak 966 lm, final 304 lm)
+```
+
 The simulated light has one button. On a board with several buttons on one pin (a resistor
 ladder, such as the FlashKa Keychain v0.6) it is the main button: the ESP32-C3 port ignores the
 others ([porting.md](porting.md#resistor-ladder-buttons-esp32-c3)).
@@ -111,8 +145,9 @@ down, the low-voltage protection must end in a cut-off, and the settled temperat
 ## The log and plots
 
 The CSV has one row per 100 ms with the columns `t_s`, `level`, `led_A`, `lumens`,
-`T_sensor_C`, `T_body_C`, `V_pack`, `SoC_pct` and `laser`. Open it in a spreadsheet, or plot
-output and temperature with:
+`T_sensor_C`, `T_body_C`, `V_pack`, `SoC_pct`, `laser` and `lumens_front` (the light out of the
+front: `lumens` times the optic factor of the board header, the same as `lumens` without one).
+Open it in a spreadsheet, or plot output and temperature with:
 
 ```sh
 python3 tools/plot_sim.py turbo.png turbo.csv:"Keychain" --limit 50
@@ -127,27 +162,30 @@ can be plotted next to a simulation ([testing.md](../testing.md#output-and-runti
 
 ## The models
 
-| | keychain preset | 18650 preset |
-|---|---|---|
-| Cell | 800 mAh, 0.12 Ω | 3000 mAh, 0.05 Ω |
-| LED at level 150 | 2.2 A | 5.0 A |
-| LED voltage | 2.75 V + 0.15 Ω × I | 2.80 V + 0.10 Ω × I |
-| Driver efficiency | 90 % | 90 % |
-| Light | 400 lm/A, droop 5 %/A | 380 lm/A, droop 3 %/A |
-| Head: heat capacity | 8 J/K | 20 J/K |
-| Body: heat capacity | 19 J/K | 52 J/K |
-| Head to body | 2.0 K/W | 1.0 K/W |
-| Body to air | 13 K/W (about 68 cm², h ≈ 11 W/m²K) | 8.5 K/W |
-| Sensor lag | 4 s | 3 s |
-| Sensor noise | 0.2 °C peak | 0.2 °C peak |
+| | keychain preset | 18650 preset | FlashKa v0.7 header (`board`) |
+|---|---|---|---|
+| Cell | 800 mAh, 0.12 Ω | 3000 mAh, 0.05 Ω | one 14500 cell (Vapcell F15): 1500 mAh, 0.132 Ω, its own curve (3.68 V at 50 %); driver headroom 0.128 Ω |
+| LED at level 150 | 2.2 A | 5.0 A | 2.85 A |
+| LED voltage | 2.75 V + 0.15 Ω × I | 2.80 V + 0.10 Ω × I | 2.80 V + 0.15 Ω × I |
+| Driver efficiency | 90 % | 90 % | 87 % |
+| Light | 400 lm/A, droop 5 %/A | 380 lm/A, droop 3 %/A | flux table (SST-20 Gen 2 at Tj 85 °C), optic 87 % |
+| Head: heat capacity | 8 J/K | 20 J/K | 7.06 J/K |
+| Body: heat capacity | 19 J/K | 52 J/K | 21.07 J/K (the cell's 22 J/K, weakly coupled, is not in this model) |
+| Head to body | 2.0 K/W | 1.0 K/W | 2.2 K/W |
+| Body to air | 13 K/W (about 68 cm², h ≈ 11 W/m²K) | 8.5 K/W | 13.2 K/W (68.9 cm² of aluminium, h ≈ 11 W/m²K) |
+| Sensor lag | 4 s | 3 s | 4 s |
+| Sensor noise | 0.2 °C peak | 0.2 °C peak | 0.2 °C peak |
 
 - **Cell:** open-circuit voltage from a typical NMC curve (4.20 V full, 3.30 V at 3 %, 2.70 V
-  empty) times the number of cells, minus the internal resistance times the current; the charge
-  is counted in mAh.
+  empty) or the header's own (`LX_SIM_OCV_V`) times the number of cells, minus the internal
+  resistance times the current; the charge is counted in mAh. With `LX_SIM_DROP_MOHM` the driver
+  runs out of headroom when the cell sags: the LED gets less than the set current.
 - **LED and driver:** the current is the output fraction times the full-scale current; LED
   power = current × (Vf0 + Rs × current); input power = LED power / efficiency.
 - **Light:** lumens = current × lm/A × (1 - droop × current) × (1 - 0.003 per °C above 25 °C at
-  the head).
+  the head). With a flux table (`LX_LED_LM_MA`, `LX_LED_LM`) the lumens are straight lines
+  between its points instead, at the table's rating temperature (no temperature factor); the
+  light out of the front is that times the optic factor.
 - **Heat:** the input power minus 30 % of the LED power (the light that leaves) heats the head;
   heat flows to the body and from the body to the air (convection plus radiation as one
   resistance, [THM-2](../design-rules.md#thm-2)).

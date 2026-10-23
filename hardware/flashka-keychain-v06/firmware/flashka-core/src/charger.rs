@@ -2,7 +2,7 @@
 //! TP4057 charge control through GPIO20 (CHG_SET) and USB detection through
 //! the CHRG (GPIO4) / STDBY (GPIO5) open-drain status outputs.
 //!
-//! CHG_SET: output LOW = ~280 mA, INPUT (floating) = 10 mA trickle through the
+//! CHG_SET: output LOW = ~280 mA (v0.7 ~490 mA), INPUT (floating) = 10 mA trickle through the
 //! 100 k to GND, output HIGH = charger off. HIGH is only driven while USB
 //! power is present.
 //!
@@ -23,7 +23,7 @@ use crate::hw::TempReading;
 pub enum ChargePin {
     /// Input, no pull: 10 mA trickle (also the state without firmware).
     Float,
-    /// Output low: fast charge (~280 mA).
+    /// Output low: fast charge (~280 mA; v0.7 ~490 mA).
     Low,
     /// Output high: charger off. Only while USB is present.
     High,

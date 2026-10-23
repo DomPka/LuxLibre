@@ -1,14 +1,18 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
 # ESP32-C3 port (experimental)
 
-LuxLibre on the Espressif ESP32-C3, written for ESP-IDF 5.x and the two FlashKa keychain boards:
+LuxLibre on the Espressif ESP32-C3, written for ESP-IDF 5.x and the FlashKa keychain boards:
 v0.5 ([../../boards/flashka-keychain-v05/board.h](../../boards/flashka-keychain-v05/board.h))
-with one button, and v0.6 ([../../boards/flashka-keychain-v06/board.h](../../boards/flashka-keychain-v06/board.h))
+with one button, v0.6 ([../../boards/flashka-keychain-v06/board.h](../../boards/flashka-keychain-v06/board.h))
 with three buttons on a resistor ladder, of which LuxLibre uses the main one
-([below](#resistor-ladder-buttons-flashka-v06)).
+([below](#resistor-ladder-buttons-flashka-v06)), and v0.7
+([../../boards/flashka-keychain-v07/board.h](../../boards/flashka-keychain-v07/board.h)): the v0.6
+pins and ladder with a stronger LED driver (3552 mA at full duty; LuxLibre's level 150 is
+2850 mA, so the LED never gets more than its 3.0 A rating) and one 14500 Li-ion cell (Vapcell
+F15, 1500 mAh).
 
 **Status:** experimental. The port is written against the ESP-IDF 5.x API and has been checked
-against declarations of that API; the GitHub workflow builds it for both boards in the
+against declarations of that API; the GitHub workflow builds it for every FlashKa board in the
 `espressif/idf` container once the repository is published, as a job that may fail until it has
 passed once. It has not been compiled with ESP-IDF itself or run on a FlashKa yet. **The
 resistor-ladder path for v0.6 is untested on hardware** as well; check it with the
@@ -16,7 +20,8 @@ resistor-ladder path for v0.6 is untested on hardware** as well; check it with t
 tests ([docs/testing.md](../../../docs/testing.md)), the original FlashKa firmware (written in
 Rust, with the Bluetooth app and deep sleep, on v0.6 also the presenter mode) stays the reference
 firmware for that light: [hardware/flashka-keychain-v05/](../../../hardware/flashka-keychain-v05/README.md),
-[hardware/flashka-keychain-v06/](../../../hardware/flashka-keychain-v06/README.md).
+[hardware/flashka-keychain-v06/](../../../hardware/flashka-keychain-v06/README.md) (its firmware
+also builds the v0.7 image, firmware 0.7.0).
 
 ## Build and flash
 
@@ -25,7 +30,7 @@ Install ESP-IDF 5.x ([Espressif's guide](https://docs.espressif.com/projects/esp
 ```sh
 cd firmware/ports/esp32c3
 idf.py set-target esp32c3
-idf.py -DLX_BOARD=flashka-keychain-v05 build     # or -DLX_BOARD=flashka-keychain-v06
+idf.py -DLX_BOARD=flashka-keychain-v05 build     # or flashka-keychain-v06, flashka-keychain-v07
 idf.py -p <serial port> flash monitor
 ```
 

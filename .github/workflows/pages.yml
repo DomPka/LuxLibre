@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Publishes the web site on GitHub Pages:
 #   https://dompka.github.io/LuxLibre/          landing page (site/)
-#   https://dompka.github.io/LuxLibre/flashka/  FlashKa v0.6 menu, control app and firmware installer
+#   https://dompka.github.io/LuxLibre/flashka/  FlashKa menu, control app and firmware installer (v0.7 and v0.6)
 #                                               (hardware/flashka-keychain-v06/app/, without the screenshots)
 # One-time setup in the repository: Settings > Pages > Build and deployment > Source: "GitHub Actions".
 # This workflow only builds and deploys the site. It never commits, pushes, tags or opens pull requests.

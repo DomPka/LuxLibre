@@ -115,7 +115,7 @@ standard charge current ([CHG-2](design-rules.md#chg-2)); whether users can buy 
 **Rules of thumb.** In the same size, high-current cells have less capacity than high-capacity
 cells; pick by what the light does most. An EDC light spends most of its life in low and middle
 modes, so capacity usually matters more than a current rating far above the turbo current. Small
-lights with a pouch cell (as the FlashKa, two pouch cells in parallel, about 800 mAh) need the
+lights with a pouch cell (as the FlashKa up to v0.6, two pouch cells in parallel, about 800 mAh) need the
 cell's own datasheet for current and charge limits, a protection circuit
 ([BAT-3](design-rules.md#bat-3)), and a plan for replacement ([BAT-2](design-rules.md#bat-2)).
 

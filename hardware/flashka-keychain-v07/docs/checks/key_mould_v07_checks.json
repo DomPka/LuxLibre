@@ -1,0 +1,168 @@
+{
+ "aluminium (JLCCNC, durable)": {
+  "cavity half": {
+   "valid": true,
+   "solids": 1,
+   "volume_mm3": 10234.9,
+   "bbox_mm": [
+    48.0,
+    28.0,
+    8.002
+   ],
+   "mass_g": 27.6,
+   "jlccnc_minimum_ok": true,
+   "two_setup_reach": {
+    "faces": 182,
+    "points": 588,
+    "blocked": 0,
+    "blocked_points": []
+   },
+   "release (ray +Z from every cavity face)": {
+    "faces": 132,
+    "points": 448,
+    "undercuts": 0,
+    "undercut_points": []
+   }
+  },
+  "lid": {
+   "valid": true,
+   "solids": 1,
+   "volume_mm3": 10186.0,
+   "bbox_mm": [
+    48.0,
+    28.0,
+    8.471
+   ],
+   "mass_g": 27.5,
+   "jlccnc_minimum_ok": true,
+   "two_setup_reach": {
+    "faces": 64,
+    "points": 216,
+    "blocked": 0,
+    "blocked_points": []
+   },
+   "release (ray -Z from every plateau face)": {
+    "faces": 36,
+    "points": 112,
+    "undercuts": 0,
+    "undercut_points": []
+   }
+  },
+  "closed: cavity half x lid overlap_mm3": 0.0,
+  "cast key vs model key": {
+   "key_volume_mm3": 55.776,
+   "cast_volume_mm3": 54.284,
+   "cast_minus_key_mm3": 0.0512,
+   "key_minus_cast_mm3": 1.5426,
+   "cap_width_X": {
+    "near the face": 4.086,
+    "at the flange step": 4.12,
+    "tolerance": [
+     4.05,
+     4.15
+    ]
+   },
+   "cap_length_Y": {
+    "near the face": 9.886,
+    "at the flange step": 9.92,
+    "tolerance": [
+     9.85,
+     9.95
+    ]
+   },
+   "flange_length_Y": {
+    "at the flange underside": 11.0,
+    "at the parting plane": 11.016,
+    "nominal": 11.0
+   },
+   "recess_depth": 0.47,
+   "shrink_allowance": "none: PMC-780 DRY shrinks < 0.001 (data sheet), 0.011 mm over the 11.0 mm flange",
+   "cap_inside_its_tolerance": true
+  },
+  "smallest internal radius": "R0.3: chevron groove (cut with a d0.6 end mill along its centre line, 0.2 deep)",
+  "ok": true
+ },
+ "resin (JLC3DP SLA, default)": {
+  "cavity half": {
+   "valid": true,
+   "solids": 1,
+   "volume_mm3": 6240.3,
+   "bbox_mm": [
+    48.0,
+    28.0,
+    8.506
+   ],
+   "volume_cm3": 6.24,
+   "release (ray +Z from every cavity face)": {
+    "faces": 132,
+    "points": 448,
+    "undercuts": 0,
+    "undercut_points": []
+   }
+  },
+  "lid": {
+   "valid": true,
+   "solids": 1,
+   "volume_mm3": 4821.4,
+   "bbox_mm": [
+    48.0,
+    28.0,
+    5.472
+   ],
+   "volume_cm3": 4.82,
+   "release (ray -Z from every plateau face)": {
+    "faces": 36,
+    "points": 112,
+    "undercuts": 0,
+    "undercut_points": []
+   }
+  },
+  "closed: cavity half x lid overlap_mm3": 0.0,
+  "cast key vs model key": {
+   "key_volume_mm3": 55.776,
+   "cast_volume_mm3": 54.284,
+   "cast_minus_key_mm3": 0.0512,
+   "key_minus_cast_mm3": 1.5426,
+   "cap_width_X": {
+    "near the face": 4.086,
+    "at the flange step": 4.12,
+    "tolerance": [
+     4.05,
+     4.15
+    ]
+   },
+   "cap_length_Y": {
+    "near the face": 9.886,
+    "at the flange step": 9.92,
+    "tolerance": [
+     9.85,
+     9.95
+    ]
+   },
+   "flange_length_Y": {
+    "at the flange underside": 11.0,
+    "at the parting plane": 11.016,
+    "nominal": 11.0
+   },
+   "recess_depth": 0.47,
+   "shrink_allowance": "none: PMC-780 DRY shrinks < 0.001 (data sheet), 0.011 mm over the 11.0 mm flange",
+   "cap_inside_its_tolerance": true
+  },
+  "resin between a cavity and the back pockets (min, measured), mm": 2.002,
+  "lid: resin round the pour / vent holes and sockets to the back pockets (min, measured), mm": 1.25,
+  "lid: face plate under the back pockets, mm": 2.0,
+  "back pockets: depth cavity half / lid, mm": [
+   2.15,
+   3.0
+  ],
+  "pin d / socket d (slip per side)": [
+   4.0,
+   4.2,
+   0.1
+  ],
+  "bolts": "4 x M3 x 16 socket head through both plates (d3.4 holes), washers + nuts; stack 6.0 + 5.0",
+  "smallest internal radius": "R0.3: chevron groove (printed)",
+  "ok": true
+ },
+ "ok": true
+}

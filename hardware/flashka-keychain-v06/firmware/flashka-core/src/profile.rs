@@ -114,7 +114,8 @@ pub mod limits {
     pub const LOW_MAX: u16 = 300;
     pub const MEDIUM_MAX: u16 = 1_000;
     pub const HIGH_MAX: u16 = 2_000;
-    pub const TURBO_MAX: u16 = 3_000;
+    /// v0.6: 3000 mA (protocol); v0.7: 2850 mA ([`crate::board::TURBO_MAX_MA`]).
+    pub const TURBO_MAX: u16 = crate::board::TURBO_MAX_MA;
     pub const TURBO_TIME_S: (u16, u16) = (0, 300);
     pub const TEMP_LIMIT_C: (u8, u8) = (40, 70);
     pub const LV_STEPDOWN: (u8, u8) = (10, 60);
@@ -142,8 +143,40 @@ pub struct Profile {
     pub cell_limit_ma: u16,
 }
 
+// The built-in profiles depend on the board ([`crate::board`]): v0.6 keeps the tables of
+// firmware 0.6.0; v0.7 has its own (SST-20 Gen 2 behind a TIR optic, one 14500 cell (F15),
+// 3.0 A LED ceiling, 2850 mA turbo). Light out of the front from the LED model,
+// `board::front_lumens` (Tj 85 degC). The tables are checked against the LED ceiling when the
+// firmware is compiled (board.rs).
+//
+// v0.7 temperature limits: on the v0.7 board the limit is the set point of the thermal regulator
+// ([`crate::thermal`]): the sensor (NTC, near the driver, following the head) is held at or just
+// below it, instead of the protocol's linear reduction to Low over 15 degC that v0.6 keeps. 50 degC
+// at the sensor keeps the simulated body (the surface held in the hand) at about 46.5 degC in
+// 25 degC still air, inside the 48 degC continuous touch limit (LuxLibre THM-1), and the head at
+// or below 51 degC on the way there. The simulation is in tests/thermal_v07.rs; the numbers must be
+// checked on a real light (THM-6).
+//
+// v0.7 cell limit 2800 mA (Extreme, Balanced): one Vapcell INR14500 F15, rated 3 A continuous.
+// 2800 mA is 93 % of that, above the 70 % of LuxLibre BAT-1 (2100 mA): a documented deviation,
+// because only turbo comes near it and turbo lasts at most 60 s and is thermally regulated (High
+// draws 1.3-1.7 A, the sustained level about 0.7 A). It also stays 7-12 % below the board
+// protection's worst-case trip (DW01A + SE8830A: 3.0-3.15 A hot; typical 4.3-4.5 A hot); a trip
+// latches: the light is off until USB power is applied. A full cell gives the whole 2850 mA turbo
+// (about 2.7 A from the cell); a half-full one cannot (the cell sags, the buck runs out of headroom).
+//
+// v0.7 low-voltage step-down 3.15 / 3.20 / 3.25 V (under load): the F15's open-circuit voltage is
+// lower than a LiPo's over most of the charge (3.68 V at 50 %, battery.rs) and one cell sags more
+// (0.13 ohm), so the v0.6-style 3.30-3.40 V would cut in with 10-20 % still in the cell. These
+// values start the step-down at about 5-10 % left; Moon below 3.10 V and off below 3.00 V stay
+// (the F15 may go to 2.5 V).
+//
+// v0.7 Endurance temperature limit 47 degC (was 45): with the MCU's own heat and the cell's in the
+// model, its 500 mA High settles the sensor at about 45.3 degC in 25 degC still air; 47 degC keeps
+// the regulator out of the way there (body about 42 degC).
 impl Profile {
     /// Extreme: short bursts, 2.2 A turbo for 45 s.
+    #[cfg(not(feature = "board-v07"))]
     pub const EXTREME: Profile = Profile {
         flags: FLAG_TURBO | FLAG_MEMORY | FLAG_SHOW_BATTERY,
         moon_ma: 3,
@@ -159,6 +192,7 @@ impl Profile {
     };
 
     /// Balanced (default): 1.2 A turbo for 60 s.
+    #[cfg(not(feature = "board-v07"))]
     pub const BALANCED: Profile = Profile {
         flags: FLAG_TURBO | FLAG_MEMORY | FLAG_SHOW_BATTERY,
         moon_ma: 3,
@@ -174,6 +208,7 @@ impl Profile {
     };
 
     /// Endurance: never above 300 mA, no turbo ("turbo = High").
+    #[cfg(not(feature = "board-v07"))]
     pub const ENDURANCE: Profile = Profile {
         flags: FLAG_MEMORY | FLAG_SHOW_BATTERY,
         moon_ma: 2,
@@ -185,6 +220,58 @@ impl Profile {
         stepdown_ma: 300,
         temp_limit_c: 45,
         lv_stepdown: 40,
+        cell_limit_ma: 800,
+    };
+
+    /// Extreme (v0.7): brighter levels - 2850 mA turbo (about 966 lm out of the front) for at
+    /// most 60 s, High and the level after turbo 1.8 A (about 683 lm), Medium 400 mA (187 lm).
+    /// Same 50 degC limit as Balanced: the regulator holds it whatever the level.
+    #[cfg(feature = "board-v07")]
+    pub const EXTREME: Profile = Profile {
+        flags: FLAG_TURBO | FLAG_MEMORY | FLAG_SHOW_BATTERY,
+        moon_ma: 3,
+        low_ma: 50,
+        medium_ma: 400,
+        high_ma: 1_800,
+        turbo_ma: 2_850,
+        turbo_time_s: 60,
+        stepdown_ma: 1_800,
+        temp_limit_c: 50,
+        lv_stepdown: 15,
+        cell_limit_ma: 2_800,
+    };
+
+    /// Balanced (v0.7, default): 2850 mA turbo (about 966 lm out of the front) for at most 60 s,
+    /// then High 1.53 A (about 600 lm) for as long as the temperature allows.
+    #[cfg(feature = "board-v07")]
+    pub const BALANCED: Profile = Profile {
+        flags: FLAG_TURBO | FLAG_MEMORY | FLAG_SHOW_BATTERY,
+        moon_ma: 3,
+        low_ma: 40,
+        medium_ma: 250,
+        high_ma: 1_530,
+        turbo_ma: 2_850,
+        turbo_time_s: 60,
+        stepdown_ma: 1_530,
+        temp_limit_c: 50,
+        lv_stepdown: 20,
+        cell_limit_ma: 2_800,
+    };
+
+    /// Endurance (v0.7): no turbo, High 0.5 A (about 230 lm), a level the body can shed in still
+    /// air at 25 degC without stepping down.
+    #[cfg(feature = "board-v07")]
+    pub const ENDURANCE: Profile = Profile {
+        flags: FLAG_MEMORY | FLAG_SHOW_BATTERY,
+        moon_ma: 2,
+        low_ma: 15,
+        medium_ma: 100,
+        high_ma: 500,
+        turbo_ma: 500,
+        turbo_time_s: 0,
+        stepdown_ma: 500,
+        temp_limit_c: 47,
+        lv_stepdown: 25,
         cell_limit_ma: 800,
     };
 
@@ -339,6 +426,7 @@ impl Profile {
 mod tests {
     use super::*;
 
+    #[cfg(not(feature = "board-v07"))]
     #[test]
     fn builtins_match_protocol_table() {
         let e = Profile::EXTREME;
@@ -362,6 +450,66 @@ mod tests {
         assert!(Profile::EXTREME.has_turbo() && Profile::BALANCED.has_turbo());
     }
 
+    /// v0.7 board: the table of docs/firmware.md (section "FlashKa v0.7").
+    #[cfg(feature = "board-v07")]
+    #[test]
+    fn builtins_match_protocol_table() {
+        let e = Profile::EXTREME;
+        assert_eq!((e.moon_ma, e.low_ma, e.medium_ma, e.high_ma), (3, 50, 400, 1_800));
+        assert_eq!((e.turbo_ma, e.turbo_time_s, e.stepdown_ma), (2_850, 60, 1_800));
+        assert_eq!((e.temp_limit_c, e.lv_stepdown_mv(), e.cell_limit_ma), (50, 3_150, 2_800));
+        let b = Profile::BALANCED;
+        assert_eq!((b.moon_ma, b.low_ma, b.medium_ma, b.high_ma), (3, 40, 250, 1_530));
+        assert_eq!((b.turbo_ma, b.turbo_time_s, b.stepdown_ma), (2_850, 60, 1_530));
+        assert_eq!((b.temp_limit_c, b.lv_stepdown_mv(), b.cell_limit_ma), (50, 3_200, 2_800));
+        let n = Profile::ENDURANCE;
+        assert_eq!((n.moon_ma, n.low_ma, n.medium_ma, n.high_ma), (2, 15, 100, 500));
+        assert!(!n.has_turbo());
+        assert_eq!(n.level_ma(Level::Turbo), 500);
+        assert_eq!((n.temp_limit_c, n.lv_stepdown_mv(), n.cell_limit_ma), (47, 3_250, 800));
+        assert_eq!(Profile::CUSTOM_DEFAULT, Profile::BALANCED);
+        for p in [Profile::EXTREME, Profile::BALANCED, Profile::ENDURANCE] {
+            assert_eq!(p.clamped(), p);
+        }
+        assert!(Profile::EXTREME.has_turbo() && Profile::BALANCED.has_turbo());
+    }
+
+    /// v0.7 levels in light out of the front (LED model at Tj 85 degC x the 87 % optic): useful
+    /// steps from moonlight to turbo, High about 600 lm, turbo 966 lm (about 1000 lm).
+    #[cfg(feature = "board-v07")]
+    #[test]
+    fn v07_level_lumens() {
+        use crate::board::{front_lumens, front_lumens_x10};
+        let b = Profile::BALANCED;
+        let lm: Vec<u32> = [b.moon_ma, b.low_ma, b.medium_ma, b.high_ma, b.turbo_ma]
+            .iter()
+            .map(|&ma| front_lumens(ma))
+            .collect();
+        assert_eq!(lm, [1, 19, 119, 601, 966]);
+        assert_eq!(front_lumens_x10(b.moon_ma), 14, "moonlight 3 mA = 1.4 lm");
+        assert!(front_lumens(b.high_ma) >= 600, "High ~600 lm out of the front");
+        // every step is a clearly visible change (at least 1.6 x) and they grow from Moon up
+        for w in lm.windows(2) {
+            assert!(w[1] * 10 >= w[0] * 16, "{lm:?}");
+        }
+        let e = Profile::EXTREME;
+        assert_eq!(
+            [e.moon_ma, e.low_ma, e.medium_ma, e.high_ma, e.turbo_ma].map(front_lumens),
+            [1, 24, 187, 683, 966]
+        );
+        let n = Profile::ENDURANCE;
+        assert_eq!([n.moon_ma, n.low_ma, n.medium_ma, n.high_ma].map(front_lumens), [1, 7, 48, 230]);
+        // no level above 2850 mA (3.0 A ceiling less the 5 % worst-case tolerance), turbo where
+        // the profile has one is the full 2850 mA, no cell limit above 2800 mA (7 % below the board
+        // protection's lowest worst-case trip, 3.0 A hot)
+        for p in [e, b, n] {
+            let top = p.level_ma(Level::Turbo).max(p.high_ma).max(p.stepdown_ma);
+            assert!(top <= crate::board::TURBO_MAX_MA && top as u32 <= crate::board::LED_MAX_MA);
+            assert!(p.cell_limit_ma <= 2_800);
+        }
+        assert_eq!((e.turbo_ma, b.turbo_ma), (crate::board::TURBO_MAX_MA, crate::board::TURBO_MAX_MA));
+    }
+
     #[test]
     fn slide_stepping_no_wrap() {
         use Level::*;
@@ -383,11 +531,15 @@ mod tests {
         assert_eq!(b.len(), 20);
         assert_eq!(b[0], 0);
         assert_eq!(b[1], 0x07);
-        assert_eq!(u16::from_le_bytes([b[10], b[11]]), 2_200);
-        assert_eq!(u16::from_le_bytes([b[12], b[13]]), 45);
-        assert_eq!(b[16], 55);
-        assert_eq!(b[17], 30);
-        assert_eq!(u16::from_le_bytes([b[18], b[19]]), 2_600);
+        #[cfg(not(feature = "board-v07"))]
+        let (turbo, time, temp, lv, cell) = (2_200, 45, 55, 30, 2_600);
+        #[cfg(feature = "board-v07")]
+        let (turbo, time, temp, lv, cell) = (2_850, 60, 50, 15, 2_800);
+        assert_eq!(u16::from_le_bytes([b[10], b[11]]), turbo);
+        assert_eq!(u16::from_le_bytes([b[12], b[13]]), time);
+        assert_eq!(b[16], temp);
+        assert_eq!(b[17], lv);
+        assert_eq!(u16::from_le_bytes([b[18], b[19]]), cell);
         let (id, p) = Profile::decode_raw(&b);
         assert_eq!((id, p), (0, Profile::EXTREME));
     }
@@ -413,7 +565,10 @@ mod tests {
         assert_eq!(c.low_ma, 1);
         assert_eq!(c.medium_ma, 1_000);
         assert_eq!(c.high_ma, 1_000); // below Medium -> raised to Medium
+        #[cfg(not(feature = "board-v07"))]
         assert_eq!(c.turbo_ma, 3_000);
+        #[cfg(feature = "board-v07")]
+        assert_eq!(c.turbo_ma, 2_850, "v0.7: turbo clamped to 2850 mA");
         assert_eq!(c.turbo_time_s, 300);
         assert_eq!(c.stepdown_ma, 1); // Low..High
         assert_eq!(c.temp_limit_c, 70);
@@ -449,13 +604,22 @@ mod tests {
         assert_eq!(Profile::decode_write(&long), Err(CmdError::Invalid));
         let mut pkt = Profile::BALANCED.encode(ProfileId::Custom);
         pkt[10..12].copy_from_slice(&9_999u16.to_le_bytes());
+        #[cfg(not(feature = "board-v07"))]
         assert_eq!(Profile::decode_write(&pkt).unwrap().turbo_ma, 3_000);
+        #[cfg(feature = "board-v07")]
+        assert_eq!(Profile::decode_write(&pkt).unwrap().turbo_ma, 2_850);
+        // 3000 mA, the LED's datasheet maximum, is not accepted on the v0.7 board either
+        #[cfg(feature = "board-v07")]
+        {
+            pkt[10..12].copy_from_slice(&3_000u16.to_le_bytes());
+            assert_eq!(Profile::decode_write(&pkt).unwrap().turbo_ma, 2_850);
+        }
     }
 
     #[test]
     fn turbo_rules() {
         let mut p = Profile::BALANCED;
-        assert_eq!(p.max_output_ma(), 1_200);
+        assert_eq!(p.max_output_ma(), p.turbo_ma); // v0.6: 1200 mA, v0.7: 2850 mA
         p.turbo_time_s = 0;
         assert!(!p.has_turbo());
         assert_eq!(p.level_ma(Level::Turbo), p.high_ma);
@@ -474,10 +638,11 @@ mod tests {
         assert_eq!(Level::Turbo.next_in_cycle(), Level::Low);
         assert_eq!(Level::Turbo.step_down(), Level::High);
         assert_eq!(Level::Moon.step_down(), Level::Moon);
+        // v0.6 Balanced: 1200 / 700 / 200 / 29 mA
         let p = Profile::BALANCED;
-        assert_eq!(p.level_for_current(1_200), Level::Turbo);
-        assert_eq!(p.level_for_current(700), Level::High);
-        assert_eq!(p.level_for_current(200), Level::Medium);
-        assert_eq!(p.level_for_current(29), Level::Moon);
+        assert_eq!(p.level_for_current(p.turbo_ma), Level::Turbo);
+        assert_eq!(p.level_for_current(p.high_ma + 100), Level::High);
+        assert_eq!(p.level_for_current(p.medium_ma), Level::Medium);
+        assert_eq!(p.level_for_current(p.low_ma - 1), Level::Moon);
     }
 }

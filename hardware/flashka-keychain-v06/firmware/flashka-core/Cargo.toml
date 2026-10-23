@@ -3,13 +3,19 @@ name = "flashka-core"
 version = "0.6.0"
 edition = "2024"
 rust-version = "1.88"
-description = "Hardware-independent logic of the FlashKa Keychain v0.6 firmware (no_std, host-testable)"
+description = "Hardware-independent logic of the FlashKa Keychain v0.6 / v0.7 firmware (no_std, host-testable)"
 license = "MIT OR Apache-2.0"
 
 # This crate has no dependencies on purpose: everything in it is plain integer
 # (and a little f32) arithmetic, so `cargo test` runs on the host with the
 # normal stable toolchain and the same code is linked into the ESP32-C3 image.
 [dependencies]
+
+# Board variant (compile time). Without a feature the crate is built for the FlashKa Keychain
+# v0.6 main board (firmware 0.6.0, unchanged). `board-v07` selects the v0.7 main board (firmware
+# 0.7.0): every board-dependent constant lives in src/board.rs.
+[features]
+board-v07 = []
 
 [lib]
 path = "src/lib.rs"

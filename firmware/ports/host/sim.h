@@ -26,8 +26,19 @@ struct Config {
     double vf0 = 2.75;              // V
     double rs = 0.15;               // ohm (forward-voltage slope)
     double efficiency = 0.90;
+    // Driver headroom: at 100 % duty the LED gets at most (V_battery - vf0) / (rs + drop_ohm),
+    // V_battery under load; 0 = not modelled (board header LX_SIM_DROP_MOHM)
+    double drop_ohm = 0.0;
+    // Open-circuit voltage of one cell at 0, 3, 5, 10, 20 ... 90, 100 % charge (13 points);
+    // empty = the built-in NMC curve (board header LX_SIM_OCV_V)
+    std::vector<double> ocv_v;
     double lm_per_a = 400.0;        // at low current
     double droop_per_a = 0.05;      // relative loss of efficacy per ampere
+    // Flux table of a real LED (current in A -> lumens at the datasheet's rating temperature,
+    // straight lines in between). When it is set it replaces lm_per_a / droop_per_a and the
+    // temperature factor: the lumens are the rated ones (board header LX_LED_LM_MA / LX_LED_LM).
+    std::vector<double> lm_table_a, lm_table_lm;
+    double optic = 1.0;             // part of the LED's light that leaves the front (optic, window)
     double light_fraction = 0.30;   // part of the LED power that leaves as light
     // thermal (defaults: ~30 g aluminium keychain light, 68 cm2 surface)
     double c_head = 8.0;            // J/K
@@ -48,6 +59,10 @@ struct Config {
 // Presets for the documentation and tests.
 Config keychain_preset();           // ~30 g aluminium, 2 small LiPo cells in parallel, 2.2 A LED
 Config edc18650_preset();           // ~80 g aluminium 18650 light, 5 A LED
+// The body, cell and LED model of the board header (LX_SIM_... and LX_LED_LM... macros) on top
+// of keychain_preset(); boards without them get keychain_preset() unchanged.
+Config board_preset();
+bool board_has_model();             // the board header defines a body model (LX_SIM_C_HEAD_MJ)
 
 void reset(const Config& c);        // new world, firmware init (light::init)
 void press_at(uint32_t t_ms, bool down);           // schedule a button level change
@@ -68,7 +83,8 @@ void run_script(uint32_t extra_ms = 1500);   // run to the end of the time line 
 uint32_t now();
 uint8_t level();                    // output level of the firmware
 double led_a();
-double lumens();
+double lumens();                    // light of the LED
+double lumens_front();              // light out of the front: lumens() x optic
 double t_head();
 double t_body();
 double t_sensor();
@@ -85,12 +101,13 @@ uint32_t sleep_ms_total();          // simulated time spent in hal::sleep() sinc
 void console_in(const std::string& line);   // a full line, newline added
 std::string console_take();                  // everything written since the last call
 
-// Log of samples every 100 ms: t, level, I, lm, T_sensor, T_body, V, SoC
+// Log of samples every 100 ms: t, level, I, lm, T_sensor, T_body, V, SoC, laser, lm out of the front
 struct Sample {
     uint32_t t;
     uint8_t level;
     double led_a, lumens, t_sensor, t_body, v_pack, soc;
     bool laser;
+    double lumens_front;
 };
 const std::vector<Sample>& log();
 void write_csv(const std::string& path);

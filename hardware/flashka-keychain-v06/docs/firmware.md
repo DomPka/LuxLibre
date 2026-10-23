@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
-# FlashKa Keychain v0.6 — firmware
+# FlashKa Keychain v0.6 and v0.7 — firmware
 
 Firmware for the FlashKa Keychain v0.6: ESP32-C3-MINI-1-N4, Rust `no_std`, esp-hal 1.1.2 +
 esp-rtos 0.3 (embassy) + esp-radio 0.18 (BLE controller) + trouble-host 0.6 (BLE host, with
@@ -11,18 +11,25 @@ might want to tune.
 v0.6 = v0.5 plus three buttons on one ADC ladder, level stepping with › and ‹, a presenter
 mode (the light becomes a Bluetooth keyboard), the RGB ring and protocol version 2.
 
-> **Not tested on hardware.** No v0.6 board exists yet. Everything in this document is built
-> and host-tested only (section 7). Items marked **(untested)** depend on the real board, the
-> radio or a real computer and must be checked with the bring-up plan (7.1).
+The same sources also build **firmware 0.7.0 for the FlashKa Keychain v0.7** (1000 lm: stronger
+LED driver, SST-20 Gen 2 behind a TIR optic, one 14500 cell) with the Cargo feature `board-v07`. Sections 1 to 8 describe both boards unless they give a v0.6 number;
+**section 9** lists everything that is different on the v0.7. The default build is the v0.6
+firmware 0.6.0, unchanged byte for byte.
+
+> **Not tested on hardware.** No v0.6 or v0.7 board exists yet. Everything in this document is
+> built and host-tested only (sections 7 and 9.8); the v0.7 output, temperature and runtime
+> numbers are simulated or estimated and marked so. Items marked **(untested)** depend on the
+> real board, the radio or a real computer and must be checked with the bring-up plan (7.1).
 
 | | |
 |---|---|
-| Firmware version | 0.6.0 (`firmware/flashka-fw/Cargo.toml`) |
-| Release image | `firmware/dist/flashka-fw-v0.6.0-merged.bin` (534 736 bytes), write at flash offset **0x0** |
+| Firmware version | 0.6.0 for v0.6 boards (`FW_VERSION` in `flashka-core/src/board.rs`, = `firmware/flashka-fw/Cargo.toml`); 0.7.0 for v0.7 boards (section 9) |
+| Release image (v0.6) | `firmware/dist/flashka-fw-v0.6.0-merged.bin` (534 736 bytes), write at flash offset **0x0** |
 | SHA-256 of the image | `e21058791bab990439835fbd977eecfed385af5837405e36ae923cb6083a8fdd` |
+| Release image (v0.7) | `firmware/dist/flashka-fw-v0.7.0-merged.bin` (535 328 bytes), SHA-256 `6554028f31b3e86c958335a1b03b4fd6f2a95000f727d752f4cb891318e79f96` — **v0.7 boards only** |
 | Image contents | ESP-IDF 2nd-stage bootloader (from espflash 4.6.0) + partition table + app |
-| Logic tests | `cd firmware/flashka-core && cargo test` (149 host tests) |
-| Rebuild | `firmware/build.sh` |
+| Logic tests | `cd firmware/flashka-core && cargo test` (153 host tests); `cargo test --features board-v07` (166 + 9 simulation tests) |
+| Rebuild | `firmware/build.sh` (v0.6), `BOARD=v07 firmware/build.sh` (v0.7) |
 
 ---
 
@@ -34,6 +41,7 @@ mode (the light becomes a Bluetooth keyboard), the RGB ring and protocol version
 firmware/
 ├── flashka-core/     no_std library, no dependencies, tested on the host with `cargo test`
 │   └── src/
+│       ├── board.rs        the board table: every constant that differs between v0.6 and v0.7 (section 9)
 │       ├── controller.rs   the state machine of the light (uses everything below)
 │       ├── buttons.rs      v0.6: ladder classification (mV -> button), slide-button gestures
 │       ├── gesture.rs      debouncer + click / hold gesture parser of the main button
@@ -50,6 +58,7 @@ firmware/
 │       ├── hw.rs           mA <-> PWM duty, ADC -> VBAT, NTC -> temperature
 │       ├── mathx.rs        ln() for the NTC (no libm on the target)
 │       └── config.rs       all tunable constants (table in section 6)
+│   └── tests/thermal_v07.rs   v0.7: the controller driving a simulated light (section 9.6)
 ├── flashka-fw/       the ESP32-C3 binary: hardware I/O and async glue only
 │   └── src/
 │       ├── main.rs         init (safety first), control loop, settings + bond saves, sleep
@@ -62,8 +71,8 @@ firmware/
 │       └── board.rs        GPIO map (mirrors tools/kicad/flashka_parts.py)
 ├── Cargo.toml        the workspace of both crates (release profile; shared Cargo.lock and target/)
 ├── partitions.csv    flash layout given to espflash
-├── build.sh          tests + release build + merged image + sizes (reproducible in any folder)
-└── dist/             build outputs
+├── build.sh          tests + release build + merged image + sizes (reproducible in any folder); BOARD=v06|v07
+└── dist/             build outputs: the 0.6.0 image (v0.6) and the 0.7.0 image (v0.7)
 ```
 
 Everything that can be decided without touching a register is in `flashka-core`; the firmware
@@ -344,6 +353,10 @@ not tuned yet **(untested)**.
 
 ### 2.6 Levels, profiles, turbo, laser, protection, charging, battery (as v0.5)
 
+The numbers in this section are those of the v0.6 board; the v0.7 levels, profiles, cell-current
+model and capacity are in section 9.3 and 9.4, its temperature regulation (instead of the linear
+dimming described under "Protection") in 9.11.
+
 #### Levels and profiles
 
 | | Extreme | Balanced (default) | Endurance | Custom |
@@ -387,8 +400,8 @@ Bluetooth. The slide switch S2 must be armed as well; the firmware cannot see or
 
 #### Charging
 
-USB-C charging at ~300 mA (nominal; the SoC estimate assumes 280 mA) between 0 °C and 45 °C (resumes 2 °C inside the window after a
-temperature pause). Charging pauses while the LED runs above 500 mA. Plugging USB in resets
+USB-C charging at ~300 mA (nominal; the SoC estimate assumes 280 mA; v0.7: about 500 mA, 9.4)
+between 0 °C and 45 °C (resumes 2 °C inside the window after a temperature pause). Charging pauses while the LED runs above 500 mA. Plugging USB in resets
 the MCU (VBUS-edge reset), keeps it awake and keeps Bluetooth reachable while connected.
 Without firmware (e.g. a completely flat cell) the charger trickles at 10 mA.
 
@@ -399,7 +412,8 @@ a load correction of +0.12 V per A of estimated cell current while the LED is on
 of charge current while fast-charging), filtered so that it does not jump (at most 0.5 %/s,
 small dead band, and it only moves "backwards" for differences above 3 %). "Charge complete"
 reads 100 %. Runtime = 800 mAh x SoC / (estimated LED cell current + 20 mA for the MCU and
-radio); the MCU term matters at Moon, where the LED itself draws ~2 mA from the cell.
+radio); the MCU term matters at Moon, where the LED itself draws ~2 mA from the cell. The v0.7
+(one 14500 cell) uses that cell's curve, 0.13 V per A and 1400 mAh (9.4).
 
 ### 2.7 Bluetooth windows and sleep
 
@@ -419,16 +433,22 @@ sleeps without the button as a wake source and checks it every 20 s.
 ### 2.8 Flashing
 
 Hold ● (any button works: every press pulls GPIO9 low) while plugging in USB: the ROM starts
-download mode. Write `flashka-fw-v0.6.0-merged.bin` at offset 0x0 with the web flasher, or:
+download mode. Write the image of **your board** at offset 0x0 with the web installer (it asks
+for the board first and checks the firmware already on the light, `web_apps.md` section 2), or:
 
 ```
-espflash write-bin 0x0 firmware/dist/flashka-fw-v0.6.0-merged.bin
+espflash write-bin 0x0 firmware/dist/flashka-fw-v0.6.0-merged.bin   # FlashKa v0.6
+espflash write-bin 0x0 firmware/dist/flashka-fw-v0.7.0-merged.bin   # FlashKa v0.7
 espflash monitor            # firmware log over USB-Serial-JTAG
 ```
 
+Never write one board's image to the other board: the two firmwares set the LED current with
+different scales and limits (section 9.2).
+
 Writing the merged image erases the settings **and the paired computers** (the `nvs` region is
 0xFF in the image); remove FlashKa on each computer and pair again. To keep both, flash only the
-app: `espflash flash --partition-table firmware/partitions.csv firmware/dist/flashka-fw-v0.6.0.elf`.
+app: `espflash flash --partition-table firmware/partitions.csv firmware/dist/flashka-fw-v0.6.0.elf`
+(`flashka-fw-v0.7.0.elf` on a v0.7).
 
 ---
 
@@ -601,7 +621,8 @@ toolchain with `rust-src`, or the distribution rustc 1.91 with `RUSTC_BOOTSTRAP=
 first time (the `security` feature adds p256, aes, cmac, rand_chacha).
 
 ```
-firmware/build.sh                 # host tests, release build, merged image, sizes, SHA-256
+firmware/build.sh                 # v0.6: host tests, release build, merged image, sizes, SHA-256
+BOARD=v07 firmware/build.sh       # v0.7: the same with the feature board-v07 (firmware 0.7.0)
 SKIP_TESTS=1 firmware/build.sh    # without the host tests
 ```
 
@@ -609,7 +630,7 @@ Environment overrides: `FW_RUST_BIN` (default `/usr/lib/rust-1.91/bin`), `HOST_C
 `CARGO_TARGET_RISCV32IMC_UNKNOWN_NONE_ELF_LINKER` (a `rust-lld`). By hand:
 
 ```
-cd firmware/flashka-core && cargo test
+cd firmware/flashka-core && cargo test                     # and: cargo test --features board-v07
 cd firmware/flashka-fw && RUSTC_BOOTSTRAP=1 cargo build --release   # build.sh adds the path remapping
 espflash save-image --chip esp32c3 --merge --skip-padding --flash-size 4mb \
     --partition-table firmware/partitions.csv \
@@ -620,10 +641,10 @@ espflash save-image --chip esp32c3 --merge --skip-padding --flash-size 4mb \
 The log level is set at build time with `ESP_LOG` (default `info`). Build with
 `ESP_LOG=debug` to log every ladder class change with its mV reading (bring-up).
 
-**Memory** (release build): flash 428 778 bytes of code + constants (app image 469 200 bytes,
-11 % of the app partition); RAM 90 104 bytes static (IRAM code 30 676, data 9 636, bss 49 792
-incl. the 36 KiB heap), 230 400 bytes left for the stack, plus the 64 KiB heap in the reclaimed
-bootloader RAM.
+**Memory** (release build, v0.6; the v0.7 build differs by a few hundred bytes, section 9.7):
+flash 428 778 bytes of code + constants (app image 469 200 bytes, 11 % of the app partition);
+RAM 90 104 bytes static (IRAM code 30 676, data 9 636, bss 49 792 incl. the 36 KiB heap),
+230 400 bytes left for the stack, plus the 64 KiB heap in the reclaimed bootloader RAM.
 
 **Reproducible**: the image depends only on the sources and the compiler (rustc 1.91.1), not on
 the folder or the machine it is built on. `build.sh` sets `SOURCE_DATE_EPOCH` (app descriptor time
@@ -632,8 +653,9 @@ machine-specific source paths with `--remap-path-prefix` (this folder becomes `f
 registry `/cargo/registry/src`, the Rust sysroot `/rust`). The two crates form one Cargo workspace
 (`firmware/Cargo.toml`, shared `Cargo.lock` and `target/`), so cargo hashes their paths relative to
 it. A clean build in the repository and a clean build of a copy in another folder gave the
-identical image (SHA-256 above) and ELF. The CI job *Firmware build* rebuilds the image on GitHub
-and compares it with `dist/`.
+identical image (SHA-256 above) and ELF. The v0.7 image builds in its own folder
+(`firmware/target/v07/`) with its own date (section 9.7). The CI job *Firmware build* rebuilds
+both images on GitHub and compares them with `dist/`.
 
 ---
 
@@ -698,7 +720,7 @@ v0.5: 6.3-6.5.
 | `LASER_MAX_MS` | 60000 | Longest laser burst per press. *P* |
 | `LASER_MAX_TEMP_DC` | 600 | Laser off above 60.0 °C. *P* |
 | `LASER_MIN_MV` | 3200 | Laser off below 3.20 V. *P* |
-| `THERMAL_DERATE_SPAN_DC` | 150 | Linear derating span above the limit (to Low). *P* |
+| `THERMAL_DERATE_SPAN_DC` | 150 | Linear derating span above the limit (to Low). *P* (v0.6; the v0.7 regulates instead, 9.11) |
 | `THERMAL_MOON_DC` | 700 | Moon above 70.0 °C. *P* |
 | `THERMAL_OFF_DC` | 800 | Off above 80.0 °C. *P* |
 | `THERMAL_OFF_CLEAR_DC` | 750 | May switch on again below 75.0 °C. |
@@ -712,10 +734,10 @@ v0.5: 6.3-6.5.
 | `LV_RECOVER_MV` | 3300 | Empty latch released above this at rest. *P* |
 | `LV_MOON_DELAY_MS` | 1000 | Persistence before the Moon limit. |
 | `LV_OFF_DELAY_MS` | 2000 | Persistence before the empty shutdown. |
-| `CELL_CAPACITY_MAH` | 800 | Capacity for the runtime estimate. |
-| `LOAD_CORR_MV_PER_A` | 120 | SoC load correction (mV per A of cell current). |
+| `CELL_CAPACITY_MAH` | 800 | Capacity for the runtime estimate (from `board.rs`; v0.7: 1400). |
+| `LOAD_CORR_MV_PER_A` | 120 | SoC load correction (mV per A of cell current; from `board.rs`; v0.7: 130). |
 | `MCU_AWAKE_MA` | 20 | MCU + radio current in the runtime estimate. |
-| `CHARGE_FAST_MA` | 280 | Charge current (SoC correction while charging). |
+| `CHARGE_FAST_MA` | 280 | Charge current (SoC correction while charging; from `board.rs`; v0.7: 475). |
 | `SOC_SLEW_X10_PER_S` | 5 | SoC filter slew limit (0.1 %/s). |
 | `SOC_RECOVER_HYST_X10` | 30 | SoC "backwards" threshold (0.1 %). |
 | `SOC_DEADBAND_X10` | 5 | SoC dead band (0.1 %). |
@@ -740,8 +762,8 @@ v0.5: 6.3-6.5.
 
 | Constant | Value | Meaning |
 |---|---|---|
-| `LED_FULL_SCALE_MA` | 3235 | LED current at 100 % duty (3.3 V x 2k/102k / 20 mOhm). Calibrate on the bench. |
-| `PWM_MAX_COUNTS` | 8191 | Largest 13-bit duty used; `duty = round(I / 3235 x 8191)`. |
+| `LED_FULL_SCALE_MA` | 3235 | LED current at 100 % duty (3.3 V x 2k/102k / 20 mOhm). Calibrate on the bench. Now in `board.rs`; v0.7: 3552 (section 9). |
+| `PWM_MAX_COUNTS` | 8191 | Largest 13-bit duty used; `duty = round(I / 3235 x 8191)` (v0.7: / 3552, at most 3000 mA). |
 | `NTC_SUPPLY_MV` | 3300 | NTC divider supply. |
 | `NTC_R_FIXED` / `NTC_R25` | 100 k / 100 k | Divider resistor / NTC at 25 °C. |
 | `NTC_BETA` | 4250 | NTC B25/50. |
@@ -764,8 +786,12 @@ v0.5: 6.3-6.5.
 
 ## 7. Verification status
 
-**Host tests** (`cd firmware/flashka-core && cargo test`): **149 passed, 0 failed** — the 93 v0.5
-tests (two adapted to protocol v2, see the report) and 56 new ones: ladder classification incl.
+**Host tests** (`cd firmware/flashka-core && cargo test`): **153 passed, 0 failed** — the 149 of
+firmware 0.6.0 and 4 added with the v0.7 variant (board table, version texts, the LED ceiling for
+every possible request in `hw.rs` and in the controller); with `--features board-v07` the same
+tests with the v0.7 values (the linear-derating test replaced by one for the regulator) plus 13 unit
+tests and 9 simulation tests (section 9.8). The 149 are the
+93 v0.5 tests (two adapted to protocol v2, see the report) and 56 new ones: ladder classification incl.
 every boundary (105/106, 255/256, 447/448, 810/811 mV) and 1 % / ±10 mV tolerances, slide
 clicks / holds (790 ms click, 810 ms hold), ‹ + › 2 s and 10 s, main-button priority, release
 transients, boot with a button held; level stepping without wrap, Turbo rules, ignored while off
@@ -837,3 +863,397 @@ reboot, CCCD restore, the OOB guard on air, presenter-mode current and range.
 * The merged image erases settings and paired computers (flash the ELF to keep them).
 * As v0.5: the red ring LED flickers at boot (bootloader log on GPIO21); below about -7 °C the
   NTC reads as open.
+
+---
+
+## 9. FlashKa Keychain v0.7 (firmware 0.7.0)
+
+The v0.7 board ([hardware/flashka-keychain-v07/](../../flashka-keychain-v07/README.md)) runs this
+firmware built for its electronics: `BOARD=v07 firmware/build.sh` (Cargo feature `board-v07`)
+gives **firmware 0.7.0**. Everything in sections 1 to 8 applies, except what this section lists.
+**Nothing has been built in hardware yet: the lumens, temperatures and runtimes here are estimates
+or simulations, marked as such.**
+
+| | |
+|---|---|
+| Firmware version | 0.7.0 (`FW_VERSION` in `flashka-core/src/board.rs`; Info characteristic `"FlashKa fw 0.7.0"`, PnP version 0x0070) |
+| Release image | `firmware/dist/flashka-fw-v0.7.0-merged.bin` (535 328 bytes), write at flash offset **0x0**, **v0.7 boards only** |
+| SHA-256 of the image | `6554028f31b3e86c958335a1b03b4fd6f2a95000f727d752f4cb891318e79f96` |
+| ELF | `firmware/dist/flashka-fw-v0.7.0.elf` (932 772 bytes), SHA-256 `b9026e430434cd7c48bba9d0ee65f44011a53ae0cc3da303b9492f96ba3a8a47` |
+| Logic tests | `cd firmware/flashka-core && cargo test --features board-v07` (166 unit tests + 9 simulation tests) |
+| Rebuild | `BOARD=v07 firmware/build.sh` |
+
+### 9.1 What is different on the v0.7 board
+
+| | v0.6 | v0.7 |
+|---|---|---|
+| LED | Luminus SST-20 on a 10 mm copper board | Luminus SST-20 Gen 2, 6500 K, G1 bin, on a 10 mm copper board behind a LEDiL LISA3-RS-PIN TIR optic (87 %); **3.0 A DC maximum** (datasheet) |
+| Driver | TLV62585 buck in the TLV333 current loop; VSET 2.0 k / 100 k: 3235 mA at 100 % duty | TPS62095 4 A buck (100 % duty mode) in the same loop; VSET 2.2 k / 100 k: **3552 mA** at 100 % duty, ±3 % (RSS) and ±5 % (worst case) |
+| Cells | 2 × LP601646, about 800 mAh, with protection boards | **one Vapcell INR14500 F15**: 1500 mAh typical / 1150 mAh minimum (0.2C), 3.60 V nominal, **3 A** maximum continuous, about 60 mΩ AC; nickel strips welded to both ends; protected on the main board: DW01A + SE8830A (Kelvin-sensed), trip 5.3-5.6 A typical at 25 °C, 4.3-4.5 A hot, as low as **3.0-3.15 A** in the worst case; a trip latches until USB power is plugged in (9.4) |
+| Cell path | about 0.12 Ω | about 0.13 Ω: the F15's DC resistance about 90 mΩ (estimated as 1.5 × its AC value, not measured), strips and wires about 10 mΩ, protection MOSFETs 28 mΩ, copper about 4 mΩ |
+| Charger | TP4057, about 280 mA (R3 3.3 k) | TP4057, **494 mA** (R3 2.0 k; the F15's standard charge is 500 mA) |
+| Body | 94.4 × 20 × 16 mm | octagonal (eight flat facets), 99.2 × 20 × 18 mm; one 14500 cell in the bay |
+| MCU, pins, buttons, ring, laser, NTC | | unchanged (no GPIO change); the three keys sit on a key board in the middle of the body |
+
+### 9.2 One code base, two boards
+
+* **Selection at compile time:** Cargo feature `board-v07` of `flashka-core`; `flashka-fw` has a
+  feature of the same name that switches it on. No feature = the v0.6 board. `build.sh` takes
+  `BOARD=v06` (default) or `BOARD=v07` and builds each board in its own target folder.
+* **One table:** every board-dependent constant is in `flashka-core/src/board.rs`: firmware
+  version, Info text, PnP version, LED full scale, LED ceiling, highest turbo, cell capacity, load
+  correction, charge current, LED forward-voltage model, driver efficiency, the driver's headroom
+  (v0.7), LED flux table and optic factor. The built-in profiles (`profile.rs`), the cell-current
+  formula and the open-circuit voltage curve (`battery.rs`) have one version per board.
+  `flashka-fw` takes the version and its app descriptor from `board.rs`. The v0.7 build also has
+  `thermal.rs`, the temperature regulator (9.11), in place of the protocol's linear derating.
+* **The LED ceiling, in one place:** `hw::led_duty_counts()` is the only function that turns a
+  current into PWM counts, and it limits every request to `LED_MAX_MA`, **3000 mA** on the v0.7
+  (6918 of the 8192 PWM counts = 2999.6 mA; v0.6: the full scale, as before). No level, profile,
+  Custom value, `OUTPUT_MA`, protection result or bug elsewhere can ask the driver for more. A host
+  test tries every possible u16 request; another drives the controller with random sequences of
+  levels, profiles, Custom writes (also out of range) and exact currents and watches the output.
+* **Below the ceiling:** the highest current any level can request is `TURBO_MAX_MA`, **2850 mA**
+  (the Custom profile's "turbo max", the built-in turbos). The build fails (compile-time checks in
+  `board.rs`) if the ceiling is above 3000 mA or above the full scale, if `TURBO_MAX_MA` plus the 5 %
+  worst-case tolerance is above 3000 mA, if `TURBO_MAX_MA` is above the ceiling or does not match the
+  protocol limit, or if a built-in level is above `TURBO_MAX_MA`.
+* **v0.6 unchanged:** without the feature every constant has its 0.6.0 value; the sources rebuild
+  the published 0.6.0 image and ELF byte for byte (9.7).
+
+### 9.3 Levels and profiles (v0.7)
+
+| | Extreme | Balanced (default) | Endurance | Custom |
+|---|---|---|---|---|
+| Moon / Low / Medium / High | 3 / 50 / 400 / 1800 mA | 3 / 40 / 250 / 1530 mA | 2 / 15 / 100 / 500 mA | set by the app, default = Balanced |
+| out of the front (estimate) | 1 / 24 / 187 / 683 lm | 1 / 19 / 119 / 601 lm | 1 / 7 / 48 / 230 lm | |
+| Turbo | 2850 mA (966 lm) for 60 s | 2850 mA (966 lm) for 60 s | none (turbo = High) | at most 2850 mA |
+| After the turbo time | 1800 mA | 1530 mA | — | |
+| Temperature limit (held, 9.11) | 50 °C | 50 °C | 47 °C | 40-70 °C |
+| Low-voltage step-down (under load) | 3.15 V | 3.20 V | 3.25 V | 3.10-3.60 V |
+| Cell current limit | 2800 mA | 2800 mA | 800 mA | 200-3000 mA |
+| Flags | turbo, remember, battery display | turbo, remember, battery display | remember, battery display | |
+
+Lumens "out of the front" = the LED model of 9.5 (junction at 85 °C) × the optic's 87 %. They are
+estimates; the control app shows the same numbers on a v0.7.
+
+### 9.4 Why these numbers
+
+* **Turbo 2850 mA (966 lm), not 3000 mA.** The LED is rated 3.0 A DC. The full scale of the current
+  loop is ±3 % (RSS) and ±5 % in the worst case (3.3 V rail, divider, sense resistor), so a
+  3000 mA set point could become 3.15 A on a real board. 2850 mA × 1.05 = 2993 mA: within the
+  rating even in the worst corner. The cost is 40 lm (966 instead of 1006 lm out of the front,
+  -4 %, a difference the eye cannot see). From a full F15 turbo draws about 2.7 A; the 2800 mA cell
+  limit cuts in below about 3.78 V under load (about 4.14 V at rest, 96 % charge), and below about
+  3.7 V at the pads the buck runs at 100 % duty and the cell's own sag decides (below about 3.97 V
+  at rest, 82 %): **turbo dims as the cell empties** (simulated, 9.6: 966 lm from a full cell,
+  948 lm at 90 %, 916 lm at 75 %, 775 lm at 50 %, 651 lm at 25 %). The owner's target
+  of about 1000 lm out of the front is met within the accuracy of the LED model: 966 lm is the
+  value at the rating temperature (Tj 85 °C); with a cool LED in the first seconds the datasheet's
+  temperature curve gives about 10 % more (estimate).
+* **High 1530 mA (601 lm).** About 600 lm out of the front needs about 690 lm at the LED; the
+  datasheet gives 680 lm at 1.5 A (G1 bin minimum, Tj 85 °C), so High is 1530 mA, not the 1.7 A of
+  the first estimate (1.7 A would be about 653 lm). It is held until the temperature regulation
+  takes over: about 210 s from cold in 25 °C still air (9.6); the F15 gives it in full down to about
+  15 % charge (Extreme's 1800 mA down to about 30 %).
+* **Moon 3 mA,** as on the v0.6: 7 PWM counts at the 3552 mA scale (1 count = 0.43 mA). The op-amp's
+  offset makes it ±3 % typical, ±25 % worst case.
+* **Low and Medium** split the range in even steps for the eye, about × 5-6 per step in light
+  (Balanced: 1, 19, 119, 601, 966 lm). Extreme moves Low, Medium and High up (24, 187, 683 lm).
+  Endurance keeps the v0.6 low levels and a High of 500 mA (230 lm) that the body sheds in still
+  air at 25 °C without stepping down.
+* **Cell current limit 2800 mA** in Extreme and Balanced (Endurance 800 mA; the Custom profile
+  accepts 200-3000 mA, as in the protocol). The F15 is rated 3 A continuous: 2800 mA is 93 % of
+  that, above the 70 % of LuxLibre BAT-1 (2100 mA). This is a **documented BAT-1 deviation**: only
+  turbo comes near it, and turbo lasts at most 60 s and is thermally regulated (High draws
+  1.3-1.7 A, the sustained level about 0.6 A, both within BAT-1). No independent test of the F15 at
+  3 A was found. The firmware estimates the battery current as
+  `V_LED(I) · I / (0.87 · V_BAT)` with `V_LED = 2.80 V + 0.15 V/A · I` (there is no current
+  sensing) and lowers the LED current to keep the estimate at or below the limit. The board
+  protection (DW01A + SE8830A, Kelvin-sensed; electronics "power" block) trips at 5.3-5.6 A typical
+  at 25 °C and 4.3-4.5 A with hot MOSFETs, but in the worst case (DW01A at its 120 mV minimum, both
+  MOSFETs at their maximum resistance and hot, cell at 3.7-3.8 V) already at 3.0-3.15 A. 2800 mA
+  keeps 7-12 % from that (5-10 % if the real efficiency is 85 %); the earlier 3000 mA kept 0-5 %.
+  Against the F15 the protection is a fault and short-circuit guard, not the 3 A limit.
+  **What a trip looks like:** 10-20 ms above the trip current the protection cuts the cell off:
+  the whole light goes dark at once (LED, ring, Bluetooth) and no key does anything; switching off
+  and on does not help. The DW01A latches (the light's own load holds it off), so the light stays
+  off until USB power is plugged in; then it works again, also after unplugging. Nothing is damaged.
+  If the protection ever trips in turbo, use the Custom profile with a cell limit of **2500 mA**.
+  For full turbo to a lower charge the bay also takes a high-drain 14500 such as the Vapcell K10
+  (1000 mAh, 8 A; not simulated): shorter runtime, and the cell limit can stay.
+* **Turbo timer 60 s** in both turbo profiles. In 25 °C still air the regulator takes over at 57 s,
+  the timer ends turbo at 60 s (9.6).
+* **Temperature limit 50 °C, held by a regulator** (9.11). The NTC sits on the main board near
+  the driver and follows the head. The protocol's linear law (dimming from the limit to Low over
+  15 °C) settles about 9 °C above the limit, so with it the limits had to be 40-41 °C and High
+  started dimming after 83 s while the body was still at 33 °C (simulated, earlier body). On the
+  v0.7 the limit is the set point instead: the light holds the sensor 0.1-0.3 °C below it, and
+  50 °C there keeps the simulated body (the surface held in the hand) at or below 46.5 °C in 25 °C
+  still air and the head below 51 °C on the way, inside LuxLibre's touch limits
+  ([THM-1](../../../docs/design-rules.md#thm-1): 48 °C continuous, 51 °C at any time). Extreme and
+  Balanced both use 50 °C (the regulator holds it whatever the level); Endurance 47 °C, which its
+  500 mA High does not reach at 25 °C (the sensor settles at about 45.2 °C with the MCU's and the
+  cell's own heat).
+* **Battery: one F15.** Capacity for the percentage and runtime estimates **1400 mAh**: the maker
+  gives 1500 mAh typical and 1150 mAh minimum, both at 0.2C to 2.5 V; this light draws 0.4-1.9 A
+  and stops at 3.0 V under load, which costs a typical cell about 7 % (estimate). A cell at the
+  maker's minimum runs about 18 % shorter than the runtime shown. **Load correction 130 mV/A**
+  (the cell path above; the DC resistance is an estimate from the AC value). **Percentage:** the
+  F15's open-circuit voltage is lower than a LiPo's over most of the charge; no F15 curve is
+  published, so the v0.7 uses a generic curve of a 3.6 V-nominal NMC cell (4.20 / 4.05 / 3.95 /
+  3.86 / 3.77 / 3.68 V at 100 / 90 / 80 / 70 / 60 / 50 %, 3.47 V at 20 %, 3.25 V at 5 %, 3.00 V
+  empty; `battery.rs`): an estimate within about ±5 %. In turbo from a part-empty cell the buck can
+  give less than asked; the percentage, the runtime and the Status packet's LED current use the
+  current it can deliver, `(V_BAT - 2.80 V) / 0.278 Ω` (`board::DROP_PATH_MOHM`), and the
+  percentage uses the LED current through the same filter as the voltage, so it does not jump when
+  the level changes. **Low-voltage step-down 3.15 / 3.20 / 3.25 V under load** (Extreme / Balanced
+  / Endurance; was 3.30 / 3.35 / 3.40 V): with the F15's curve and one cell's sag the old values cut
+  in with 10-30 % still in the cell, the new ones at about 5-11 % (from the sustained level to a
+  full High). Moon below 3.10 V and off below
+  3.00 V stay (protocol); the F15 may go to 2.5 V, the DW01A's own cut-off is 2.3-2.5 V.
+  **Charging:** 494 mA (R3 2.0 k), so the percentage correction while charging uses 475 mA (less
+  about 20 mA for the MCU); a full charge takes about 3.5 h. With a nearly empty cell the charger,
+  2.5 mm from the NTC, warms the board; above 45 °C the firmware pauses charging and resumes at
+  43 °C (as on the v0.6): normal, not a fault.
+* **LuxLibre rule LED-2** (a "Should": at most 80 % of the LED's maximum current) is not met:
+  2850 mA is 95 % of 3.0 A. The 1000 lm target needs it; turbo is timed (60 s) and regulated (the
+  regulator starts after about 57 s from cold), so the LED spends little time there.
+
+### 9.5 LED model
+
+| LED current, mA | 350 | 700 | 1000 | 1500 | 2000 | 2850 | 3000 |
+|---|---|---|---|---|---|---|---|
+| At the LED, lm (Tj 85 °C) | 191 | 361 | 485 | **680** | 855 | 1111 | **1156** |
+| Out of the front, lm (× 0.87) | 166 | 314 | 422 | 592 | 744 | 966 | 1006 |
+
+Bold: datasheet values (Luminus SST-20-WS Gen 2, 6500 K: G1 bin minimum at 1.5 A, and 3.0 A).
+The other points are **estimates** from the relative-flux curves of the SST-20 datasheets
+(SST-20-WE: 0.71 at 1.0 A and 1.26 at 2.0 A; SST-20-W Gen 1: 0.28 at 0.35 A and 0.53 at 0.7 A, all
+relative to 1.5 A), with straight lines in between and to zero below 350 mA. `board::front_lumens()`
+computes it with integers; the control app uses the same table and arithmetic (a web unit test
+compares them), and so does the LuxLibre board header `flashka-keychain-v07`.
+
+### 9.6 Simulated behaviour (25 °C still air)
+
+The firmware's own controller (`flashka-core`) drives a simulated light in
+`flashka-core/tests/thermal_v07.rs`. **Thermal model:** three nodes, with masses and areas from the
+CAD of the octagonal body: the head (LED, driver and sensor) 7.06 J/K (7.4 g of aluminium and the
+LED board's copper), the body (the surface you touch) 21.07 J/K (23.5 g of aluminium), head to
+body 2.2 K/W (87.75 mm along about 80 mm² of metal), body to air 13.2 K/W (68.9 cm² of
+aluminium at 11 W/m²K; the texture's extra area is not counted), sensor lag 4 s; and the cell,
+22 J/K (22 g × about 1 J/gK), coupled weakly to the body: about 8 K/W through the two line
+contacts along the rails (polyimide tape), the air gaps and the foam strip (an estimate; with 4
+or 16 K/W High's full output lasts 234 or 189 s, and the current settles at the same level). The
+driver's losses, the part of the LED power that does not leave as light (70 %) and the MCU
+(20 mA) heat the head; the cell heats itself with I² × 0.10 Ω.
+**Electrical model:** one F15, 1500 mAh, the curve of 9.4, 0.10 Ω from the cell to the J2 pads
+and 0.132 Ω to the battery ADC; at 100 % duty the buck gives the LED at most
+(V_pads - 2.80 V) / 0.31 Ω (electronics "power" block). The light lies alone in still air with a
+full cell; there is no "held in the hand" case. The PCB, keys and optic do not store heat in the
+model, so the times are on the short side. **Simulated, not measured.**
+
+| Run | Full output | Then | Sustained | Body (touch) | Runtime, F15 |
+|---|---|---|---|---|---|
+| Balanced, turbo 2850 mA (966 lm) | 58 s | regulated from 57 s (2731 mA at 59 s); at 60 s the timer ends turbo: High 1530 mA (601 lm; 1447 mA for 3 s right after the turbo) until about 2 min, then 462 lm at 3 min, 379 lm at 5 min, 308 lm at 10 min | 620 mA = **280 lm** at 20 min, 611 mA = 276 lm from 30 min | at most 46.4 °C, steady after about 10 min | 137 min to 10 % of the 30 s output (ANSI FL 1 style; here the low-voltage step-down to Low); off after 235 min |
+| Balanced, High 1530 mA (601 lm) | 210 s | regulated: 464 lm at 4 min, 414 lm at 5 min, 314 lm at 10 min | 282 lm at 20 min, 276 lm from 30 min | at most 46.5 °C | 138 min; off after 236 min |
+| Extreme, turbo 2850 mA | 58 s | timer at 60 s: 1800 mA (683 lm; 1703 mA for 3 s right after the turbo) until about 1.6 min, then regulated | 281 lm, 276 lm from 30 min | at most 46.5 °C | 139 min; off after 201 min |
+| Extreme, High 1800 mA (683 lm) | 149 s | regulated | 281 lm, 276 lm from 30 min | at most 46.4 °C | 140 min; off after 201 min |
+| Endurance, High 500 mA (230 lm) | 178 min (no thermal step-down) | low-voltage step-down to Medium (100 mA, 48 lm) at 178 min | 230 lm | 42.4 °C | 193 min; off after 303 min |
+| Balanced, turbo from a **half-full cell** (50 %) | never: 2139 mA = **780 lm** at switch-on, 775 lm at 30 s, 770 lm at 59 s | at 60 s High 1530 mA (601 lm) until about 3 min, then regulated | 282 lm, 276 lm at 30 min | at most 46.4 °C | (starts at 50 %) |
+
+**Turbo and the state of charge** (simulated, `balanced_turbo_from_a_half_full_cell`): under
+2.7 A the F15 sags, and below about 3.7 V at the pads the buck runs at 100 % duty, so the LED gets
+what the cell can push through it. The whole 2850 mA needs about 4.14 V at rest (96 % charge: the
+cell limit); the buck alone would hold it down to about 3.97 V (82 %; the electronics estimate was
+3.95-4.0 V). 30 s after switching on, turbo gives 966 lm from a full cell, 948 lm at 90 % (2780 mA:
+the 2800 mA cell limit), 916 lm at 75 % (2658 mA), **775 lm at 50 % (2119 mA, -20 %)** and 651 lm
+at 25 % (1696 mA). High (1530 mA) comes in full down to about 15 %,
+and the regulated level of about 280 lm down to the low-voltage step-down. The app shows the
+current the LED really gets (9.4). A high-drain 14500 such as the Vapcell K10 would keep the turbo
+down to a lower charge (not simulated).
+
+The sensor peaks at 50.5 °C (Balanced) to 50.6 °C (Extreme), the head at 50.5-50.6 °C, then the
+sensor settles within the band, 49.7-50.0 °C; the cell warms to at most 46.7 °C and gives at most
+2.74 A (turbo, full cell; 2.16 A from a half-full cell). Once settled the current changes by at
+most 1 mA per second. The LuxLibre firmware on the same model (board header
+`flashka-keychain-v07`, its regulator at `THM_LIMIT` 50 °C; two nodes, without the cell node)
+holds turbo 56 s and its High (level 138: 1501 mA, 592 lm) 185 s, with its sensor peaking at
+51.0 °C, then 289-304 lm. With the LED's temperature curve (a cool LED gives more light) the
+comparison script `hardware/flashka-keychain-v07/tools/compare/` puts the turbo at about 1045 lm out
+of the front at switch-on and 1019 lm at 30 s (estimates).
+
+**Step response** (simulated, `regulator_step_response_to_the_air_temperature`): with High
+regulated in 25 °C air, the air steps to 30 °C. The current falls from 618 to 490 mA without
+undershoot, the sensor peaks at 50.11 °C and is back at or below 49.9 °C after 2.8 min. Then the
+air steps to 20 °C: the current rises to 729 mA without overshoot and the sensor stays below the
+limit (at most 49.86 °C). No oscillation; the current changes by at most 0.2 % per update. At
+30 °C air the body settles at about 47 °C (47.05 °C with the sensor at 49.86 °C): the regulator
+holds the sensor, not the body (9.10).
+
+**Noisy sensor** (simulated, `regulator_is_steady_with_a_noisy_sensor`): with a pseudo-random
+-3 to +3 mV on the NTC voltage at every sample (about ±0.12 °C at 50 °C) High still runs 210 s at
+full output and settles without hunting: from 30 to 45 min the current stays at 615-617 mA
+(278 lm). Without the gap of the proportional part (9.11) the same run wanders between 603 and
+618 mA.
+
+`FLASHKA_SIM_CSV=<folder> cargo test --features board-v07 --test thermal_v07` writes the time
+series (1 s rows) of these runs, of the step response and of the noisy-sensor run.
+
+### 9.7 Image and reproducible build
+
+`BOARD=v07 firmware/build.sh` builds in `firmware/target/v07/` with `SOURCE_DATE_EPOCH`
+2026-10-22 00:00:00 UTC (the v0.6 image keeps `firmware/target/` and 2026-10-17, so building one
+board never reuses the other's compiled date) and the same path remapping as for 0.6.0. The app
+descriptor reads "flashka-fw 0.7.0"; build.sh checks it.
+
+| | v0.7 (0.7.0) |
+|---|---|
+| Merged image | 535 328 bytes, SHA-256 `6554028f31b3e86c958335a1b03b4fd6f2a95000f727d752f4cb891318e79f96` |
+| ELF | 932 772 bytes, SHA-256 `b9026e430434cd7c48bba9d0ee65f44011a53ae0cc3da303b9492f96ba3a8a47` |
+| App image | 469 792 bytes (11 % of the app partition) |
+| Flash, code + constants | 429 348 bytes |
+| RAM, static | 90 136 bytes (IRAM code 30 676, data 9 668, bss 49 792); 230 368 bytes left for the stack |
+
+Check: two copies of the firmware folder (without `dist/`) in two different folders, each built
+for both boards (v0.6 then v0.7 in one, v0.7 then v0.6 in the other), gave identical v0.7 images and
+ELFs, and both reproduced the published 0.6.0 image and ELF byte for byte. rustc 1.91.1, espflash
+4.6.0.
+
+### 9.8 Tests (v0.7)
+
+`cargo test --features board-v07`: **166 unit tests and 9 simulation tests, all passed.** Every
+test of the default build runs with the v0.7 values (built-in profiles, duty counts, cell-current
+formula, open-circuit voltage curve, load correction, runtime, low-voltage thresholds, battery
+limits); the protocol's linear-derating test is replaced by one for the regulator (held within the
+band, falls to Low when too hot, never below, Moon and off as before). Added: the LED ceiling for
+every u16 request and through the controller (also in the default build), the board table and
+version texts, the LED model's datasheet anchors and shape, the lumens of every v0.7 level, the
+battery limits of the F15 (no level the cell or the protection cannot carry: the estimated cell
+current within the cell limit, at least 7 % below the protection's worst-case trip and the F15's
+3 A; every level but turbo within LuxLibre BAT-1, 2100 mA, down to the step-down voltage;
+1400 mAh and 130 mV/A), the current the buck can deliver at 100 % duty and the percentage during a
+dimmed turbo, nine unit tests of the regulator (band, floor, backstop, set point clamp, no wind-up,
+prediction, no dip after a lower request, a reading flicking at the edge of the band, sensor
+faults), and the nine simulation runs of 9.6: turbo at 2850 mA for at least 35 s and High for at
+least 150 s from cold, the body at or below 47 °C at every moment, head and sensor at or below
+51 °C and, once settled, 50 °C, 270 lm or more sustained, at most 2 % change per update and no
+oscillation, never more than 2850 mA, the Custom maximum clamped, the step response, the noisy
+sensor and turbo from a half-full cell (it dims but stays above High, the cell at or below 2.8 A,
+the Status packet reports the current the LED gets).
+
+### 9.9 Bring-up additions for the v0.7
+
+24. **Full scale.** Set 250, 1530 and 2850 mA (`OUTPUT_MA` from the app) and measure the LED current
+    (shunt in series, or the voltage across RS1: 57 mV at 2850 mA). Calibrate
+    `LED_FULL_SCALE_MA = 3552 × measured / set` if it is off by more than 2 %; the turbo must be at
+    or below 3.00 A.
+25. **Turbo by charge.** Turbo from a full F15 and from a half-full one (about 3.7 V at rest):
+    measure the LED current (simulated 2850 mA and about 2.1 A, 9.6) and compare the app's reading.
+    If they differ, correct `board::DROP_PATH_MOHM` (the driver's headroom seen from the battery
+    ADC: 0.278 Ω in all with the LED's 0.15 Ω).
+26. **Cell current and resistance.** Measure the battery current at turbo at 4.2, 3.8 and 3.6 V
+    (supply in place of the cell, shunt in BAT-), also right after 60 s of turbo (hot MOSFETs).
+    Expected 2.5-2.8 A; the protection must not trip. If the measurement is higher than the
+    estimate, lower the cell limit. Then measure the trip current itself, hot: raise the load on a
+    current-limited supply until the DW01A cuts (expected above 3.0 A; plug in USB to wake the board
+    again). With an F15: its voltage at rest and in High and turbo at the ADC (app) gives the DC
+    resistance of the cell path, estimated 0.13 Ω; correct `LOAD_CORR_MV_PER_A` if it differs.
+27. **Temperatures** (LuxLibre THM-4 / THM-6): thermocouples on the head and on the body where it
+    is held, the NTC reading in the app; turbo and High from cold in 25 °C still air. The body must
+    stay at or below 48 °C; compare with 9.6. If the NTC does not follow the head as assumed, lower
+    the limit or lengthen the regulator's prediction (`LEAD_S`, 9.11) and check that the current
+    settles without hunting (the app shows it).
+28. **Moonlight** 3 mA: visible and steady (op-amp offset up to ±25 %).
+29. **Output and runtime** with a lumen tube ([docs/testing.md](../../../docs/testing.md)):
+    turbo at 30 s and High against 966 / 601 lm, runtime at High against about 138 min (to the
+    ANSI end point; a cell at the maker's 1150 mAh minimum gives about 18 % less).
+30. **Charging** from a nearly empty F15: charge current (about 490 mA, R3 2.0 k), the percentage
+    while charging, the NTC reading and the pauses above 45 °C; a full charge in about 3.5 h.
+
+### 9.10 Open points (v0.7)
+
+* Hardware untested: every number above is a datasheet value, an estimate or a simulation.
+* The temperature limits assume that the NTC (on the main board, about 12 mm behind the head
+  block) follows the head; check it on the bench (9.9, step 27).
+* Full-scale tolerance: the 3.0 A guarantee assumes at most +5 %; calibrate (step 24).
+* **The F15:** no independent test of the F15 at 3 A was found; its DC resistance (about 90 mΩ) is
+  estimated from the maker's 60 mΩ AC value, and no discharge curve is published. The load
+  correction, the percentage (a generic curve, about ±5 %), the low-voltage thresholds and the
+  dimming of turbo by charge (9.6) are estimates; check them (steps 25, 26, 29).
+* Capacity: the estimates use 1400 mAh; a cell at the maker's minimum (1150 mAh) runs about 18 %
+  shorter than shown.
+* **Cell limit 2800 mA = 93 % of the F15's 3 A, a LuxLibre BAT-1 deviation** (9.4). The estimate
+  assumes 87 % from the cell to the LED; at 85 % the real current at the limit would be 2.87 A,
+  still below 3 A and the protection's worst-case trip of 3.0-3.15 A, but measure it (step 26).
+* Buck dropout: modelled from the electronics estimate (0.31 Ω from the J2 pads to the LED at
+  100 % duty); the turbo from a part-empty cell depends on it and on the cell (step 25).
+* LED-2 deviation (95 % of the LED maximum), documented in 9.4.
+* The sustained level is 276-282 lm (294 lm in the earlier simulation of the rectangular body,
+  which left out the MCU's and the cells' heat); the simulation test accepts 270 lm or more.
+* The regulator holds the sensor, not the body: in warmer air the body runs closer to the sensor
+  (simulated: 47.1 °C at 30 °C air, 47.8 °C at 35 °C; above about 36.5 °C air the body would pass
+  48 °C at the 50 °C limit). Lower the Custom limit for hot days, or measure and add an air term.
+* The regulator's gains were tuned on the simulation model; a real NTC with noise, another lag or
+  another coupling to the head can need other values (9.9, step 27). In the design check of 9.11
+  the head peaks at 50.5-50.95 °C in turbo with a sensor lag of 2 or 8 s, the head's heat capacity
+  halved or doubled, twice the body's heat capacity, 30 % less resistance to the air, 15 °C air or
+  the cell coupled by 4 or 16 K/W; it passes 51 °C with the head-to-body resistance doubled
+  (51.2 °C; turbo then lasts 33 s, the sustained level is 249 lm) and in 35 °C air (51.3 °C); with
+  the head-to-body resistance halved the body settles at 48.1 °C.
+* The lumens below 1.5 A are estimates (no SST-20 Gen 2 curve at those currents was available).
+
+### 9.11 Thermal regulator (v0.7)
+
+The v0.6 keeps the protocol's linear derating (section 2.6). On the v0.7 the profile's temperature
+limit is the set point of a regulator (`flashka-core/src/thermal.rs`, built only with
+`board-v07`), fed by every temperature sample (100 ms) and applied in the same place as the old law
+(Moon above 70 °C and off above 80 °C stay):
+
+```text
+T      = sensor temperature through one more filter (1/16 per sample, about 1.6 s)
+rate   = its rate of rise (filtered, 1/32 per sample, about 3.2 s), less 0.03 degC/s; cooling = 0
+T_pred = T + rate x 8 s                     (the sensor lags the head by about 4 s)
+aim    = limit - 0.1 degC                   (the reading has a resolution of 0.1 degC)
+e      = T_pred - aim, or 0 while T_pred is within 0.2 degC below the aim
+e'     = e less 0.1 degC on either side (one step of the reading), or 0
+I      = I - KI' x e x 0.1 s                KI = 24 mA/(degC s), smaller below 0.5 degC of error
+cap    = I - 300 mA/degC x e'               both between Low and the requested current
+```
+
+* **Full output until it is needed:** while the predicted temperature is below the aim the cap is
+  the request, so turbo and High run at their full current until the temperature, 8 s ahead, gets
+  to the limit. The prediction (and the filters) are why the cut starts early enough that the head
+  stays below 51 °C after it.
+* **No wind-up, no deep dips:** the integrator stays between Low and the request; while it is too
+  hot it may sit above the request by the proportional part, so the end of turbo goes to High at
+  once instead of dipping far below it first. While the temperature is still rising after the
+  turbo the cap stays a few per cent below High for a few seconds (simulated: 1447 mA, -5 %, for
+  3 s). Requests at or below Low are never reduced; more than 5 °C
+  above the limit the cap is Low at once (backstop); limits above 65 °C act as 65 °C.
+* **Stability:** linearised with the thermal model of 9.6 (head 7.06 J/K, body 21.07 J/K, cell
+  22 J/K at 8 K/W, 2.2 and 13.2 K/W, sensor lag 4 s; the sampling, both filters and one sample of
+  delay included, the full integral gain), the loop crosses over at 0.16-0.20 rad/s (a period of
+  31-39 s) for 0.62-2.85 A while the prediction acts, at 0.10-0.12 rad/s once settled (the rate
+  below 0.03 °C/s): faster than the light as a whole (about 750 s), slower than the head (about
+  16 s) and the sensor. The phase margin is at least 57 degrees with the prediction and 43 degrees
+  without it, the gain margin at least 10 and 12.8 dB; with the sensor lag doubled to 8 s or the
+  head-to-body resistance doubled at least 46 / 29 degrees and 9.1 / 10.9 dB, with the head's heat
+  capacity halved 33 / 44 degrees and 5.7 / 9.8 dB. The cell's coupling (4-16 K/W) does not change
+  them. Near the aim the integral gain is smaller still.
+* **No hunting on the steps of the reading:** within the band neither term acts, and the
+  proportional part starts one step of the reading (0.1 °C) beyond it. A reading that flicks
+  between two values at the edge of the band (the 0.1 °C resolution, or noise) then moves only the
+  slow integral part, by a fraction of a mA per sample, instead of the current in steps of
+  300 mA/°C x 0.1 °C = 30 mA. In the simulation the settled current does not change, also with
+  ±3 mV of noise on the NTC voltage (9.6). With a sensor lag of 2 or 8 s, the head's heat capacity
+  or the head-to-body resistance halved or doubled, twice the body's heat capacity, 30 % less
+  resistance to the air, 15 or 35 °C air, or the cell coupled by 4 or 16 K/W, the current still
+  settles without hunting: it falls steadily and does not turn back once (design check on the same
+  model, not a test; the peaks of those cases are in 9.10).
+* **Step response:** 9.6 (a 5 °C warmer and a 10 °C cooler air step while regulating): no
+  oscillation, no undershoot or overshoot of the current, the sensor at most 0.11 °C above the
+  limit.
+* **Protocol and app:** the same packets and range (40-70 °C); `ble_protocol.md` section 9
+  describes the rule; the control app (0.7.0) and its demo light follow it on a v0.7 and keep the
+  linear law for a v0.6.

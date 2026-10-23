@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-//! FlashKa Keychain v0.6 firmware (ESP32-C3-MINI-1-N4).
+//! FlashKa Keychain v0.6 / v0.7 firmware (ESP32-C3-MINI-1-N4); board: Cargo feature `board-v07`.
 //!
 //! Hardware I/O and async glue only - every decision is made by
 //! `flashka_core::Controller` (host-tested). See `docs/firmware.md`.
@@ -56,7 +56,7 @@ use flashka_core::{BootInfo, Controller};
 use log::{error, info, warn};
 use static_cell::StaticCell;
 
-esp_bootloader_esp_idf::esp_app_desc!();
+#[cfg(not(feature = "board-v07"))] esp_bootloader_esp_idf::esp_app_desc!(); // v0.7: board.rs (version 0.7.0)
 
 /// Control loop period (button ladder sampling).
 const CONTROL_PERIOD_MS: u64 = 10;
@@ -260,7 +260,7 @@ async fn main(spawner: Spawner) -> ! {
     let woke_by_button = wake.woke_by_button(first.is_pressed() || sensors.button_any.is_low());
     info!(
         "FlashKa fw {} - reset {:?}, gpio wake {} (status {:#08b}), timer wake {}, button wake {}, first sample {:?} ({:?} mV)",
-        env!("CARGO_PKG_VERSION"),
+        board::fw_version!(),
         wake.reset_reason,
         wake.gpio_wake,
         wake.wake_status,

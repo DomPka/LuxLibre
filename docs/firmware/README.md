@@ -10,7 +10,7 @@ simulated flashlight (battery, LED, heat) runs the unit and behaviour tests.
 | host | PC (Linux, macOS, Windows with WSL) | simulator and tests; every change is tested here |
 | attiny1616 | Microchip ATtiny1616 | builds and links (about 11.4 KB of 16 KB flash); not yet tested on hardware |
 | ch32v003 | WCH CH32V003 | builds and links (about 11.8 KB of 15.75 KB flash); not yet tested on hardware |
-| esp32c3 | Espressif ESP32-C3 (FlashKa v0.5 and v0.6) | experimental: written for ESP-IDF 5.x and checked against its API, CI build configured (allowed to fail until it has passed once); not yet compiled with ESP-IDF or tested on hardware |
+| esp32c3 | Espressif ESP32-C3 (FlashKa v0.5, v0.6 and v0.7) | experimental: written for ESP-IDF 5.x and checked against its API, CI build configured (allowed to fail until it has passed once); not yet compiled with ESP-IDF or tested on hardware |
 
 Contents: [features](#features) · [why C++17](#why-c17) · [architecture](#architecture) ·
 [building](#building) · [flashing](#flashing) · [the console](#the-console) ·
@@ -138,7 +138,7 @@ The ESP32-C3 port builds with ESP-IDF 5.x:
 ```sh
 cd firmware/ports/esp32c3
 idf.py set-target esp32c3
-idf.py -DLX_BOARD=flashka-keychain-v05 build     # or -DLX_BOARD=flashka-keychain-v06
+idf.py -DLX_BOARD=flashka-keychain-v05 build     # or flashka-keychain-v06, flashka-keychain-v07
 ```
 
 Details and the current limitations of that port: [ports/esp32c3/README.md](../../firmware/ports/esp32c3/README.md).
@@ -179,7 +179,7 @@ An example session:
 
 ```text
 > ver
-LuxLibre 0.2.0 / FlashKa Keychain v0.6
+LuxLibre 0.3.0 / FlashKa Keychain v0.6
 ok
 > get THM_LIMIT
 THM_LIMIT=50

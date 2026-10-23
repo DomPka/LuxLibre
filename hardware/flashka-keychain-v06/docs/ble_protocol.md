@@ -18,6 +18,10 @@ A version 1 app that reads only bytes 0-17 still works, apart from the version b
 Besides the app link, v0.6 has a **presenter mode** in which the light is a Bluetooth LE
 keyboard (HID over GATT) for a computer (section 7). The app cannot connect then.
 
+The FlashKa Keychain v0.7 (firmware 0.7.x) speaks the same version 2; its numbers differ in
+the places listed in section 9 (Info text, turbo maximum, built-in profiles, cell-current
+model).
+
 > The firmware side is built and host-tested only; nothing here has been tested over the air
 > with a v0.6 board yet (see `firmware.md` section 7).
 
@@ -66,7 +70,7 @@ Service UUID: **`a7d40001-3c5e-4b8a-9f61-2d0c8e5b7a13`** (unchanged from version
 | Status | `a7d40002-3c5e-4b8a-9f61-2d0c8e5b7a13` | read, notify | **20 bytes** |
 | Command | `a7d40003-3c5e-4b8a-9f61-2d0c8e5b7a13` | write (with response) | 1–3 bytes |
 | Profile | `a7d40004-3c5e-4b8a-9f61-2d0c8e5b7a13` | read, write (with response) | 20 bytes |
-| Info | `a7d40005-3c5e-4b8a-9f61-2d0c8e5b7a13` | read | UTF-8 text, ≤ 20 bytes (`"FlashKa fw 0.6.0"`) |
+| Info | `a7d40005-3c5e-4b8a-9f61-2d0c8e5b7a13` | read | UTF-8 text, ≤ 20 bytes (`"FlashKa fw 0.6.0"`; v0.7: `"FlashKa fw 0.7.0"`, section 9) |
 | **Presenter** (v2) | `a7d40006-3c5e-4b8a-9f61-2d0c8e5b7a13` | read, write (with response) | 4 bytes |
 
 Status is notified on every change and at least every 2 s while a central is subscribed.
@@ -141,7 +145,7 @@ every value to the safe range below and the value read back afterwards is what i
 | 4 | u16 | Low, mA | Moon–300 |
 | 6 | u16 | Medium, mA | Low–1000 |
 | 8 | u16 | High, mA | Medium–2000 |
-| 10 | u16 | Turbo, mA | High–3000 |
+| 10 | u16 | Turbo, mA | High–3000 (v0.7: High–2850, section 9) |
 | 12 | u16 | turbo time, s | 0–300 (0 = turbo = High) |
 | 14 | u16 | step-down current after the turbo time, mA | Low–High |
 | 16 | u8 | temperature limit, °C (output is reduced above it) | 40–70 |
@@ -227,15 +231,74 @@ computer must forget FlashKa and pair again if a future firmware changes this la
 ## 8. Protection (firmware, all profiles)
 
 * **Temperature** (NTC): above the profile limit the current drops linearly, 15 °C → Low;
-  above 70 °C Moon; above 80 °C off. Turbo is refused within 5 °C of the limit.
+  above 70 °C Moon; above 80 °C off. Turbo is refused within 5 °C of the limit. (v0.7: the limit
+  is a set point that the light holds, section 9.)
 * **Low voltage**: below the profile's step-down voltage (under load) the level drops one
   step every 5 s; below 3.10 V Moon; below 3.00 V off (red blinks) and the light refuses to
   switch on until the cell is above 3.30 V or USB is present. Presenter mode is refused and
   ended below 3.20 V.
 * **Cell current**: the estimated battery current, `V_LED(I) · I / (0.9 · V_BAT)` with
-  `V_LED = 2.75 V + 0.15 V/A · I`, is kept below the profile's limit.
+  `V_LED = 2.75 V + 0.15 V/A · I`, is kept below the profile's limit (v0.7: section 9).
 * **Charging**: enabled between 0 and 45 °C; paused while the LED runs above 500 mA.
 * **Laser**: main button only (flashlight mode: click + click-and-hold; presenter mode: hold),
   while held, max 60 s, never from Bluetooth, never in lockout, off above 60 °C or below 3.20 V.
   The slide switch S2 must also be armed — that path is hardware and the firmware cannot
   override it.
+
+## 9. FlashKa Keychain v0.7 (firmware 0.7.x)
+
+Same packets and commands (version 2, same UUIDs). The v0.7 board has a stronger LED driver, an
+SST-20 Gen 2 LED behind a TIR optic and one 14500 cell, a Vapcell INR14500 F15 (`firmware.md`
+section 9), so these values and one rule differ:
+
+* **Info** reads `"FlashKa fw 0.7.0"`. An app tells the boards apart by it: firmware 0.7.x runs
+  on v0.7 boards, 0.6.x on v0.6 boards.
+* **Turbo maximum 2850 mA** (Profile offset 10, range High–2850): the LED's 3.0 A rating less the
+  worst-case tolerance of the current loop. The firmware clamps 2851–3000 to 2850 like any other
+  out-of-range value; the read-back shows it. `OUTPUT_MA` is limited to the active profile's
+  turbo current as before, so it never asks for more than 2850 mA either; 2850 mA stays at or
+  below 3.0 A even with the worst-case tolerance. Behind that, the firmware's LED ceiling
+  limits every set point to 3000 mA, whatever asks for it.
+* **Temperature limit = set point** (Profile offset 16; this replaces the first point of section 8
+  on the v0.7). The light regulates: it holds the sensor 0.1 to 0.3 °C below the limit and gives
+  the full requested current until the temperature, predicted 8 s ahead from its rate of rise,
+  gets there. It does not dim linearly over 15 °C above the limit as the v0.6 does. Requests at or
+  below Low are never reduced; more than 5 °C above the limit the light drops to Low at once;
+  limits above 65 °C act as 65 °C (5 °C below the Moon limit). Unchanged from section 8: Moon
+  above 70 °C, off above 80 °C, Turbo refused within 5 °C of the limit, and Status bit 6
+  ("thermal limit") whenever the regulator holds the current below the request. The same range
+  (40–70 °C) is accepted; the built-in profiles use 50 °C (47 °C in Endurance).
+* **Cell current** estimate: `V_LED(I) · I / (0.87 · V_BAT)` with `V_LED = 2.80 V + 0.15 V/A · I`.
+  The built-in limit is 2800 mA in Extreme and Balanced (800 mA in Endurance): 93 % of the F15's
+  3 A rating, a documented deviation from LuxLibre BAT-1 (70 %) for the timed, regulated turbo
+  (`firmware.md` 9.4); the Custom profile accepts 200–3000 mA as in section 5. The battery
+  protection on the board (DW01A) trips at 4.3–4.5 A with hot MOSFETs (typical), but in the worst
+  case already at 3.0–3.15 A. A trip switches the whole light off at once (no Status, no
+  Bluetooth) and it stays off until USB power is plugged in: switching off and on does not help.
+  If the protection ever trips in turbo, use a Custom cell limit of 2500 mA.
+* **LED current in Status** (offset 4) is the current the LED gets. In turbo from a part-empty
+  cell the driver runs at 100 % duty and gives less than the set point: the v0.7 reports
+  `min(set point, (V_BAT − 2.80 V) / 0.278 Ω)` (a half-full cell gives about 2100 mA instead of
+  2850 mA), and the state of charge (offset 8) and the runtime (offset 15) use the same value. The
+  battery-limit flag (bit 7) is set while the cell current limit holds the set point down.
+* **Battery:** state of charge and runtime use the F15 (1400 mAh, its open-circuit curve, 0.13 V
+  per A of load correction). The low-voltage rule of section 8 is unchanged, with the step-down
+  voltages of the built-in profiles below (3.15 / 3.20 / 3.25 V under load); Moon below 3.10 V
+  and off below 3.00 V as before.
+* **Charging** at about 500 mA (the percentage while charging assumes 475 mA), with the
+  temperature window of section 8. With a nearly empty cell the charger warms the board and the
+  light pauses charging above 45 °C until 43 °C: normal, not a fault (Status: USB present,
+  not charging).
+* The other protection rules of section 8 (laser, presenter mode below 3.20 V) are unchanged.
+
+Built-in profiles of the v0.7 (flags as on the v0.6: Extreme and Balanced turbo, remember,
+battery display; Endurance remember, battery display):
+
+| | Extreme | Balanced | Endurance | Custom (default) |
+|---|---|---|---|---|
+| Moon / Low / Medium / High, mA | 3 / 50 / 400 / 1800 | 3 / 40 / 250 / 1530 | 2 / 15 / 100 / 500 | = Balanced |
+| Turbo, mA · time | 2850 · 60 s | 2850 · 60 s | none (turbo = High) | |
+| Step-down after turbo, mA | 1800 | 1530 | — | |
+| Temperature limit (set point) | 50 °C | 50 °C | 47 °C | |
+| Low-voltage step-down | 3.15 V | 3.20 V | 3.25 V | |
+| Cell current limit | 2800 mA | 2800 mA | 800 mA | |

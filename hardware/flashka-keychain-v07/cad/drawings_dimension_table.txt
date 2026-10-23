@@ -1,0 +1,563 @@
+FlashKa Keychain housing v0.7 drawings (2026-10-23): every number written on the sheets against its value in P
+(574 entries, 441 distinct; 'shown' = value as printed, tolerance 6e-4)
+
+
+== FK-H-01 1/2
+sheet        what                                               shown  P expression                                   P value  ok
+---------------------------------------------------------------------------------------------------------------------------------
+FK-H-01 1/2  front taps from the front face                     10.14  screw_x_front                                    10.14  ok   [top]
+FK-H-01 1/2  rear taps from the front taps                      85.81  X_screw_back-screw_x_front                       85.81  ok   [top]
+FK-H-01 1/2  rear taps from the tail face                        3.25  L-X_screw_back                                    3.25  ok   [top]
+FK-H-01 1/2  head block length                                  11.45  L_head                                           11.45  ok   [top, secD, table]
+FK-H-01 1/2  KB bosses from the head block                       14.2  kb_holes[0][0]-L_head                             14.2  ok   [top]
+FK-H-01 1/2  bosses to the end of the ledges                      9.9  X_pcb1-kb_holes[0][0]                              9.9  ok   [top]
+FK-H-01 1/2  antenna zone + cell bay                             57.8  X_batt1-X_pcb1                                    57.8  ok   [top]
+FK-H-01 1/2  tail (front wall + slot + end wall)                 5.85  L_tail                                            5.85  ok   [top]
+FK-H-01 1/2  overall length                                      99.2  L                                                 99.2  ok   [top]
+FK-H-01 1/2  width                                                 20  W                                                   20  ok   [top, secB]
+FK-H-01 1/2  thread depth                                         2.6  m16_drill-1.0                                      2.6  ok   [top, secC, table]
+FK-H-01 1/2  tap drill                                           1.25  m16_tap                                           1.25  ok   [top, secC, table]
+FK-H-01 1/2  tap drill depth                                      3.6  m16_drill                                          3.6  ok   [top, secC, table]
+FK-H-01 1/2  front relief dia                                       2  front_relief[0]                                      2  ok   [top, table]
+FK-H-01 1/2  USB-C centre from the front face                   17.35  X_usb                                            17.35  ok   [side_m]
+FK-H-01 1/2  height                                                18  H                                                   18  ok   [side_m, side_p, front]
+FK-H-01 1/2  USB-C opening width                                 12.6  usb_open[0]                                       12.6  ok   [side_m, table]
+FK-H-01 1/2  USB-C opening height                                 6.8  usb_open[1]                                        6.8  ok   [side_m, table]
+FK-H-01 1/2  USB-C opening radius                                   2  usb_open[2]                                          2  ok   [side_m, table]
+FK-H-01 1/2  USB-C centre Z                                     7.595  Z_pcb_bot-3.21/2                                 7.595  ok   [side_m, table]
+FK-H-01 1/2  USB-C chamfer                                        0.3  usb_open_chamfer                                   0.3  ok   [side_m, table]
+FK-H-01 1/2  S2 slot centre from the front face                  16.8  X_s2                                              16.8  ok   [side_p]
+FK-H-01 1/2  S2 slot width                                        3.2  s2_slot[0]                                         3.2  ok   [side_p, table]
+FK-H-01 1/2  S2 slot height                                         2  s2_slot[1]                                           2  ok   [side_p, table]
+FK-H-01 1/2  S2 slot radius                                       0.8  s2_slot[2]                                         0.8  ok   [side_p, table]
+FK-H-01 1/2  S2 slot centre Z                                    10.7  Z_pcb_top+s2_knob_z                               10.7  ok   [side_p, table]
+FK-H-01 1/2  optic bore depth                                    8.83  D_w                                               8.83  ok   [secA, table]
+FK-H-01 1/2  optic bore diameter                                 10.1  opt_bore                                          10.1  ok   [secA, front, secE]
+FK-H-01 1/2  cavity depth (floor to lid seat)                    13.1  Z_lid-floor                                       13.1  ok   [secA]
+FK-H-01 1/2  PCB ledge height                                     9.2  Z_pcb_bot                                          9.2  ok   [secA, secB]
+FK-H-01 1/2  laser axis from the +Y face                         4.15  W/2-Y_l                                           4.15  ok   [front, table]
+FK-H-01 1/2  optic axis to laser axis                           9.675  Y_l-Y_w                                          9.675  ok   [front]
+FK-H-01 1/2  optic axis from the control face                   6.175  W/2+Y_w                                          6.175  ok   [front, table]
+FK-H-01 1/2  laser axis height                                    5.9  Z_las                                              5.9  ok   [front, secD]
+FK-H-01 1/2  optic axis height                                      8  Z_axis                                               8  ok   [front]
+FK-H-01 1/2  laser bore diameter                                  6.1  las_d+las_clear                                    6.1  ok   [front, secC, secD]
+FK-H-01 1/2  tap spacing                                            9  2*screw_dy                                           9  ok   [secC]
+FK-H-01 1/2  LED wire hole diameter                               1.5  ledwire_d                                          1.5  ok   [secC]
+FK-H-01 1/2  cavity width                                          17  2*(W/2-wall)                                        17  ok   [secB, table]
+FK-H-01 1/2  main key opening (Y)                                   7  main_key[1]+2*key_clear                              7  ok   [secB]
+FK-H-01 1/2  KB boss top                                          4.4  kb_z0                                              4.4  ok   [secB]
+FK-H-01 1/2  lid seat height                                     14.6  Z_lid                                             14.6  ok   [secB]
+FK-H-01 1/2  KB tap thread length                                1.85  kb_z0-kb_thread_z                                 1.85  ok   [secB]
+FK-H-01 1/2  KB tap drill                                        1.25  m16_tap                                           1.25  ok   [secB, table]
+FK-H-01 1/2  KB tap drill depth                                 2.375  kb_z0-kb_drill_z                                 2.375  ok   [secB]
+FK-H-01 1/2  laser set screw from the front face                  5.5  las_set[0]                                         5.5  ok   [secD]
+FK-H-01 1/2  laser set-screw thread length                      5.836  Z_lid-las_set_bore_z                             5.836  ok   [secD, table]
+FK-H-01 1/2  laser set-screw tap drill                           1.25  m16_tap                                           1.25  ok   [secD, table]
+FK-H-01 1/2  laser set screw length                                 5  las_set_len                                          5  ok   [secD]
+FK-H-01 1/2  optic bore dia                                      10.1  opt_bore                                          10.1  ok   [table]
+FK-H-01 1/2  optic axis Y                                      -3.825  Y_w                                             -3.825  ok   [table]
+FK-H-01 1/2  optic axis Z                                           8  Z_axis                                               8  ok   [table]
+FK-H-01 1/2  LED wire groove angle from vertical                   30  led_wire_ang                                        30  ok   [table]
+FK-H-01 1/2  groove width                                         1.4  wire_groove[0]                                     1.4  ok   [table]
+FK-H-01 1/2  groove bottom radius                                6.35  opt_bore/2+wire_groove[1]                         6.35  ok   [table]
+FK-H-01 1/2  groove start X                                      6.13  x_led_board-1.0                                   6.13  ok   [table]
+FK-H-01 1/2  groove end X                                        8.83  D_w                                               8.83  ok   [table]
+FK-H-01 1/2  wire hole dia                                        1.5  ledwire_d                                          1.5  ok   [table]
+FK-H-01 1/2  wire hole radius from the axis                       5.7  led_wire_r                                         5.7  ok   [table]
+FK-H-01 1/2  upper wire hole Y                                 -0.975  Y_w+led_wire_r*sin(led_wire_ang)                -0.975  ok   [table]
+FK-H-01 1/2  upper wire hole Z                                  12.94  Z_axis+led_wire_r*cos(led_wire_ang), rounded     12.94  ok   [table]
+FK-H-01 1/2  upper wire hole end X                              11.46  led_wire_hole_x_end[0], rounded to 2 dec         11.46  ok   [table]
+FK-H-01 1/2  lower wire hole Y                                 -6.675  Y_w-led_wire_r*sin(led_wire_ang)                -6.675  ok   [table]
+FK-H-01 1/2  lower wire hole Z                                   3.06  Z_axis-led_wire_r*cos(led_wire_ang), rounded      3.06  ok   [table]
+FK-H-01 1/2  lower wire hole end X                              12.64  led_wire_hole_x_end[1], rounded to 2 dec         12.64  ok   [table]
+FK-H-01 1/2  laser bore dia                                       6.1  las_d+las_clear                                    6.1  ok   [table]
+FK-H-01 1/2  laser axis Y                                        5.85  Y_l                                               5.85  ok   [table]
+FK-H-01 1/2  laser axis Z                                         5.9  Z_las                                              5.9  ok   [table]
+FK-H-01 1/2  laser module diameter                                  6  las_d                                                6  ok   [table]
+FK-H-01 1/2  laser module length                                   12  las_len                                             12  ok   [table]
+FK-H-01 1/2  laser recess                                         0.3  las_recess                                         0.3  ok   [table]
+FK-H-01 1/2  laser set screw X                                    5.5  las_set[0]                                         5.5  ok   [table]
+FK-H-01 1/2  laser set screw Y                                    4.8  las_set[1]                                         4.8  ok   [table]
+FK-H-01 1/2  front tap X                                        10.14  screw_x_front                                    10.14  ok   [table]
+FK-H-01 1/2  rear tap X                                         95.95  X_screw_back                                     95.95  ok   [table]
+FK-H-01 1/2  tap Y                                                4.5  screw_dy                                           4.5  ok   [table]
+FK-H-01 1/2  ledge height                                         9.2  Z_pcb_bot                                          9.2  ok   [table]
+FK-H-01 1/2  ledge width                                          0.8  ledge_w                                            0.8  ok   [table]
+FK-H-01 1/2  ledge start X                                      11.45  L_head                                           11.45  ok   [table]
+FK-H-01 1/2  ledge end X                                        35.55  X_pcb1                                           35.55  ok   [table]
+FK-H-01 1/2  USB-C gap start                                    12.45  X_usb-4.9                                        12.45  ok   [table]
+FK-H-01 1/2  USB-C gap end                                      22.35  X_usb+5.0                                        22.35  ok   [table]
+FK-H-01 1/2  laser keepout X                                    15.65  las_keepout_x                                    15.65  ok   [table]
+FK-H-01 1/2  USB-C X                                            17.35  X_usb                                            17.35  ok   [table]
+FK-H-01 1/2  next key X                                         18.65  X_next                                           18.65  ok   [table]
+FK-H-01 1/2  main key X                                         25.65  X_main                                           25.65  ok   [table]
+FK-H-01 1/2  prev key X                                         32.65  X_prev                                           32.65  ok   [table]
+FK-H-01 1/2  key Y                                                  0  key_y                                                0  ok   [table]
+FK-H-01 1/2  side key opening X                                   4.4  side_key[0]+2*key_clear                            4.4  ok   [table]
+FK-H-01 1/2  side key opening Y                                  10.3  side_key[1]+2*key_clear_end                       10.3  ok   [table]
+FK-H-01 1/2  side key opening radius                              1.6  side_key[2]+key_clear                              1.6  ok   [table]
+FK-H-01 1/2  main key opening X                                     7  main_key[0]+2*key_clear                              7  ok   [table]
+FK-H-01 1/2  main key opening Y                                     7  main_key[1]+2*key_clear                              7  ok   [table]
+FK-H-01 1/2  main key opening radius                              1.1  main_key[2]+key_clear                              1.1  ok   [table]
+FK-H-01 1/2  S2 X                                                16.8  X_s2                                              16.8  ok   [table]
+FK-H-01 1/2  wall                                                 1.5  wall                                               1.5  ok   [table]
+FK-H-01 1/2  floor Z                                              1.5  floor                                              1.5  ok   [table]
+FK-H-01 1/2  lid seat Z                                          14.6  Z_lid                                             14.6  ok   [table]
+FK-H-01 1/2  inner corner radius                                    2  inner_r                                              2  ok   [table, notes]
+FK-H-01 1/2  diagonal wall                                        1.5  wall                                               1.5  ok   [table]
+FK-H-01 1/2  trough width                                        15.4  2*(inner_half-ledge_w)                            15.4  ok   [table]
+FK-H-01 1/2  rail inner Y                                         3.5  rail_y                                             3.5  ok   [table]
+FK-H-01 1/2  rail outer Y                                         4.7  rail_y+rail_w                                      4.7  ok   [table]
+FK-H-01 1/2  rail top Z                                           2.6  floor+rail_h                                       2.6  ok   [table]
+FK-H-01 1/2  rail start X                                       44.75  X_batt0+3.0                                      44.75  ok   [table]
+FK-H-01 1/2  rail end X                                         90.35  X_batt1-3.0                                      90.35  ok   [table]
+FK-H-01 1/2  front relief bottom Z                                9.2  Z_pcb_bot                                          9.2  ok   [table]
+FK-H-01 1/2  front relief X                                     12.35  L_head+front_relief[1]                           12.35  ok   [table]
+FK-H-01 1/2  front relief Y                                       7.9  inner_half-front_relief[2]                         7.9  ok   [table]
+FK-H-01 1/2  boss dia                                             3.4  boss_d                                             3.4  ok   [table]
+FK-H-01 1/2  boss X                                             25.65  kb_holes[0][0]                                   25.65  ok   [table]
+FK-H-01 1/2  boss Y                                               5.8  kb_holes[0][1]                                     5.8  ok   [table]
+FK-H-01 1/2  boss top Z                                           4.4  kb_z0                                              4.4  ok   [table]
+FK-H-01 1/2  KB drill end Z                                     2.025  kb_drill_z                                       2.025  ok   [table]
+FK-H-01 1/2  KB thread end Z                                     2.55  kb_thread_z                                       2.55  ok   [table]
+FK-H-01 1/2  KB screw length                                      2.5  kb_screw_len                                       2.5  ok   [table]
+FK-H-01 1/2  rib width                                            1.4  rib_w                                              1.4  ok   [table]
+FK-H-01 1/2  rib inner Y                                          5.9  rib_y0                                             5.9  ok   [table]
+FK-H-01 1/2  rib top Z                                            4.4  kb_z0                                              4.4  ok   [table]
+FK-H-01 1/2  free post X                                        18.65  kb_ribs[0][0]                                    18.65  ok   [table]
+FK-H-01 1/2  free post inner Y                                    5.9  rib_y0                                             5.9  ok   [table]
+FK-H-01 1/2  free post outer Y                                    7.1  kb_y-0.3                                           7.1  ok   [table]
+FK-H-01 1/2  optic diameter                                        10  opt_od                                              10  ok   [notes]
+FK-H-01 1/2  LED board diameter                                    10  mcpcb_d                                             10  ok   [notes]
+FK-H-01 1/2  bore floor X                                        8.83  D_w                                               8.83  ok   [notes]
+FK-H-01 1/2  wall optic bore - control face                     1.125  min_walls                                        1.125  ok   [notes]
+FK-H-01 1/2  wall laser bore - +Y face                            1.1  min_walls                                          1.1  ok   [notes]
+FK-H-01 1/2  wall front tap - head back face                    0.685  min_walls                                        0.685  ok   [notes]
+FK-H-01 1/2  wall front tap - bore floor                        0.685  min_walls                                        0.685  ok   [notes]
+FK-H-01 1/2  wall front tap crest - head back face               0.51  min_walls                                         0.51  ok   [notes]
+FK-H-01 1/2  wall front tap crest - bore floor                   0.51  min_walls                                         0.51  ok   [notes]
+FK-H-01 1/2  wall upper LED wire groove - head-block top        0.751  min_walls                                        0.751  ok   [notes]
+FK-H-01 1/2  wall tail front                                      0.8  min_walls                                          0.8  ok   [notes]
+FK-H-01 1/2  wall floor under the bezel                             1  min_walls                                            1  ok   [notes]
+FK-H-01 1/2  wall floor web                                       1.3  min_walls                                          1.3  ok   [notes]
+FK-H-01 1/2  wall under the KB tap                              1.649  min_walls                                        1.649  ok   [notes]
+FK-H-01 1/2  pocket depth                                        13.1  Z_lid-floor                                       13.1  ok   [notes]
+FK-H-01 1/2  section A-A plane                                 -3.825  Y_w                                             -3.825  ok   [notes]
+FK-H-01 1/2  section D-D plane                                    4.8  las_set[1]                                         4.8  ok   [notes]
+FK-H-01 1/2  section B-B plane                                  25.65  X_main                                           25.65  ok   [notes]
+FK-H-01 1/2  section C-C plane                                  10.14  screw_x_front                                    10.14  ok   [notes]
+
+== FK-H-01 2/2
+sheet        what                                               shown  P expression                                   P value  ok
+---------------------------------------------------------------------------------------------------------------------------------
+FK-H-01 2/2  next key from the front face                       18.65  X_next                                           18.65  ok   [bottom]
+FK-H-01 2/2  main key from the next key                             7  X_main-X_next                                        7  ok   [bottom]
+FK-H-01 2/2  previous key from the main key                         7  X_prev-X_main                                        7  ok   [bottom]
+FK-H-01 2/2  floor RF window from the previous key                3.7  frw_box[0]-X_prev                                  3.7  ok   [bottom]
+FK-H-01 2/2  floor RF window length                               5.1  frw_box[1]-frw_box[0]                              5.1  ok   [bottom, table]
+FK-H-01 2/2  bottom panel 1 length                              27.75  panel_layout                                     27.75  ok   [bottom]
+FK-H-01 2/2  bottom panel 2 length                              20.85  panel_layout                                     20.85  ok   [bottom]
+FK-H-01 2/2  bezel width (at the face)                           11.6  bezel                                             11.6  ok   [bottom]
+FK-H-01 2/2  panel width                                         10.8  2*(W/2-C_edge-rail)                               10.8  ok   [bottom]
+FK-H-01 2/2  tail window width                                   10.8  twin_y                                            10.8  ok   [bottom, table]
+FK-H-01 2/2  lanyard slot length                                  4.6  lan_slot_len                                       4.6  ok   [bottom, table]
+FK-H-01 2/2  floor RF window width                               10.8  2*frw_box[2]                                      10.8  ok   [bottom, table]
+FK-H-01 2/2  floor RF window radius                               1.5  frw_box[3]                                         1.5  ok   [bottom, table]
+FK-H-01 2/2  side panel bottom Z                                  4.6  C_edge+rail                                        4.6  ok   [side_m]
+FK-H-01 2/2  side panel top Z                                    13.4  Z_lid-rail                                        13.4  ok   [side_m]
+FK-H-01 2/2  height                                                18  H                                                   18  ok   [side_m, table]
+FK-H-01 2/2  side PCB-zone panel start                          25.15  panel_layout                                     25.15  ok   [side_m]
+FK-H-01 2/2  side PCB-zone panel length                          16.9  panel_layout                                      16.9  ok   [side_m]
+FK-H-01 2/2  side bay panel length                              20.85  panel_layout                                     20.85  ok   [side_m]
+FK-H-01 2/2  band between the bay panels                          1.2  band                                               1.2  ok   [side_m]
+FK-H-01 2/2  +Y PCB-zone panel start                             19.6  panel_layout                                      19.6  ok   [side_m]
+FK-H-01 2/2  bezel depth                                          0.5  bez_depth                                          0.5  ok   [secK, table]
+FK-H-01 2/2  floor                                                1.5  floor                                              1.5  ok   [secK]
+FK-H-01 2/2  bezel length (at the face)                          19.8  bezel                                             19.8  ok   [secK]
+FK-H-01 2/2  texture groove width                                 0.4  2*tex_depth                                        0.4  ok   [secV, table]
+FK-H-01 2/2  texture pitch                                        0.9  tex_pitch                                          0.9  ok   [secV, table]
+FK-H-01 2/2  texture groove depth                                 0.2  tex_depth                                          0.2  ok   [secV]
+FK-H-01 2/2  transverse groove width                              0.6  2*grv_depth                                        0.6  ok   [secG]
+FK-H-01 2/2  transverse groove depth                              0.3  grv_depth                                          0.3  ok   [secG, table]
+FK-H-01 2/2  width                                                 20  W                                                   20  ok   [table]
+FK-H-01 2/2  facet leg                                            3.4  C_edge                                             3.4  ok   [table]
+FK-H-01 2/2  bottom facet width                                  13.2  W-2*C_edge                                        13.2  ok   [table]
+FK-H-01 2/2  side facet height                                   11.2  H-2*C_edge                                        11.2  ok   [table]
+FK-H-01 2/2  diagonal facet width                                4.81  C_edge*sqrt2, rounded to 2 dec                    4.81  ok   [table]
+FK-H-01 2/2  front outline chamfer                                0.4  C_front                                            0.4  ok   [table]
+FK-H-01 2/2  tail outline chamfer                                 0.6  C_end                                              0.6  ok   [table]
+FK-H-01 2/2  lid seat Z                                          14.6  Z_lid                                             14.6  ok   [table]
+FK-H-01 2/2  panel depth                                          0.3  pan_depth                                          0.3  ok   [table]
+FK-H-01 2/2  panel corner radius                                  0.8  pan_r                                              0.8  ok   [table]
+FK-H-01 2/2  frame band                                           1.2  band                                               1.2  ok   [table]
+FK-H-01 2/2  rail                                                 1.2  rail                                               1.2  ok   [table]
+FK-H-01 2/2  texture depth                                        0.2  tex_depth                                          0.2  ok   [table]
+FK-H-01 2/2  texture grid step                                  1.273  tex_pitch*sqrt2                                  1.273  ok   [table]
+FK-H-01 2/2  texture land                                         0.5  tex_pitch-2*tex_depth                              0.5  ok   [table]
+FK-H-01 2/2  bezel floor margin                                   0.3  bez_margin                                         0.3  ok   [table]
+FK-H-01 2/2  bezel start X                                      15.75  X_next-side_key[0]/2-bez_margin-bez_depth        15.75  ok   [table]
+FK-H-01 2/2  bezel end X                                        35.55  X_prev+side_key[0]/2+bez_margin+bez_depth        35.55  ok   [table]
+FK-H-01 2/2  bezel half width                                     5.8  side_key[1]/2+bez_margin+bez_depth                 5.8  ok   [table]
+FK-H-01 2/2  floor RF window start X                            36.35  frw_box[0]                                       36.35  ok   [table]
+FK-H-01 2/2  floor RF window end X                              41.45  frw_box[1]                                       41.45  ok   [table]
+FK-H-01 2/2  tail window length                                   4.1  twin_x                                             4.1  ok   [table]
+FK-H-01 2/2  tail window depth                                      1  twin_depth                                           1  ok   [table]
+FK-H-01 2/2  tail window corner                                   0.8  twin_r                                             0.8  ok   [table]
+FK-H-01 2/2  tail window big corner                               1.8  twin_corner                                        1.8  ok   [table]
+FK-H-01 2/2  tail window chamfer                                  0.3  twin_chamfer                                       0.3  ok   [table]
+FK-H-01 2/2  tail window start X                                94.15  max(X_lan-twin_x/2,X_batt1+twin_front_gap)       94.15  ok   [table]
+FK-H-01 2/2  tail window end X                                  98.25  X_lan+twin_x/2                                   98.25  ok   [table]
+FK-H-01 2/2  lanyard slot width                                   3.6  lan_slot_w                                         3.6  ok   [table]
+FK-H-01 2/2  lanyard slot centre X                              95.95  X_lan                                            95.95  ok   [table]
+FK-H-01 2/2  lanyard slot chamfer                                0.25  lan_chamfer                                       0.25  ok   [table]
+FK-H-01 2/2  tail facet                                             2  tail_facet                                           2  ok   [table]
+FK-H-01 2/2  min metal under texture or grooves                     1  texture_min_metal_mm                                 1  ok   [notes]
+FK-H-01 2/2  main key face below the bottom plane                0.15  main_face_z                                       0.15  ok   [notes]
+FK-H-01 2/2  side key face below the bottom plane                 0.3  side_face_z                                        0.3  ok   [notes]
+FK-H-01 2/2  chevron top below the bottom plane                   0.1  side_face_z-chevron_h                              0.1  ok   [notes]
+
+== FK-H-02 1/1
+sheet        what                                               shown  P expression                                   P value  ok
+---------------------------------------------------------------------------------------------------------------------------------
+FK-H-02 1/1  front screws from the lid front edge                5.94  screw_x_front-lid_x0                              5.94  ok   [top]
+FK-H-02 1/1  screw spacing along X                              85.81  X_screw_back-screw_x_front                       85.81  ok   [top]
+FK-H-02 1/1  rear screws to the lid end                          3.25  L-X_screw_back                                    3.25  ok   [top]
+FK-H-02 1/1  first panel from the lid front edge                 8.79  panel_layout                                      8.79  ok   [top]
+FK-H-02 1/1  PCB-zone panel length                              19.76  panel_layout                                     19.76  ok   [top]
+FK-H-02 1/1  RF opening length                                    6.9  rfw_box[1]-rfw_box[0]                              6.9  ok   [top, under, table]
+FK-H-02 1/1  bay panel 1 length                                 20.85  panel_layout                                     20.85  ok   [top]
+FK-H-02 1/1  bay panel 2 length                                 20.85  panel_layout                                     20.85  ok   [top]
+FK-H-02 1/1  lid length                                            95  L-lid_x0                                            95  ok   [top]
+FK-H-02 1/1  screw spacing across                                   9  2*screw_dy                                           9  ok   [top]
+FK-H-02 1/1  RF opening width                                    10.8  rfw_y                                             10.8  ok   [top, under, table]
+FK-H-02 1/1  panel width                                         10.8  2*(W/2-C_edge-rail)                               10.8  ok   [top]
+FK-H-02 1/1  lanyard slot length                                  4.6  lan_slot_len                                       4.6  ok   [top, table]
+FK-H-02 1/1  tail end width                                        16  W-2*tail_facet                                      16  ok   [top]
+FK-H-02 1/1  RF pocket length                                     8.5  rfw_box[1]-rfw_box[0]+2*rfw_flange                 8.5  ok   [under, table]
+FK-H-02 1/1  hold-down boss length                                8.8  boss_box[1]-boss_box[0]                            8.8  ok   [under]
+FK-H-02 1/1  hold-down boss width                                12.4  boss_box[3]-boss_box[2]                           12.4  ok   [under]
+FK-H-02 1/1  front boss length                                    3.7  boss2_box[1]-boss2_box[0]                          3.7  ok   [under, secG]
+FK-H-02 1/1  front boss width                                       3  boss2_box[3]-boss2_box[2]                            3  ok   [under]
+FK-H-02 1/1  flat top width                                      13.2  W-2*C_edge                                        13.2  ok   [secJ, table]
+FK-H-02 1/1  lid height (seat to top)                             3.4  H-Z_lid                                            3.4  ok   [secJ]
+FK-H-02 1/1  facet leg                                            3.4  C_edge                                             3.4  ok   [secJ, table]
+FK-H-02 1/1  can boss length                                      8.8  boss_box[1]-boss_box[0]                            8.8  ok   [secG]
+FK-H-02 1/1  can boss height                                     2.95  Z_ceil-can_top_z-pad_gap                          2.95  ok   [secG]
+FK-H-02 1/1  front boss height                                   5.75  Z_ceil-Z_pcb_top-pad2_gap                         5.75  ok   [secG, table]
+FK-H-02 1/1  seat width (each side)                             2.121  wall*sqrt2                                       2.121  ok   [secK]
+FK-H-02 1/1  pocket depth (seat to plate)                         1.9  Z_ceil-Z_lid                                       1.9  ok   [secK]
+FK-H-02 1/1  diagonal wall                                        1.5  wall                                               1.5  ok   [secK, table]
+FK-H-02 1/1  lid seat Z                                          14.6  Z_lid                                             14.6  ok   [table]
+FK-H-02 1/1  lid height                                           3.4  H-Z_lid                                            3.4  ok   [table, notes]
+FK-H-02 1/1  lid front edge X                                     4.2  lid_x0                                             4.2  ok   [table]
+FK-H-02 1/1  lid end X                                           99.2  L                                                 99.2  ok   [table]
+FK-H-02 1/1  tail facet                                             2  tail_facet                                           2  ok   [table]
+FK-H-02 1/1  screw hole diameter                                  1.8  m16_clear                                          1.8  ok   [table]
+FK-H-02 1/1  countersink diameter                                 3.3  m16_csk                                            3.3  ok   [table]
+FK-H-02 1/1  countersink depth                                   0.75  (m16_csk-m16_clear)/2                             0.75  ok   [table]
+FK-H-02 1/1  front screw X                                      10.14  screw_x_front                                    10.14  ok   [table]
+FK-H-02 1/1  rear screw X                                       95.95  X_screw_back                                     95.95  ok   [table, notes]
+FK-H-02 1/1  screw Y                                              4.5  screw_dy                                           4.5  ok   [table]
+FK-H-02 1/1  RF opening corner radius                             1.5  rfw_r                                              1.5  ok   [table]
+FK-H-02 1/1  RF opening start X                                 34.55  rfw_box[0]                                       34.55  ok   [table]
+FK-H-02 1/1  RF opening end X                                   41.45  rfw_box[1]                                       41.45  ok   [table]
+FK-H-02 1/1  RF pocket width                                     12.4  rfw_y+2*rfw_flange                                12.4  ok   [table]
+FK-H-02 1/1  RF pocket corner radius                              2.3  rfw_r+rfw_flange                                   2.3  ok   [table]
+FK-H-02 1/1  RF pocket depth                                      0.6  rfw_flange_t                                       0.6  ok   [table]
+FK-H-02 1/1  lid plate underside Z                               16.5  Z_ceil                                            16.5  ok   [table]
+FK-H-02 1/1  RF pocket ceiling Z                                 17.1  Z_ceil+rfw_flange_t                               17.1  ok   [table]
+FK-H-02 1/1  RF pocket margin                                     0.8  rfw_flange                                         0.8  ok   [table]
+FK-H-02 1/1  lid above the pocket                                 0.9  lid_t-rfw_flange_t                                 0.9  ok   [table]
+FK-H-02 1/1  lanyard slot width                                   3.6  lan_slot_w                                         3.6  ok   [table]
+FK-H-02 1/1  lanyard slot centre X                              95.95  X_lan                                            95.95  ok   [table]
+FK-H-02 1/1  lanyard slot chamfer                                0.25  lan_chamfer                                       0.25  ok   [table]
+FK-H-02 1/1  pocket start X                                     11.45  L_head                                           11.45  ok   [table]
+FK-H-02 1/1  pocket end X                                       93.35  X_batt1                                          93.35  ok   [table]
+FK-H-02 1/1  pocket plan corner radius                              2  inner_r                                              2  ok   [table]
+FK-H-02 1/1  lid plate thickness                                  1.5  lid_t                                              1.5  ok   [table, notes]
+FK-H-02 1/1  seat width (each side)                             2.121  wall*sqrt2                                       2.121  ok   [table]
+FK-H-02 1/1  pocket half width at the seat                      7.879  W/2-wall*sqrt2                                   7.879  ok   [table]
+FK-H-02 1/1  panel depth                                          0.3  pan_depth                                          0.3  ok   [table]
+FK-H-02 1/1  panel half width                                     5.4  W/2-C_edge-rail                                    5.4  ok   [table]
+FK-H-02 1/1  boss start X                                       24.85  boss_box[0]                                      24.85  ok   [table]
+FK-H-02 1/1  boss end X                                         33.65  boss_box[1]                                      33.65  ok   [table]
+FK-H-02 1/1  boss start Y                                        -7.6  boss_box[2]                                       -7.6  ok   [table]
+FK-H-02 1/1  boss end Y                                           4.8  boss_box[3]                                        4.8  ok   [table]
+FK-H-02 1/1  boss corner radius                                     1  boss_r                                               1  ok   [table]
+FK-H-02 1/1  boss height                                         2.95  Z_ceil-can_top_z-pad_gap                          2.95  ok   [table]
+FK-H-02 1/1  can boss face Z                                    13.55  can_top_z+pad_gap                                13.55  ok   [table]
+FK-H-02 1/1  front boss start X                                  18.4  boss2_box[0]                                      18.4  ok   [table]
+FK-H-02 1/1  front boss end X                                    22.1  boss2_box[1]                                      22.1  ok   [table]
+FK-H-02 1/1  front boss start Y                                  0.25  boss2_box[2]                                      0.25  ok   [table]
+FK-H-02 1/1  front boss end Y                                    3.25  boss2_box[3]                                      3.25  ok   [table]
+FK-H-02 1/1  front boss corner radius                             0.5  boss2_r                                            0.5  ok   [table]
+FK-H-02 1/1  front boss face Z                                  10.75  Z_pcb_top+pad2_gap                               10.75  ok   [table]
+FK-H-02 1/1  can pad free thickness                               1.5  pad_t0                                             1.5  ok   [table]
+FK-H-02 1/1  can pad gap                                         1.15  pad_gap                                           1.15  ok   [table]
+FK-H-02 1/1  front pad free thickness                               1  pad2_t0                                              1  ok   [table]
+FK-H-02 1/1  front pad length                                     3.7  boss2_box[1]-boss2_box[0]                          3.7  ok   [table]
+FK-H-02 1/1  front pad width                                        3  boss2_box[3]-boss2_box[2]                            3  ok   [table]
+FK-H-02 1/1  front pad gap                                       0.75  pad2_gap                                          0.75  ok   [table]
+FK-H-02 1/1  insert clearance                                    0.03  rfw_clear                                         0.03  ok   [table]
+FK-H-02 1/1  lid screw length                                       6  lid_screw_len                                        6  ok   [notes]
+FK-H-02 1/1  countersink edge to the facet edge                  0.45  (W/2-C_edge)-(screw_dy+m16_csk/2)                 0.45  ok   [notes]
+FK-H-02 1/1  sliver csk - slot chamfer                            0.3  screw_dy-m16_csk/2-(lan_slot_len/2+lan_chamf       0.3  ok   [notes]
+
+== FK-H-03 1/1
+sheet        what                                               shown  P expression                                   P value  ok
+---------------------------------------------------------------------------------------------------------------------------------
+FK-H-03 1/1  key width X                                          6.8  main_key[0]                                        6.8  ok   [secX, top, table]
+FK-H-03 1/1  flange X                                             7.6  main_key[0]+2*flange_main                          7.6  ok   [secX, table]
+FK-H-03 1/1  pocket X                                             4.4  sw_body[0]+2*pocket_clear                          4.4  ok   [secX, table]
+FK-H-03 1/1  nub diameter                                         1.6  nub_d                                              1.6  ok   [secX, table]
+FK-H-03 1/1  key height                                          2.75  main_top_z-main_face_z                            2.75  ok   [secX, notes]
+FK-H-03 1/1  face to flange underside                            1.35  Z_seat-main_face_z                                1.35  ok   [secX]
+FK-H-03 1/1  flange thickness                                    0.45  flange_t                                          0.45  ok   [secX, table]
+FK-H-03 1/1  flange underside to nub top                          0.7  main_nub_z-Z_seat                                  0.7  ok   [secX, notes]
+FK-H-03 1/1  pocket depth                                         1.2  main_top_z-(main_nub_z-nub_h)                      1.2  ok   [secX, table]
+FK-H-03 1/1  key width Y                                          6.8  main_key[1]                                        6.8  ok   [secY, table]
+FK-H-03 1/1  pocket Y                                             3.4  sw_body[1]+2*pocket_clear                          3.4  ok   [secY, table]
+FK-H-03 1/1  ring LED axes (light input)                          4.8  2*led_y                                            4.8  ok   [secY]
+FK-H-03 1/1  flange Y                                             7.6  main_key[1]+2*flange_main                          7.6  ok   [top, table]
+FK-H-03 1/1  pocket corner radius                                 0.5  0.5 (build_key_main)                               0.5  ok   [top]
+FK-H-03 1/1  ring outer dia                                       4.9  ring_icon[0]+ring_icon[1]                          4.9  ok   [bot]
+FK-H-03 1/1  ring inner dia                                       3.9  ring_icon[0]-ring_icon[1]                          3.9  ok   [bot]
+FK-H-03 1/1  ring depth                                          0.03  ring_icon[2]                                      0.03  ok   [bot]
+FK-H-03 1/1  key corner radius                                      1  main_key[2]                                          1  ok   [bot, table]
+FK-H-03 1/1  ring mean dia                                        4.4  ring_icon[0]                                       4.4  ok   [table]
+FK-H-03 1/1  ring width                                           0.5  ring_icon[1]                                       0.5  ok   [table]
+FK-H-03 1/1  face edge chamfer                                   0.15  0.15 (build_key_main)                             0.15  ok   [table]
+FK-H-03 1/1  floor opening X                                        7  main_key[0]+2*key_clear                              7  ok   [table]
+FK-H-03 1/1  floor opening Y                                        7  main_key[1]+2*key_clear                              7  ok   [table]
+FK-H-03 1/1  nub height                                           0.5  nub_h                                              0.5  ok   [table]
+FK-H-03 1/1  ring LED offset                                      2.4  led_y                                              2.4  ok   [table]
+FK-H-03 1/1  LED gap at rest                                      0.6  led_gap_rest                                       0.6  ok   [table]
+FK-H-03 1/1  main key X                                         25.65  X_main                                           25.65  ok   [notes]
+FK-H-03 1/1  main key free play                                  0.15  pre_main                                          0.15  ok   [notes]
+FK-H-03 1/1  LED gap at full travel                               0.2  led_gap_rest-pre_main-sw_travel                    0.2  ok   [notes]
+
+== FK-H-04 1/1
+sheet        what                                               shown  P expression                                   P value  ok
+---------------------------------------------------------------------------------------------------------------------------------
+FK-H-04 1/1  key length                                            10  side_key[1]                                         10  ok   [secL, bot, table]
+FK-H-04 1/1  flange length                                         11  side_key[1]+2*flange_side                           11  ok   [secL, table]
+FK-H-04 1/1  face to flange underside                             1.2  Z_seat-side_face_z                                 1.2  ok   [secL]
+FK-H-04 1/1  recess depth                                        0.47  Z_seat+flange_t-(stiff_z0-plate_glue)             0.47  ok   [secL, table]
+FK-H-04 1/1  flange thickness                                    0.45  flange_t                                          0.45  ok   [secL, table]
+FK-H-04 1/1  flange underside to doubler top                      0.6  side_nub_z-Z_seat                                  0.6  ok   [secL, notes]
+FK-H-04 1/1  key width                                            4.2  side_key[0]                                        4.2  ok   [secS, bot, table]
+FK-H-04 1/1  flange width                                         5.2  side_key[0]+2*flange_side                          5.2  ok   [secS, table]
+FK-H-04 1/1  recess width                                         3.8  plate_recess[0]                                    3.8  ok   [secS, top, table]
+FK-H-04 1/1  chevron height                                       0.2  chevron_h                                          0.2  ok   [secS, bot]
+FK-H-04 1/1  chevron apex angle                                    90  2*atan(chevron[2]/(2*chevron[1]))                   90  ok   [bot]
+FK-H-04 1/1  chevron stroke                                       0.6  chevron[0]                                         0.6  ok   [bot]
+FK-H-04 1/1  chevron overall X                                    1.8  2*chevron[1]+chevron[0]                            1.8  ok   [bot]
+FK-H-04 1/1  chevron overall Y                                      3  2*chevron[2]+chevron[0]                              3  ok   [bot]
+FK-H-04 1/1  recess length                                        9.6  plate_recess[1]                                    9.6  ok   [top, table]
+FK-H-04 1/1  recess corner radius                                   1  plate_recess[2]                                      1  ok   [top, table]
+FK-H-04 1/1  plate length                                         9.4  stiffener[1]                                       9.4  ok   [plate, table]
+FK-H-04 1/1  plate width                                          3.6  stiffener[0]                                       3.6  ok   [plate, table]
+FK-H-04 1/1  doubler size                                           2  doubler[0]                                           2  ok   [plate, table]
+FK-H-04 1/1  plate corner clip                                    0.8  stiffener[3]                                       0.8  ok   [plate, table]
+FK-H-04 1/1  plate thickness                                      0.3  stiffener[2]                                       0.3  ok   [plate, table]
+FK-H-04 1/1  doubler size                                           2  doubler[1]                                           2  ok   [table]
+FK-H-04 1/1  key corner radius                                    1.5  side_key[2]                                        1.5  ok   [table]
+FK-H-04 1/1  face edge radius                                     0.2  0.2 (build_key_side)                               0.2  ok   [table]
+FK-H-04 1/1  next key X                                         18.65  X_next                                           18.65  ok   [notes]
+FK-H-04 1/1  end press distance                                     2  2.0 (side_key_end_press)                             2  ok   [notes]
+FK-H-04 1/1  end press force                                    1.035  side_key_end_press                               1.035  ok   [notes]
+FK-H-04 1/1  end press travel                                    0.73  side_key_end_press, rounded to 2 dec              0.73  ok   [notes]
+FK-H-04 1/1  end press travel rubber only                         3.9  side_key_end_press, rounded to 1 dec               3.9  ok   [notes]
+FK-H-04 1/1  side key free play                                  0.25  pre_side                                          0.25  ok   [notes]
+FK-H-04 1/1  glue film                                           0.02  plate_glue                                        0.02  ok   [notes]
+
+== FK-H-05 1/1
+sheet        what                                               shown  P expression                                   P value  ok
+---------------------------------------------------------------------------------------------------------------------------------
+FK-H-05 1/1  insert plug length                                  6.84  rfw_box[1]-rfw_box[0]-2*rfw_clear                 6.84  ok   [ins_top, table]
+FK-H-05 1/1  insert plug width                                  10.74  rfw_y-2*rfw_clear                                10.74  ok   [ins_top, table]
+FK-H-05 1/1  insert flange length                                 8.3  rfw_box[1]-rfw_box[0]+2*(rfw_flange-rfw_flan       8.3  ok   [ins_top, table]
+FK-H-05 1/1  insert flange width                                 12.2  rfw_y+2*(rfw_flange-rfw_flange_clear)             12.2  ok   [ins_top, table]
+FK-H-05 1/1  insert height                                        1.4  H-pan_depth-(Z_ceil-rfw_flange_drop)               1.4  ok   [ins_sec]
+FK-H-05 1/1  insert flange thickness                              0.8  rfw_flange_t+rfw_flange_drop                       0.8  ok   [ins_sec, table]
+FK-H-05 1/1  antenna spacer length                                  6  X_batt0-0.05-(X_pcb1+0.15)                           6  ok   [asp_top]
+FK-H-05 1/1  antenna spacer width                                16.8  2*(inner_half-0.1)                                16.8  ok   [asp_top]
+FK-H-05 1/1  antenna spacer height                              15.85  Z_ceil-rfw_flange_drop-0.15-pan_depth            15.85  ok   [asp_side, asp_front]
+FK-H-05 1/1  plug face Z                                          0.3  pan_depth                                          0.3  ok   [asp_side]
+FK-H-05 1/1  cell-wire rebate width                               3.8  inner_half-0.1+cell_wire_channel[1]                3.8  ok   [asp_front]
+FK-H-05 1/1  rebate floor Z                                       5.6  kb_z1+0.4                                          5.6  ok   [asp_front]
+FK-H-05 1/1  sleeve outer dia                                       6  sleeve_od                                            6  ok   [slv, table]
+FK-H-05 1/1  sleeve inner dia                                     4.6  sleeve_id                                          4.6  ok   [slv, table]
+FK-H-05 1/1  sleeve length                                         10  sleeve_len                                          10  ok   [slv_side, table]
+FK-H-05 1/1  insert plug radius                                  1.47  rfw_r-rfw_clear                                   1.47  ok   [table]
+FK-H-05 1/1  insert clearance                                    0.03  rfw_clear                                         0.03  ok   [table]
+FK-H-05 1/1  insert face below the lid top                        0.3  pan_depth                                          0.3  ok   [table]
+FK-H-05 1/1  insert flange clearance                              0.1  rfw_flange_clear                                   0.1  ok   [table]
+FK-H-05 1/1  floor plug length                                   5.04  frw_box[1]-frw_box[0]-2*rfw_clear                 5.04  ok   [table]
+FK-H-05 1/1  floor plug width                                   10.74  2*(frw_box[2]-rfw_clear)                         10.74  ok   [table]
+FK-H-05 1/1  sleeve slit                                          0.8  sleeve_slit                                        0.8  ok   [table]
+FK-H-05 1/1  laser module diameter                                  6  las_d                                                6  ok   [table]
+FK-H-05 1/1  texture depth                                        0.2  tex_depth                                          0.2  ok   [table]
+FK-H-05 1/1  texture pitch                                        0.9  tex_pitch                                          0.9  ok   [table]
+
+== FK-H-06 1/1
+sheet        what                                               shown  P expression                                   P value  ok
+---------------------------------------------------------------------------------------------------------------------------------
+FK-H-06 1/1  kit length X                                        52.8  build_pmma_kit: (n+1)*kit_wall+n*cell             52.8  ok   [top]
+FK-H-06 1/1  kit width Y                                           22  build_pmma_kit: max(cell+2*kit_wall, kit_min        22  ok   [top]
+FK-H-06 1/1  tab width                                            0.6  kit_tab[0]                                         0.6  ok   [top, det, table]
+FK-H-06 1/1  tab length                                             3  kit_gap                                              3  ok   [top, table]
+FK-H-06 1/1  kit height Z                                         8.5  kit_h_pmma                                         8.5  ok   [secA, det, table]
+FK-H-06 1/1  tab plane Z (bottom)                               3.825  build_pmma_kit: (h-key)/2+flange from the fa     3.825  ok   [det]
+FK-H-06 1/1  tab height (flange thickness)                       0.45  flange_t                                          0.45  ok   [det, table]
+FK-H-06 1/1  gap key flange - frame                                 3  kit_gap                                              3  ok   [det]
+FK-H-06 1/1  kit length X                                        52.8  build_pmma_kit                                    52.8  ok   [table]
+FK-H-06 1/1  kit width Y                                           22  build_pmma_kit                                      22  ok   [table]
+
+== FK-H-07 1/1
+sheet        what                                               shown  P expression                                   P value  ok
+---------------------------------------------------------------------------------------------------------------------------------
+FK-H-07 1/1  kit length X                                        45.4  build_pom_kit: 3*kit_wall+4*insert cell           45.4  ok   [top]
+FK-H-07 1/1  kit width Y                                         39.3  build_pom_kit: 3*kit_wall+rows                    39.3  ok   [top]
+FK-H-07 1/1  tab width                                            0.6  kit_tab[0]                                         0.6  ok   [top, table]
+FK-H-07 1/1  tab height                                           0.6  kit_tab[1]                                         0.6  ok   [top, table]
+FK-H-07 1/1  tab length                                             3  kit_gap                                              3  ok   [top]
+FK-H-07 1/1  tab length at the antenna spacer                       5  kit_gap_tall                                         5  ok   [top]
+FK-H-07 1/1  kit height Z                                          17  kit_h_pom                                           17  ok   [secB, secC, table]
+FK-H-07 1/1  tab plane Z (bottom)                                12.5  build_pom_kit: spacer side face middle            12.5  ok   [secB]
+FK-H-07 1/1  tab plane Z (bottom)                                12.5  build_pom_kit                                     12.5  ok   [table]
+FK-H-07 1/1  tab plane Z (top)                                   13.1  build_pom_kit                                     13.1  ok   [table]
+FK-H-07 1/1  kit length X                                        45.4  build_pom_kit                                     45.4  ok   [table]
+FK-H-07 1/1  kit width Y                                         39.3  build_pom_kit                                     39.3  ok   [table]
+
+== FK-H-08 1/1
+sheet        what                                               shown  P expression                                   P value  ok
+---------------------------------------------------------------------------------------------------------------------------------
+FK-H-08 1/1  mould length                                          48  mould_size[0]                                       48  ok   [cav, lid, table, notes]
+FK-H-08 1/1  mould width                                           28  mould_size[1]                                       28  ok   [cav, table, notes]
+FK-H-08 1/1  cavity pitch                                         9.2  mould_pitch                                        9.2  ok   [cav]
+FK-H-08 1/1  plateau width                                        3.8  plate_recess[0]                                    3.8  ok   [lid]
+FK-H-08 1/1  plateau length                                       9.6  plate_recess[1]                                    9.6  ok   [lid]
+FK-H-08 1/1  plateau corner radius                                  1  plate_recess[2]                                      1  ok   [lid]
+FK-H-08 1/1  plateau height                                      0.47  Z_seat+flange_t-(stiff_z0-plate_glue)             0.47  ok   [lid]
+FK-H-08 1/1  flange depth                                        0.45  flange_t                                          0.45  ok   [secA]
+FK-H-08 1/1  cavity depth (key face)                             1.65  Z_seat+flange_t-side_face_z                       1.65  ok   [secA]
+FK-H-08 1/1  vent width                                             1  mould_vent[0]                                        1  ok   [secA]
+FK-H-08 1/1  vent depth                                           0.1  mould_vent[1]                                      0.1  ok   [secA]
+FK-H-08 1/1  vent hole                                              1  mould_vent_hole[0]                                   1  ok   [secA, table]
+FK-H-08 1/1  vent counterbore                                     2.5  mould_vent_hole[1]                                 2.5  ok   [secA, table]
+FK-H-08 1/1  runner width                                         1.2  mould_runner[0]                                    1.2  ok   [secA, table]
+FK-H-08 1/1  runner depth                                        0.45  mould_runner[1]                                   0.45  ok   [secA]
+FK-H-08 1/1  sprue diameter                                       2.5  mould_sprue_d                                      2.5  ok   [secA, table]
+FK-H-08 1/1  cap width at the flange step                        4.12  side_key[0]+2*mould_cap_offset                    4.12  ok   [secB, table]
+FK-H-08 1/1  flange width at the flange step                      5.2  side_key[0]+2*flange_side                          5.2  ok   [secB]
+FK-H-08 1/1  chevron groove depth                                 0.2  chevron_h                                          0.2  ok   [secB]
+FK-H-08 1/1  mould draft                                            1  mould_draft                                          1  ok   [secB, table]
+FK-H-08 1/1  floor radius                                         0.2  0.2 (build_key_side)                               0.2  ok   [secB, table]
+FK-H-08 1/1  chevron groove width                                 0.6  chevron[0]                                         0.6  ok   [secB]
+FK-H-08 1/1  chevron cutter                                       0.6  chevron[0]                                         0.6  ok   [secB, table]
+FK-H-08 1/1  resin back pocket depth (cavity half)               2.15  resin_t[0]-cavity depth-resin_floor               2.15  ok   [rcav]
+FK-H-08 1/1  resin rim                                              3  resin_rim                                            3  ok   [rcav]
+FK-H-08 1/1  resin rib                                              2  resin_rib                                            2  ok   [rcav]
+FK-H-08 1/1  resin bolt hole                                      3.4  resin_bolt[0]                                      3.4  ok   [rlid]
+FK-H-08 1/1  resin bolt length                                     16  resin_bolt[1]                                       16  ok   [rlid, table]
+FK-H-08 1/1  resin cavity half thickness                            6  resin_t[0]                                           6  ok   [rsec, table]
+FK-H-08 1/1  resin lid thickness                                    5  resin_t[1]                                           5  ok   [rsec, table]
+FK-H-08 1/1  plate thickness                                        8  mould_t[0]                                           8  ok   [table, notes]
+FK-H-08 1/1  parting face flatness                               0.02  0.02 (drawing)                                    0.02  ok   [table]
+FK-H-08 1/1  cap length at the flange step                       9.92  side_key[1]+2*mould_cap_offset                    9.92  ok   [table]
+FK-H-08 1/1  chevron groove radius                                0.3  chevron[0]/2                                       0.3  ok   [table]
+FK-H-08 1/1  corner radius limit (tool)                           0.6  mould_runner[0]/2                                  0.6  ok   [table]
+FK-H-08 1/1  dowel diameter                                         2  mould_dowel[0]                                       2  ok   [table]
+FK-H-08 1/1  dowel press depth                                      5  mould_dowel[2]                                       5  ok   [table]
+FK-H-08 1/1  M3 thread depth                                        6  mould_m3[2]                                          6  ok   [table]
+FK-H-08 1/1  M3 tap drill                                         2.5  mould_m3[0]                                        2.5  ok   [table]
+FK-H-08 1/1  M3 drill depth                                         7  mould_m3[1]                                          7  ok   [table]
+FK-H-08 1/1  M3 clearance                                         3.4  mould_m3[3]                                        3.4  ok   [table]
+FK-H-08 1/1  dowel length                                           8  mould_dowel[1]                                       8  ok   [table]
+FK-H-08 1/1  resin pin diameter                                     4  resin_pin[0]                                         4  ok   [table]
+FK-H-08 1/1  resin socket diameter                                4.2  resin_pin[3]                                       4.2  ok   [table]
+FK-H-08 1/1  dowel height above the parting face                    3  mould_dowel[1]-mould_dowel[2]                        3  ok   [notes]
+
+numbers vs P: 441 distinct entries, 0 mismatches
+
+Cross-check against the STEP solids (ray probes): value of P / drawing against the solid
+
+what                                                                                 P/drawing     solid     diff  
+-------------------------------------------------------------------------------------------------------------------
+PMMA kit length X                                                                         52.8      52.8        0  ok
+PMMA kit width Y                                                                            22        22        0  ok
+PMMA kit height Z                                                                          8.5       8.5        0  ok
+PMMA kit tab bottom Z                                                                    3.825     3.825        0  ok
+PMMA kit tab top Z                                                                       4.275     4.275        0  ok
+PMMA kit gap frame - flange (first)                                                          3         3        0  ok
+POM kit length X                                                                          45.4      45.4        0  ok
+POM kit width Y                                                                           39.3      39.3        0  ok
+POM kit height Z                                                                            17        17        0  ok
+POM kit tab bottom Z (insert)                                                             12.5      12.5        0  ok
+POM kit tab top Z (insert)                                                                13.1      13.1        0  ok
+mould cavity half length X                                                                  48        48        0  ok
+mould cavity half width Y                                                                   28        28        0  ok
+mould cavity depth at the key face                                                        1.65      1.65        0  ok
+mould chevron groove floor depth                                                          1.85      1.85        0  ok
+mould plateau height                                                                      0.47      0.47        0  ok
+mould cap width at the flange step (first cavity)                                         4.12      4.12        0  ok
+mould flange pocket length at its floor (first cavity)                                      11    10.995   -0.005  ok
+resin mould cavity depth at the key face                                                  1.65      1.65        0  ok
+resin mould chevron groove floor depth                                                    1.85      1.85        0  ok
+resin cavity half thickness                                                                  6         6        0  ok
+resin lid thickness                                                                          5         5        0  ok
+resin mould plateau height                                                                0.47      0.47        0  ok
+tray length                                                                               99.2      99.2        0  ok
+tray width                                                                                  20        20        0  ok
+tray height (head block)                                                                    18        18        0  ok
+optic bore diameter                                                                       10.1      10.1        0  ok
+optic bore axis Y                                                                       -3.825    -3.825        0  ok
+optic bore floor X (depth D_w)                                                            8.83      8.83        0  ok
+solid head block behind the optic bore floor                                              2.62      2.62        0  ok
+LED wire hole upper: Y centre (X 10)                                                    -0.975    -0.975        0  ok
+LED wire hole upper: diameter (X 10)                                                       1.5       1.5        0  ok
+LED wire hole lower: Y centre (X 10)                                                    -6.675    -6.675        0  ok
+LED wire hole lower: diameter (X 10)                                                       1.5       1.5        0  ok
+LED wire groove (upper): start X                                                          6.13      6.13        0  ok
+front lid tap X                                                                          10.14     10.14        0  ok
+laser bore diameter (Z span)                                                               6.1       6.1        0  ok
+laser axis Z                                                                               5.9       5.9        0  ok
+laser axis Y                                                                              5.85      5.85        0  ok
+laser set-screw hole X                                                                     5.5       5.5        0  ok
+laser set-screw tap drill (X span)                                                        1.25      1.25        0  ok
+laser set-screw hole Y                                                                     4.8       4.8        0  ok
+no hole in the bottom face under the laser (solid to the bore)                            2.85      2.85        0  ok
+PCB ledge height Z_pcb_bot                                                                 9.2       9.2        0  ok
+trough width between the ledges                                                           15.4      15.4        0  ok
+floor thickness (band between the bottom panels, X 64.70)                                  1.5       1.5        0  ok
+side wall top at the lid seat (Z_lid)                                                     14.6      14.6        0  ok
+main key opening X                                                                           7         7        0  ok
+main key opening centre X                                                                25.65     25.65        0  ok
+next key opening X                                                                         4.4       4.4        0  ok
+previous key opening Y                                                                    10.3      10.3        0  ok
+bezel floor Z (beside the next key)                                                        0.5       0.5        0  ok
+KB boss top Z at the boss edge (25.65, +5.8)                                               4.4       4.4        0  ok
+KB tap drill diameter (25.65, +5.8)                                                       1.25      1.25        0  ok
+KB boss top Z at the boss edge (25.65, -5.8)                                               4.4       4.4        0  ok
+KB tap drill diameter (25.65, -5.8)                                                       1.25      1.25        0  ok
+KB rib top Z (18.65, +Y)                                                                   4.4       4.4        0  ok
+KB rib top Z (18.65, -Y)                                                                   4.4       4.4        0  ok
+KB rib top Z (32.65, +Y)                                                                   4.4       4.4        0  ok
+KB rib top Z (32.65, -Y)                                                                   4.4       4.4        0  ok
+floor RF window length                                                                     5.1       5.1        0  ok
+floor RF window width                                                                     10.8      10.8        0  ok
+lid thickness (bay, no panels)                                                             1.5       1.5        0  ok
+lid seat width (X 50, +Y side)                                                           2.121     2.121        0  ok
+can boss face Z                                                                          13.55     13.55        0  ok
+front boss face Z                                                                        10.75     10.75        0  ok
+main key height (outer face to top face)                                                  2.75      2.75        0  ok
+main key nub top Z                                                                         2.2       2.2        0  ok
+main key width X                                                                           6.8       6.8        0  ok
+main key flange X                                                                          7.6       7.6        0  ok
+side key doubler top Z (presses the switch)                                                2.1       2.1        0  ok
+side key length Y                                                                           10        10        0  ok
+side key flange Y                                                                           11        11        0  ok
+side key plate top Z (beside the doubler)                                                  1.8       1.8        0  ok
+
+solid probes: 74, mismatches 0, known differences from P 0

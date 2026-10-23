@@ -26,10 +26,13 @@
 
 **I want to build a FlashKa**
 
+[../hardware/flashka-keychain-v07/README.md](../hardware/flashka-keychain-v07/README.md) for v0.7,
+the current design (1000 lm with a TIR optic, keys on the centre line, a key board, a presenter
+mode),
 [../hardware/flashka-keychain-v06/README.md](../hardware/flashka-keychain-v06/README.md) for v0.6,
-the current design (three buttons and a presenter mode), or
+the previous design, or
 [../hardware/flashka-keychain-v05/README.md](../hardware/flashka-keychain-v05/README.md) for v0.5,
-the previous design, with the build guide PDF in its folder.
+each with the build guide PDF in its folder.
 
 ## All documents
 

@@ -79,14 +79,15 @@ pub const LV_RECOVER_MV: u16 = 3_300;
 pub const LV_MOON_DELAY_MS: u64 = 1_000;
 /// The empty shutdown needs the voltage below `LV_OFF_MV` for this long.
 pub const LV_OFF_DELAY_MS: u64 = 2_000;
-/// Usable capacity of the two LP601646 cells in parallel.
-pub const CELL_CAPACITY_MAH: u32 = 800;
-/// Load correction of the open-circuit voltage estimate, mV per A of cell current.
-pub const LOAD_CORR_MV_PER_A: u32 = 120;
+/// Usable capacity of the battery (v0.6: 800 mAh, v0.7: 1400 mAh; [`crate::board`]).
+pub const CELL_CAPACITY_MAH: u32 = crate::board::CELL_CAPACITY_MAH;
+/// Load correction of the open-circuit voltage estimate, mV per A of cell current (v0.6: 120, v0.7: 130).
+pub const LOAD_CORR_MV_PER_A: u32 = crate::board::LOAD_CORR_MV_PER_A;
 /// Current drawn by the MCU, radio and LDO while awake (used for runtime and SoC).
 pub const MCU_AWAKE_MA: u32 = 20;
-/// Assumed fast-charge current of the TP4057 with R3 = 3.3 k.
-pub const CHARGE_FAST_MA: u32 = 280;
+/// Assumed fast-charge current into the cell (v0.6: 280 mA with R3 = 3.3 k, v0.7: 475 mA with
+/// R3 = 2.0 k; [`crate::board`]).
+pub const CHARGE_FAST_MA: u32 = crate::board::CHARGE_FAST_MA;
 /// State of charge may change at most this fast (0.1 % per s) - the filter.
 pub const SOC_SLEW_X10_PER_S: u32 = 5;
 /// While discharging the SoC only rises again if the estimate is this much higher (0.1 %).

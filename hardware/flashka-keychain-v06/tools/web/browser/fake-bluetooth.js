@@ -22,6 +22,7 @@
     keepaliveMode: 'both',       /* firmware accepts KEEPALIVE as 'u8' (2 bytes), 'u16' (3 bytes) or 'both' */
     versionOverride: 0,          /* non-zero: Status byte 0 */
     protocol: 2,                 /* 1 = behave like a v0.5 light (no Presenter characteristic, 18-byte Status) */
+    model: null,                 /* 'v07' = a FlashKa v0.7 (Info "FlashKa fw 0.7.0", the v0.7 tables); null = FlashKa v0.6 */
     hidePresenter: false,        /* protocol 2 light whose GATT table lacks the Presenter characteristic */
     hideBattery: false,          /* the Battery Service is missing */
     notificationsOn: true,       /* false: notifications are silently dropped */
@@ -101,7 +102,7 @@
 
   function ensureSim() {
     if (fb.sim) return fb.sim;
-    var Sim = window.FlashKaSim, sim = Sim.createFlashlight({ soc: fb.soc, name: fb.deviceName, protocol: fb.protocol });
+    var Sim = window.FlashKaSim, sim = Sim.createFlashlight({ soc: fb.soc, name: fb.deviceName, protocol: fb.protocol, model: fb.model || undefined });
     fb.sim = sim;
     var last = performance.now();
     setInterval(function () {            /* the flashlight keeps running whether or not a browser is connected */

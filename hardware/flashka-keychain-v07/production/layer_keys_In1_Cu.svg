@@ -1,0 +1,889 @@
+<?xml version="1.0" standalone="no"?>
+ <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"> 
+<svg
+  xmlns:svg="http://www.w3.org/2000/svg"
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  version="1.1"
+  width="60.6044mm" height="21.2090mm" viewBox="0.0000 0.0000 60.6044 21.2090">
+<title>SVG Image created as layer_keys_In1_Cu.svg date 2026/10/23 06:28:28 </title>
+  <desc>Image made with PCBNEW (KiCad) </desc>
+<g style="fill:#000000; fill-opacity:1.0000;stroke:#000000; stroke-opacity:1.0000;
+stroke-linecap:round; stroke-linejoin:round;"
+ transform="translate(0 0) scale(1 1)">
+</g>
+<g style="fill:#000000; fill-opacity:0.0; 
+stroke:#000000; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g style="fill:#ECECEC; fill-opacity:0.0; 
+stroke:#ECECEC; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="41.4883" cy="10.6100" r="0.2250" /> 
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="43.6883" cy="13.9100" r="0.2250" /> 
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="46.7383" cy="14.5600" r="0.2250" /> 
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="40.7883" cy="14.6100" r="0.2250" /> 
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="39.3383" cy="14.3100" r="0.2250" /> 
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="51.0883" cy="14.3100" r="0.2250" /> 
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="48.4383" cy="11.9600" r="0.2250" /> 
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="47.8383" cy="14.0600" r="0.2250" /> 
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="36.9883" cy="8.9600" r="0.2250" /> 
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="45.8883" cy="11.1100" r="0.2250" /> 
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="45.8883" cy="14.5100" r="0.2250" /> 
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="44.9883" cy="11.2100" r="0.2250" /> 
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="45.9383" cy="15.2600" r="0.2250" /> 
+</g>
+<g style="fill:#ECECEC; fill-opacity:1.0000; 
+stroke:#ECECEC; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g >
+</g>
+<g >
+</g>
+<g style="fill:#7FC87F; fill-opacity:1.0000; 
+stroke:#7FC87F; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<g >
+</g>
+<g style="fill:#7FC87F; fill-opacity:1.0000; 
+stroke:#7FC87F; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<path style="fill:#7FC87F; fill-opacity:1.0000; 
+stroke:#7FC87F; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;fill-rule:evenodd;"
+d="M 43.8241,5.6042
+43.8428,5.6495
+43.8275,5.6911
+43.6762,5.8682
+43.6762,5.8682
+43.5204,6.1224
+43.4063,6.3979
+43.4063,6.3979
+43.3367,6.6878
+43.3367,6.6878
+43.3133,6.9850
+43.3367,7.2822
+43.4063,7.5721
+43.4634,7.7098
+43.5204,7.8476
+43.6762,8.1018
+43.6762,8.1018
+43.8698,8.3285
+43.8698,8.3285
+44.0965,8.5221
+44.0965,8.5221
+44.3507,8.6779
+44.3507,8.6779
+44.6262,8.7920
+44.9161,8.8616
+45.2133,8.8850
+45.5105,8.8616
+45.8004,8.7920
+46.0759,8.6779
+46.0759,8.6779
+46.0759,8.6779
+46.2030,8.6000
+46.3301,8.5221
+46.3301,8.5221
+46.3301,8.5221
+46.5568,8.3285
+46.5568,8.3285
+46.6392,8.2321
+46.7504,8.1018
+46.7504,8.1018
+46.9062,7.8476
+46.9062,7.8476
+47.0203,7.5721
+47.0899,7.2822
+47.1133,6.9850
+47.0899,6.6878
+47.0203,6.3979
+46.9062,6.1224
+46.9062,6.1224
+46.7504,5.8682
+46.7504,5.8682
+46.5992,5.6911
+46.5840,5.6445
+46.6063,5.6008
+46.6478,5.5855
+53.6734,5.5855
+53.7102,5.5855
+53.7165,5.5858
+53.8630,5.6002
+53.8753,5.6027
+53.9399,5.6223
+53.9666,5.6383
+54.4601,6.1317
+54.4760,6.1584
+54.4956,6.2230
+54.4981,6.2353
+54.5125,6.3819
+54.5128,6.3881
+54.5128,19.1819
+54.5125,19.1881
+54.4981,19.3347
+54.4956,19.3470
+54.4760,19.4116
+54.4601,19.4383
+53.9666,19.9317
+53.9399,19.9477
+53.8753,19.9673
+53.8630,19.9698
+53.7165,19.9842
+53.7102,19.9845
+46.6478,19.9845
+46.6026,19.9658
+46.5838,19.9205
+46.5992,19.8789
+46.7504,19.7018
+46.7504,19.7018
+46.9062,19.4476
+46.9062,19.4476
+47.0203,19.1721
+47.0899,18.8822
+47.1133,18.5850
+47.0899,18.2878
+47.0203,17.9979
+46.9062,17.7224
+46.9062,17.7224
+46.7504,17.4682
+46.7504,17.4682
+46.5568,17.2415
+46.5568,17.2415
+46.3301,17.0479
+46.3301,17.0479
+46.0759,16.8921
+45.9382,16.8350
+45.8004,16.7780
+45.8004,16.7780
+45.8004,16.7780
+45.5105,16.7084
+45.5105,16.7084
+45.2133,16.6850
+44.9161,16.7084
+44.9161,16.7084
+44.9161,16.7084
+44.6262,16.7780
+44.6262,16.7780
+44.6262,16.7780
+44.6262,16.7780
+44.5754,16.7991
+44.3507,16.8921
+44.0965,17.0479
+44.0965,17.0479
+43.8698,17.2415
+43.8698,17.2415
+43.6762,17.4682
+43.6762,17.4682
+43.5204,17.7224
+43.4063,17.9979
+43.4063,17.9979
+43.3367,18.2878
+43.3367,18.2878
+43.3133,18.5850
+43.3367,18.8822
+43.4063,19.1721
+43.4634,19.3099
+43.5204,19.4476
+43.6762,19.7018
+43.6762,19.7018
+43.8275,19.8789
+43.8426,19.9255
+43.8204,19.9692
+43.7788,19.9845
+36.7165,19.9845
+36.7102,19.9842
+36.5636,19.9698
+36.5513,19.9673
+36.4867,19.9477
+36.4601,19.9317
+35.9666,19.4383
+35.9506,19.4116
+35.9310,19.3470
+35.9286,19.3347
+35.9141,19.1881
+35.9138,19.1819
+35.9138,14.3100
+38.9875,14.3100
+39.0087,14.4300
+39.0696,14.5355
+39.1583,14.6100
+39.1629,14.6138
+39.2774,14.6555
+39.3992,14.6555
+39.5137,14.6138
+39.5183,14.6100
+40.4375,14.6100
+40.4587,14.7300
+40.5196,14.8355
+40.5999,14.9029
+40.6129,14.9138
+40.7274,14.9555
+40.8492,14.9555
+40.9637,14.9138
+41.0333,14.8555
+41.0571,14.8355
+41.0571,14.8355
+41.0571,14.8355
+41.1180,14.7300
+41.1392,14.6100
+41.1215,14.5100
+45.5375,14.5100
+45.5587,14.6300
+45.6196,14.7355
+45.7129,14.8138
+45.7682,14.8340
+45.8043,14.8671
+45.8065,14.9160
+45.7734,14.9521
+45.7682,14.9542
+45.7629,14.9562
+45.7629,14.9562
+45.6696,15.0345
+45.6087,15.1400
+45.5875,15.2600
+45.6087,15.3800
+45.6696,15.4855
+45.7629,15.5638
+45.8774,15.6055
+45.9992,15.6055
+46.1137,15.5638
+46.2071,15.4855
+46.2680,15.3800
+46.2892,15.2600
+46.2680,15.1400
+46.2071,15.0345
+46.2071,15.0345
+46.2071,15.0345
+46.1137,14.9562
+46.0584,14.9360
+46.0223,14.9029
+46.0202,14.8540
+46.0533,14.8179
+46.0584,14.8158
+46.0637,14.8138
+46.1571,14.7355
+46.2180,14.6300
+46.2303,14.5600
+46.3875,14.5600
+46.4087,14.6800
+46.4696,14.7855
+46.5273,14.8340
+46.5629,14.8638
+46.6774,14.9055
+46.7992,14.9055
+46.9137,14.8638
+46.9733,14.8138
+47.0071,14.7855
+47.0071,14.7855
+47.0071,14.7855
+47.0680,14.6800
+47.0892,14.5600
+47.0680,14.4400
+47.0071,14.3345
+47.0071,14.3345
+47.0071,14.3345
+46.9137,14.2562
+46.7992,14.2145
+46.6774,14.2145
+46.5629,14.2562
+46.5629,14.2562
+46.4696,14.3345
+46.4087,14.4400
+46.3875,14.5600
+46.2303,14.5600
+46.2392,14.5100
+46.2180,14.3900
+46.1571,14.2845
+46.1571,14.2845
+46.1571,14.2845
+46.0637,14.2062
+45.9492,14.1645
+45.8274,14.1645
+45.7129,14.2062
+45.7129,14.2062
+45.6196,14.2845
+45.5587,14.3900
+45.5375,14.5100
+41.1215,14.5100
+41.1180,14.4900
+41.0571,14.3845
+41.0571,14.3845
+41.0571,14.3845
+40.9637,14.3062
+40.8492,14.2645
+40.7274,14.2645
+40.6129,14.3062
+40.6129,14.3062
+40.5196,14.3845
+40.4587,14.4900
+40.4375,14.6100
+39.5183,14.6100
+39.6071,14.5355
+39.6680,14.4300
+39.6892,14.3100
+39.6680,14.1900
+39.6071,14.0845
+39.6071,14.0845
+39.6071,14.0845
+39.5137,14.0062
+39.3992,13.9645
+39.2774,13.9645
+39.1629,14.0062
+39.1629,14.0062
+39.0696,14.0845
+39.0087,14.1900
+38.9875,14.3100
+35.9138,14.3100
+35.9138,13.9100
+43.3375,13.9100
+43.3587,14.0300
+43.4196,14.1355
+43.5038,14.2062
+43.5129,14.2138
+43.6274,14.2555
+43.7492,14.2555
+43.8637,14.2138
+43.8921,14.1900
+43.9571,14.1355
+43.9571,14.1355
+43.9571,14.1355
+44.0007,14.0600
+47.4875,14.0600
+47.5087,14.1800
+47.5696,14.2855
+47.6629,14.3638
+47.7774,14.4055
+47.8992,14.4055
+48.0137,14.3638
+48.0779,14.3100
+50.7375,14.3100
+50.7587,14.4300
+50.8196,14.5355
+50.9083,14.6100
+50.9129,14.6138
+51.0274,14.6555
+51.1492,14.6555
+51.2637,14.6138
+51.3571,14.5355
+51.4180,14.4300
+51.4392,14.3100
+51.4180,14.1900
+51.3571,14.0845
+51.3571,14.0845
+51.3571,14.0845
+51.2637,14.0062
+51.1492,13.9645
+51.0274,13.9645
+50.9129,14.0062
+50.9129,14.0062
+50.8196,14.0845
+50.7587,14.1900
+50.7375,14.3100
+48.0779,14.3100
+48.0825,14.3062
+48.1071,14.2855
+48.1071,14.2855
+48.1071,14.2855
+48.1680,14.1800
+48.1892,14.0600
+48.1680,13.9400
+48.1071,13.8345
+48.1071,13.8345
+48.1071,13.8345
+48.0137,13.7562
+47.8992,13.7145
+47.7774,13.7145
+47.6629,13.7562
+47.6629,13.7562
+47.5696,13.8345
+47.5087,13.9400
+47.4875,14.0600
+44.0007,14.0600
+44.0180,14.0300
+44.0392,13.9100
+44.0180,13.7900
+43.9571,13.6845
+43.9571,13.6845
+43.9571,13.6845
+43.8637,13.6062
+43.7492,13.5645
+43.6274,13.5645
+43.5129,13.6062
+43.5129,13.6062
+43.4196,13.6845
+43.3587,13.7900
+43.3375,13.9100
+35.9138,13.9100
+35.9138,11.9600
+48.0875,11.9600
+48.1087,12.0800
+48.1696,12.1855
+48.2629,12.2638
+48.3774,12.3055
+48.4992,12.3055
+48.6137,12.2638
+48.7071,12.1855
+48.7680,12.0800
+48.7892,11.9600
+48.7680,11.8400
+48.7071,11.7345
+48.7071,11.7345
+48.7071,11.7345
+48.6137,11.6562
+48.4992,11.6145
+48.3774,11.6145
+48.2629,11.6562
+48.2629,11.6562
+48.1696,11.7345
+48.1087,11.8400
+48.0875,11.9600
+35.9138,11.9600
+35.9138,11.2100
+44.6375,11.2100
+44.6587,11.3300
+44.7196,11.4355
+44.8129,11.5138
+44.9274,11.5555
+45.0492,11.5555
+45.1637,11.5138
+45.2571,11.4355
+45.3180,11.3300
+45.3392,11.2100
+45.3215,11.1100
+45.5375,11.1100
+45.5587,11.2300
+45.6196,11.3355
+45.7129,11.4138
+45.8274,11.4555
+45.9492,11.4555
+46.0637,11.4138
+46.1571,11.3355
+46.2180,11.2300
+46.2392,11.1100
+46.2180,10.9900
+46.1571,10.8845
+46.1571,10.8845
+46.1571,10.8845
+46.0637,10.8062
+45.9492,10.7645
+45.8274,10.7645
+45.7129,10.8062
+45.7129,10.8062
+45.6196,10.8845
+45.5587,10.9900
+45.5375,11.1100
+45.3215,11.1100
+45.3180,11.0900
+45.2571,10.9845
+45.2571,10.9845
+45.2571,10.9845
+45.1637,10.9062
+45.0492,10.8645
+44.9274,10.8645
+44.8129,10.9062
+44.8129,10.9062
+44.7196,10.9845
+44.6587,11.0900
+44.6375,11.2100
+35.9138,11.2100
+35.9138,10.6100
+41.1375,10.6100
+41.1587,10.7300
+41.2196,10.8355
+41.3038,10.9062
+41.3129,10.9138
+41.4274,10.9555
+41.5492,10.9555
+41.6637,10.9138
+41.7571,10.8355
+41.8180,10.7300
+41.8392,10.6100
+41.8180,10.4900
+41.7571,10.3845
+41.7571,10.3845
+41.7571,10.3845
+41.6637,10.3062
+41.5492,10.2645
+41.4274,10.2645
+41.3129,10.3062
+41.3129,10.3062
+41.2196,10.3845
+41.1587,10.4900
+41.1375,10.6100
+35.9138,10.6100
+35.9138,6.3881
+35.9141,6.3819
+35.9286,6.2353
+35.9310,6.2230
+35.9506,6.1584
+35.9666,6.1317
+36.4601,5.6383
+36.4867,5.6223
+36.5513,5.6027
+36.5636,5.6002
+36.7102,5.5858
+36.7165,5.5855
+36.7532,5.5855
+43.7788,5.5855
+Z" /> 
+</g>
+</g>
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="41.4883" cy="10.6100" r="0.1000" /> 
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="43.6883" cy="13.9100" r="0.1000" /> 
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="46.7383" cy="14.5600" r="0.1000" /> 
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="40.7883" cy="14.6100" r="0.1000" /> 
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="39.3383" cy="14.3100" r="0.1000" /> 
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="51.0883" cy="14.3100" r="0.1000" /> 
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="48.4383" cy="11.9600" r="0.1000" /> 
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="47.8383" cy="14.0600" r="0.1000" /> 
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="36.9883" cy="8.9600" r="0.1000" /> 
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="45.8883" cy="11.1100" r="0.1000" /> 
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="45.8883" cy="14.5100" r="0.1000" /> 
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="44.9883" cy="11.2100" r="0.1000" /> 
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="45.9383" cy="15.2600" r="0.1000" /> 
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="45.2133" cy="6.9850" r="0.9000" /> 
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<circle cx="45.2133" cy="18.5850" r="0.9000" /> 
+</g>
+<g style="fill:#FFFFFF; fill-opacity:1.0000; 
+stroke:#FFFFFF; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#000000; fill-opacity:1.0000; 
+stroke:#000000; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#D0D2CD; fill-opacity:1.0000; 
+stroke:#D0D2CD; stroke-width:0.0212; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+</g>
+<g style="fill:#D0D2CD; fill-opacity:0.0; 
+stroke:#D0D2CD; stroke-width:0.1000; stroke-opacity:1; 
+stroke-linecap:round; stroke-linejoin:round;">
+<path d="M35.7133 19.1850 A1.0000 1.0000 0.0 0 0 36.7133 20.1850" />
+<path d="M54.7133 6.3850 A1.0000 1.0000 0.0 0 0 53.7133 5.3850" />
+<path d="M36.7133 5.3850 A1.0000 1.0000 0.0 0 0 35.7133 6.3850" />
+<path d="M54.7133 19.1850
+L54.7133 6.3850
+" />
+<path d="M53.7133 20.1850 A1.0000 1.0000 0.0 0 0 54.7133 19.1850" />
+<path d="M35.7133 6.3850
+L35.7133 19.1850
+" />
+<path d="M53.7133 5.3850
+L36.7133 5.3850
+" />
+<path d="M36.7133 20.1850
+L53.7133 20.1850
+" />
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+<g >
+</g>
+</g> 
+</svg>
