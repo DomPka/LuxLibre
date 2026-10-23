@@ -206,6 +206,16 @@ same scenarios, Lithuania, all fees, shipping and VAT.
 | less VAT on smaller orders | −22 | −8 |
 | **EDCO v0.1, about** | **710** | **235** |
 
+## Drawings and animations
+
+| ![EDCO v0.1 turning about its axis (render)](assets/edco_turntable.gif) | ![EDCO v0.1 coming apart into its parts and back (render)](assets/edco_exploded.gif) |
+|---|---|
+| **Turning.** The button, the label flat and the sealed USB-C socket in the tail. | **Coming apart.** Bezel ring, optic, LED board, head, button parts, main board, cell, tail board, body. |
+
+[![EDCO v0.1 body drawing: top view, section A-A, bottom view, front and tail views, feature table](cad/EDCO_body_drawing.png)](cad/EDCO_body_drawing.pdf)
+
+**Body drawing:** [PDF](cad/EDCO_body_drawing.pdf), [DXF](cad/EDCO_body_drawing.dxf). The drawings are A3 sheets at 2:1, made from the same parameters as the STEP files by [hardware/tools/edco_drawings.py](../tools/edco_drawings.py). Each has the outline, a section, the end views and a feature table with tolerances, and every dimension on it is checked against the solid ([check report](../tools/edco_drawings_check.txt)). The animations are made by [hardware/tools/edco_anim.py](../tools/edco_anim.py). All of them are renders and drawings of the design: nothing has been built yet.
+
 ## What has been checked
 
 * **CAD interference:** every pair of neighbouring parts was checked, and none overlap. Checked
@@ -262,8 +272,10 @@ All numbers are in [cad/edco_interface.json](cad/edco_interface.json), written b
 | [cad/EDCO_body.step](cad/EDCO_body.step), [EDCO_bezel_ring.step](cad/EDCO_bezel_ring.step), [EDCO_head.step](cad/EDCO_head.step) | the three aluminium parts, plain thread diameters (threads and marking go on the drawings) |
 | [cad/EDCO_v0.1_assembly.step](cad/EDCO_v0.1_assembly.step) | every part in place (with stand-ins for the boards and the socket) |
 | [cad/edco_interface.json](cad/edco_interface.json) | sizes, walls, fits, masses and the interference check |
+| [cad/EDCO_body_drawing.pdf](cad/EDCO_body_drawing.pdf), [.dxf](cad/EDCO_body_drawing.dxf), [.png](cad/EDCO_body_drawing.png) | the body drawing (A3, 2:1) |
 | [tools/housing/edco_housing.py](tools/housing/edco_housing.py) | the CadQuery model (all dimensions in class `P`): `python3 edco_housing.py ../../cad` |
 | [tools/housing/edco_render.py](tools/housing/edco_render.py) | the renders: `xvfb-run -a python3 edco_render.py ../../assets` (uses the v0.7 renderer) |
+| [../tools/edco_drawings.py](../tools/edco_drawings.py), [../tools/edco_anim.py](../tools/edco_anim.py) | the drawings and the animations of all EDCO designs: `python3 hardware/tools/edco_drawings.py`, `xvfb-run -a python3 hardware/tools/edco_anim.py` (from the repository root) |
 | [../../firmware/boards/edco-v01/board.h](../../firmware/boards/edco-v01/board.h) | firmware board header, with the thermal model for the simulator |
 
 Licences as for the rest of LuxLibre: hardware CERN-OHL-W-2.0, firmware and tools

@@ -1,0 +1,71 @@
+{
+ "about": "docs/img/lineup.png: the window in millimetres (X across, Z up, baseline Z = 0) and each light's place; pixels per millimetre = width / (x1 - x0)",
+ "window": {
+  "x0": -4.0,
+  "x1": 250.992,
+  "z0": -4.0,
+  "z1": 103.2
+ },
+ "size_px": [
+  3060,
+  1286
+ ],
+ "lights": [
+  {
+   "id": "flashka",
+   "name": "FlashKa v0.7",
+   "length_mm": 99.2,
+   "x0": 0.0,
+   "x1": 20.0,
+   "top": 99.2
+  },
+  {
+   "id": "edco-18",
+   "name": "EDCO-18",
+   "length_mm": 97.8,
+   "x0": 35.0,
+   "x1": 61.0,
+   "top": 97.8
+  },
+  {
+   "id": "edco-14",
+   "name": "EDCO-14",
+   "length_mm": 95.6,
+   "x0": 76.0,
+   "x1": 98.0,
+   "top": 95.6
+  },
+  {
+   "id": "edco-v01",
+   "name": "EDCO v0.1",
+   "length_mm": 93.5,
+   "x0": 113.0,
+   "x1": 133.0,
+   "top": 93.5
+  },
+  {
+   "id": "prism",
+   "name": "EDCO Prism",
+   "length_mm": 83.0,
+   "x0": 148.0,
+   "x1": 176.0,
+   "top": 83.0
+  },
+  {
+   "id": "mini-16",
+   "name": "EDCO Mini-16",
+   "length_mm": 73.45,
+   "x0": 191.0,
+   "x1": 212.99,
+   "top": 73.45
+  },
+  {
+   "id": "mini-14",
+   "name": "EDCO Mini-14",
+   "length_mm": 69.35,
+   "x0": 227.99,
+   "x1": 246.99,
+   "top": 69.35
+  }
+ ]
+}

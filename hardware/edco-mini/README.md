@@ -227,6 +227,18 @@ There is no workbook yet. The Mini has the same parts count as EDCO v0.1 less th
 side LEDs, two rods and, in the M version, two magnets; its metal parts are smaller. Roughly 650-750 USD for
 one light, about 220-250 USD each for five, all fees, shipping and VAT included (estimate).
 
+## Drawings and animations
+
+| ![EDCO Mini-16M turning about its axis (render)](assets/mini16_turntable.gif) | ![EDCO Mini-16M coming apart into its parts and back (render)](assets/mini16_exploded.gif) |
+|---|---|
+| **Turning.** Mini-16M: the side-light windows, the button, the USB-C socket and the tail tab with its split ring. | **Coming apart.** Bezel, optic, LED board, head insert, button parts and light rods, main board, cell, body with magnets. |
+
+| [![EDCO Mini-16 body drawing](cad/EDCO_Mini-16_body_drawing.png)](cad/EDCO_Mini-16_body_drawing.pdf) | [![EDCO Mini-14 body drawing](cad/EDCO_Mini-14_body_drawing.png)](cad/EDCO_Mini-14_body_drawing.pdf) |
+|---|---|
+| **Mini-16 body:** [PDF](cad/EDCO_Mini-16_body_drawing.pdf), [DXF](cad/EDCO_Mini-16_body_drawing.dxf) | **Mini-14 body:** [PDF](cad/EDCO_Mini-14_body_drawing.pdf), [DXF](cad/EDCO_Mini-14_body_drawing.dxf) |
+
+The M body is drawn. The plain body is the same without the two magnet pockets (item 9 on the sheet). The drawings are A3 sheets at 2:1, made from the same parameters as the STEP files by [hardware/tools/edco_drawings.py](../tools/edco_drawings.py). Each has the outline, a section, the end views and a feature table with tolerances, and every dimension on it is checked against the solid ([check report](../tools/edco_drawings_check.txt)). The animations are made by [hardware/tools/edco_anim.py](../tools/edco_anim.py). All of them are renders and drawings of the design: nothing has been built yet.
+
 ## What has been checked
 
 * **CAD interference:** no part overlaps a neighbour in any of the four versions (33 pairs, 35 with the magnets).
@@ -320,8 +332,10 @@ All numbers are in [cad/edco_mini_interface.json](cad/edco_mini_interface.json),
 |---|---|
 | [cad/](cad/) | for each version (`EDCO_Mini-16_*`, `EDCO_Mini-16M_*`, `EDCO_Mini-14_*`, `EDCO_Mini-14M_*`): the body and the assembly as STEP; the bezel and head insert once per size (plain thread diameters) |
 | [cad/edco_mini_interface.json](cad/edco_mini_interface.json) | sizes, walls, fits, masses, the thermal split and the interference check of both sizes |
+| [cad/EDCO_Mini-16_body_drawing.pdf](cad/EDCO_Mini-16_body_drawing.pdf), [EDCO_Mini-14_body_drawing.pdf](cad/EDCO_Mini-14_body_drawing.pdf) (and .dxf, .png) | the body drawings (A3, 2:1; the M body, with the magnet pockets marked) |
 | [tools/housing/edco_mini.py](tools/housing/edco_mini.py) | the CadQuery model (sizes in `SIZES`, common dimensions in class `P`): `python3 edco_mini.py ../../cad --size both` |
 | [tools/housing/edco_mini_render.py](tools/housing/edco_mini_render.py) | the renders: `xvfb-run -a python3 edco_mini_render.py ../../assets` (uses the FlashKa v0.7 renderer) |
+| [../tools/edco_drawings.py](../tools/edco_drawings.py), [../tools/edco_anim.py](../tools/edco_anim.py) | the drawings and the animations of all EDCO designs: `python3 hardware/tools/edco_drawings.py`, `xvfb-run -a python3 hardware/tools/edco_anim.py` (from the repository root) |
 | [../../firmware/boards/edco-mini-16/](../../firmware/boards/edco-mini-16/board.h), [edco-mini-14/](../../firmware/boards/edco-mini-14/board.h) | the firmware board headers, each with the thermal model for the simulator |
 
 Licences as for the rest of LuxLibre: hardware CERN-OHL-W-2.0, firmware and tools GPL-3.0-or-later, this page

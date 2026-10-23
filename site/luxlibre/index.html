@@ -786,7 +786,7 @@ const DEMO_OCV = [[0, 3000], [0.05, 3300], [0.1, 3450], [0.2, 3600], [0.4, 3720]
 class DemoLight {
   constructor(specs) {
     this.board = 'EDCO Prism v0.1 (demo)';
-    this.fw = '0.4.0';
+    this.fw = '0.5.0';
     this.spec = new Map();
     this.p = new Map();
     for (const s of specs) {
@@ -1254,7 +1254,7 @@ let pickerTimer = 0;
 // While sets from the checkboxes or the picker are on their way, the replies to the earlier ones must
 // not redraw the controls the user is still changing; the last reply redraws them.
 const pending = {cs: 0, col: 0};
-// Shown when the light has COL_R / COL_G / COL_B and its status reports the beam: firmware 0.4.0
+// Shown when the light has COL_R / COL_G / COL_B and its status reports the beam: firmware 0.5.0
 // lists every parameter on every board, and only boards with a colour beam add beam= to the status.
 function updateColourVisibility(s) {
   const yes = s.ready && ['COL_R', 'COL_G', 'COL_B'].every((n) => s.params.has(n)) && s.hasBeam;

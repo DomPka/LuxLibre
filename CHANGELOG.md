@@ -5,10 +5,19 @@ All notable changes to LuxLibre. Versions follow [semantic versioning](https://s
 the firmware version is `LX_FW_VERSION` in `firmware/core/lx_version.h`. A release that does not
 change the firmware keeps its version.
 
-## Unreleased (work in progress)
+## 0.5.0 - 2026-10-24
 
 ### Hardware
 
+- Drawings of every EDCO body ([hardware/tools/edco_drawings.py](hardware/tools/edco_drawings.py)): A3 sheets
+  at 2:1 (DXF, PDF, PNG) for EDCO v0.1, EDCO-18, EDCO-14, Mini-16, Mini-14 and Prism, in the style of the
+  FlashKa v0.7 drawings. Each has a top view, a section, a bottom view, both end views and a feature table with
+  tolerances. 83 dimensions are registered against the parameters and 43 main sizes are measured on the solids,
+  with 0 differences ([report](hardware/tools/edco_drawings_check.txt)).
+- Animations of every EDCO design ([hardware/tools/edco_anim.py](hardware/tools/edco_anim.py)): the light
+  turning and the light coming apart. The EDCO Prism also has its beam stepping through the colours.
+- A true-scale lineup of all seven lights ([hardware/tools/lineup.py](hardware/tools/lineup.py)) for the README
+  and the web site.
 - EDCO Prism v0.1, reference design #4 ([hardware/edco-prism/](hardware/edco-prism/README.md)), a concept:
   a sealed 18350 light of 83 mm (Keeppower UH1835P) whose beam is white or any colour. A white SST-20 and
   red, green and blue LEDs under one 24 mm Carclo quad optic (about 1,250 lm in turbo with all four, simulated),
@@ -24,7 +33,7 @@ change the firmware keeps its version.
 - EDCO v0.2 ([hardware/edco-v02/](hardware/edco-v02/README.md)), a concept in two sizes (18500 and
   14500): an SST-40 at up to 5.7 A, USB-C on the side under a twist collar, a crenellated finned bezel.
 
-### Firmware
+### Firmware (LuxLibre 0.5.0)
 
 - Colour beam for boards with `LX_HAS_COLOR` (red, green and blue LEDs next to the white ones): 5 clicks
   from off (on boards without side lights), 2 clicks for the next colour, 4 clicks while on switch white and
@@ -42,6 +51,22 @@ change the firmware keeps its version.
 - Simulator: side-light power, the electronics' current while awake (`LX_SIM_MCU_UA`), the charge current
   (`LX_SIM_CHARGE_MA`), and a wake-up on USB power.
 - Board headers: `edco-prism`, `edco-mini-16`, `edco-mini-14`, `edco-v02-18`, `edco-v02-14`.
+- The CI job builds every ESP32-C3 board header with ESP-IDF, the EDCO v0.2 sizes and the Mini-14 included.
+
+### Documentation and web site
+
+- [docs/comparison.md](docs/comparison.md): every LuxLibre design against 14 popular everyday-carry lights
+  (Olight, Fenix, Nitecore, Emisar, Skilhunt, Acebeam, Wurkkos, RovyVon). It covers light at 30 s and after
+  10 minutes, throw, runtime, size and price. The other lights' figures were measured by independent reviewers
+  and every one has its source; the LuxLibre figures are simulated. The data is in
+  [docs/data/flashlights.json](docs/data/flashlights.json) and the charts come from
+  [tools/comparison_charts.py](tools/comparison_charts.py).
+- The README starts with a light chooser: the lineup, a card for every design with its animation and links,
+  the lights at a glance, the comparison, and a "where to go next" table.
+- The start page of the web site has the same chooser: pick a light on the true-scale lineup to see its
+  details, and take it apart. It adds an interactive comparison chart (light, runtime or throw, with details on
+  each light), the drawings, and links to the settings page and the FlashKa pages.
+- The design pages show their drawings and animations.
 
 ## 0.4.0 - 2026-10-23
 

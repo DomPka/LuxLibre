@@ -359,3 +359,13 @@ root with either command:
 python3 -m unittest tools/test_lux_calc.py
 python3 tools/test_lux_calc.py
 ```
+
+## Comparison charts
+
+`comparison_charts.py` draws the charts of [docs/comparison.md](../docs/comparison.md) from
+[docs/data/flashlights.json](../docs/data/flashlights.json), in a light and a dark version. It needs
+matplotlib.
+
+```sh
+python3 tools/comparison_charts.py           # writes docs/img/compare_*_{light,dark}.png
+```

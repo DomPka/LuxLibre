@@ -179,7 +179,7 @@ An example session:
 
 ```text
 > ver
-LuxLibre 0.4.0 / FlashKa Keychain v0.6
+LuxLibre 0.5.0 / FlashKa Keychain v0.6
 ok
 > get THM_LIMIT
 THM_LIMIT=50

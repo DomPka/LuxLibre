@@ -14,6 +14,21 @@ LuxLibre. Each folder can be built without anything else from this repository.
 | [FlashKa Keychain v0.6](flashka-keychain-v06/README.md) | the v0.5 keychain light with three buttons (a stainless-steel main button in a glowing RGB light ring, plus next and previous) and a presenter mode: the light becomes a Bluetooth LE (Low Energy) keyboard that turns slides, with the laser as the pointer; "fighter-jet skin" on the aluminium body (engraved panel seams, laser-marked rivets and stencils) | previous design; designed and checked by software, not yet built; holds the firmware of both versions and the web pages |
 | [FlashKa Keychain v0.5](flashka-keychain-v05/README.md) | keychain light, 2 LiPo pouch cells, SST-20 up to 2.2 A, Class 2 laser, USB-C, Bluetooth (ESP32-C3) | older design; designed and checked by software, not yet built |
 
+How the designs compare with popular lights of the same cell size (light at 30 s and after 10 minutes,
+throw, runtime, price): [docs/comparison.md](../docs/comparison.md).
+
+## Shared tools
+
+| Tool | What it makes |
+|---|---|
+| [tools/edco_drawings.py](tools/edco_drawings.py) | the dimensioned body drawings of every EDCO design (A3 at 2:1, DXF, PDF and PNG in each `cad/` folder), checked against the solids ([report](tools/edco_drawings_check.txt)): `python3 hardware/tools/edco_drawings.py` |
+| [tools/edco_anim.py](tools/edco_anim.py) | the animations of every EDCO design (turning, coming apart and, for the Prism, the colours; GIFs in each `assets/` folder): `xvfb-run -a python3 hardware/tools/edco_anim.py` |
+| [tools/lineup.py](tools/lineup.py) | all seven lights standing side by side at true scale (`docs/img/lineup*.png` and `lineup.json`, used by the README and the web site): `xvfb-run -a python3 hardware/tools/lineup.py` |
+
+The FlashKa v0.7 drawings and animations are made by its own
+[drawings.py](flashka-keychain-v07/tools/housing/drawings.py) and
+[render_anim.py](flashka-keychain-v07/tools/housing/render_anim.py), which the EDCO tools reuse.
+
 ## Adding a design
 
 A reference design folder contains:

@@ -1,6 +1,6 @@
 {
   "generated_by": "firmware/tools/gen_docs.cpp from core/lx_params_list.h - do not edit",
-  "firmware": "0.4.0",
+  "firmware": "0.5.0",
   "parameters": [
     {"name": "UI_STYLE", "min": 0, "max": 2, "unit": "", "desc": "Button layout: 0 = ramp (smooth dimming), 1 = modes (fixed steps), 2 = simple (modes capped at SIMPLE_MAX, no turbo or blinkies)"},
     {"name": "PREVIEW", "min": 0, "max": 1, "unit": "", "desc": "1 = the light shows the floor level while the button is pressed from off (instant feedback)"},

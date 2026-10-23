@@ -71,3 +71,6 @@ jobs:
           idf.py -B build-edco -DLX_BOARD=edco-v01 build
           idf.py -B build-mini -DLX_BOARD=edco-mini-16 build
           idf.py -B build-prism -DLX_BOARD=edco-prism build
+          idf.py -B build-mini14 -DLX_BOARD=edco-mini-14 build
+          idf.py -B build-v0218 -DLX_BOARD=edco-v02-18 build
+          idf.py -B build-v0214 -DLX_BOARD=edco-v02-14 build

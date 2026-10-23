@@ -27,7 +27,7 @@ adds two magnets in its end. There is no laser and no radio.
 > simulator. The circuit boards are **not drawn yet**, and nothing has been built or measured. Every light figure
 > on this page is simulated or estimated.
 
-![White, red, green and blue (render)](assets/prism_colours.png)
+![The beam stepping through the colours of the firmware's list: white turbo, red, green, blue, yellow, cyan, magenta, white from the three colours, amber (render)](assets/prism_colours.gif)
 
 ## Against the best multi-colour light of its size
 
@@ -254,6 +254,17 @@ There is no workbook yet. The Prism has EDCO Mini's parts plus three colour LEDs
 DAC, op-amp, three FETs) and a larger optic and head, less the side lights and rods. Roughly 700-800 USD for one
 light, about 240-280 USD each for five, all fees, shipping and VAT included (estimate).
 
+## Drawings and animations
+
+| ![EDCO PrismM turning about its axis while the beam steps through its colours (render)](assets/prism_turntable.gif) | ![EDCO PrismM coming apart into its parts and back (render)](assets/prism_exploded.gif) |
+|---|---|
+| **Turning.** The beam steps through its colours; the finned head, the RGB button, the USB-C socket in its pocket, the tail tab. | **Coming apart.** Bezel, quad optic, the four LEDs on their copper board, head insert, button parts, main board, cell, body with magnets. |
+
+[![EDCO Prism body drawing: top view, section A-A, bottom view, front and tail views, feature table](cad/EDCO_Prism_body_drawing.png)](cad/EDCO_Prism_body_drawing.pdf)
+
+**Body drawing:** [PDF](cad/EDCO_Prism_body_drawing.pdf), [DXF](cad/EDCO_Prism_body_drawing.dxf). The M body is drawn; the
+plain body is the same without the two magnet pockets (item 9). The drawings are A3 sheets at 2:1, made from the same parameters as the STEP files by [hardware/tools/edco_drawings.py](../tools/edco_drawings.py). Each has the outline, a section, the end views and a feature table with tolerances, and every dimension on it is checked against the solid ([check report](../tools/edco_drawings_check.txt)). The animations are made by [hardware/tools/edco_anim.py](../tools/edco_anim.py). All of them are renders and drawings of the design: nothing has been built yet.
+
 ## What has been checked
 
 * **CAD interference:** no part overlaps a neighbour in either version (45 pairs, 47 with the magnets). They
@@ -330,8 +341,10 @@ All numbers are in [cad/edco_prism_interface.json](cad/edco_prism_interface.json
 |---|---|
 | [cad/](cad/) | for each version (`EDCO_Prism_*`, `EDCO_PrismM_*`): the body and the assembly as STEP; the bezel and head insert once (plain thread diameters) |
 | [cad/edco_prism_interface.json](cad/edco_prism_interface.json) | sizes, walls, fits, masses, the LED positions, the thermal split and the interference check |
+| [cad/EDCO_Prism_body_drawing.pdf](cad/EDCO_Prism_body_drawing.pdf), [.dxf](cad/EDCO_Prism_body_drawing.dxf), [.png](cad/EDCO_Prism_body_drawing.png) | the body drawing (A3, 2:1; the M body, with the magnet pockets marked) |
 | [tools/housing/edco_prism.py](tools/housing/edco_prism.py) | the CadQuery model (all dimensions in class `P`, the LED layout in `LEDS`): `python3 edco_prism.py ../../cad` |
 | [tools/housing/edco_prism_render.py](tools/housing/edco_prism_render.py) | the renders: `xvfb-run -a python3 edco_prism_render.py ../../assets` (uses the FlashKa v0.7 and EDCO Mini renderers) |
+| [../tools/edco_drawings.py](../tools/edco_drawings.py), [../tools/edco_anim.py](../tools/edco_anim.py) | the drawings and the animations of all EDCO designs: `python3 hardware/tools/edco_drawings.py`, `xvfb-run -a python3 hardware/tools/edco_anim.py` (from the repository root) |
 | [../../firmware/boards/edco-prism/](../../firmware/boards/edco-prism/board.h) | the firmware board header, with the LED, colour and thermal models for the simulator |
 | [../../site/luxlibre/](../../site/luxlibre/index.html) | the settings page (Web Serial) |
 

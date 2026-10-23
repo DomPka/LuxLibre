@@ -109,7 +109,7 @@ Do these steps in order. Stop at the first failure and fix it before you go on.
    [docs/firmware/README.md](firmware/README.md). Raise the current limit step by step now
    that the firmware controls the outputs.
 6. **Read `ver` and `status`** on boards with a console. `ver` must print the firmware
-   version and the board name, for example `LuxLibre 0.4.0 / FlashKa Keychain v0.6`
+   version and the board name, for example `LuxLibre 0.5.0 / FlashKa Keychain v0.6`
    ([REQ-4](design-rules.md#req-4)). Write it into the report.
 7. **Battery voltage calibration ([BAT-9](design-rules.md#bat-9)).** Measure the voltage
    at the cell terminals with the multimeter at the same moment you read `cell_mV` from

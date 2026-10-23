@@ -101,7 +101,7 @@ firmware build reports its version and board name.
 version they belong to.
 
 **Check.** Read the silkscreen; on boards with a console, `ver` prints for example
-`LuxLibre 0.4.0 / FlashKa Keychain v0.6`.
+`LuxLibre 0.5.0 / FlashKa Keychain v0.6`.
 
 **Firmware.** `LX_FW_VERSION` (firmware/core/lx_version.h) and `LX_BOARD_NAME` (board header).
 

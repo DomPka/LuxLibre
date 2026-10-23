@@ -36,3 +36,6 @@ _autosave-*
 .DS_Store
 Thumbs.db
 firmware/ports/esp32c3/build-prism/
+firmware/ports/esp32c3/build-mini14/
+firmware/ports/esp32c3/build-v0218/
+firmware/ports/esp32c3/build-v0214/

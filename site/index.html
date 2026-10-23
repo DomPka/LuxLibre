@@ -7,22 +7,29 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#0b7a86">
 <title>LuxLibre - open-source flashlights</title>
-<meta name="description" content="Open-source firmware, design rules and reference designs for flashlights. Control app and firmware installer for the FlashKa Keychain (v0.7 and v0.6).">
+<meta name="description" content="Open-source firmware, design rules and reference designs for flashlights: the FlashKa keychain light and the EDCO family, with drawings, renders, a comparison with popular lights, and web pages to set up and update a light.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="LuxLibre">
-<meta property="og:description" content="Open-source firmware, design rules and reference designs for flashlights.">
+<meta property="og:description" content="Open-source flashlights: firmware, design rules and reference designs you can build.">
 <meta property="og:url" content="https://dompka.github.io/LuxLibre/">
 <meta property="og:image" content="https://dompka.github.io/LuxLibre/img/housing_closed_bottom.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='12' width='17' height='8' rx='3' fill='%230b7a86'/%3E%3Cpath d='M23 8l5-3M23 16h6M23 24l5 3' stroke='%236366f1' stroke-width='2.4' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
-<!-- Landing page of the LuxLibre GitHub Pages site. Self-contained: inline CSS, no scripts, no web fonts.
+<!-- Landing page of the LuxLibre GitHub Pages site. One file: inline CSS and a small inline script, no web fonts,
+     nothing loaded from other sites. Without the script every light's details are shown one after another and the
+     chart is the static picture.
      The colours, font stack and logo are those of the FlashKa web app (hardware/flashka-keychain-v06/app/).
-     .github/workflows/pages.yml publishes this folder at the site root and the FlashKa pages under flashka/. -->
+     .github/workflows/pages.yml publishes this folder at the site root, the FlashKa pages under flashka/, and copies
+     these files from docs/: img/lineup.png, img/cards/*.gif, img/drawings/*.png, img/compare_light_*.png and
+     data/flashlights.json.
+     The places of the lights on the lineup picture come from docs/img/lineup.json (hardware/tools/lineup.py). -->
 <style>
 :root{
   color-scheme:light dark;
   --bg:#f2f5f9; --surface:#ffffff; --surface2:#e9eef4; --text:#121820; --muted:#4f5d6d;
   --border:#cfd7e2; --accent:#0b7a86; --accent-ink:#ffffff; --accent-soft:#d3eef1;
-  --warn:#7a4a00; --warn-soft:#fff0cc; --demo:#5b34c4; --demo-soft:#ece6fb;
+  --stage:#e3e9f0; --rule:#8a97a6; --grid:#e6e5e1;
+  --ours:#2a78d6; --theirs:#eb6834;
+  --warn:#7a4a00; --warn-soft:#fff0cc;
   --shadow:0 1px 2px rgba(15,23,42,.06),0 6px 18px rgba(15,23,42,.06);
   --radius:16px;
 }
@@ -30,66 +37,141 @@
   :root{
     --bg:#0c1116; --surface:#151b22; --surface2:#1f2832; --text:#e9eef4; --muted:#9eabbb;
     --border:#2b3643; --accent:#46d3dc; --accent-ink:#031f23; --accent-soft:#10343a;
-    --warn:#f2b552; --warn-soft:#38290c; --demo:#b9a4ff; --demo-soft:#2a2046;
+    --stage:#26303c; --rule:#7f8c9b; --grid:#2b333d;
+    --ours:#3987e5; --theirs:#d95926;
+    --warn:#f2b552; --warn-soft:#38290c;
     --shadow:0 1px 2px rgba(0,0,0,.5);
   }
 }
 *,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none !important}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow-wrap:anywhere}
-h1,h2,p,ul,figure{margin:0}
+h1,h2,h3,p,ul,dl,dd,figure{margin:0}
 a{color:var(--accent)}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.wrap{max-width:980px;margin:0 auto;padding:28px 16px calc(32px + env(safe-area-inset-bottom));padding-top:max(28px,env(safe-area-inset-top))}
+.wrap{max-width:1040px;margin:0 auto;padding:28px 16px calc(32px + env(safe-area-inset-bottom));padding-top:max(28px,env(safe-area-inset-top))}
+.num{font-variant-numeric:tabular-nums}
 
 /* header */
-.top{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.top{display:flex;align-items:center;gap:14px;margin-bottom:28px}
 .logo{width:52px;height:52px;flex:none}
 .top h1{font-size:2rem;line-height:1.1;letter-spacing:.2px}
-.top p{margin-top:4px;color:var(--muted)}
+.top p{margin-top:4px;color:var(--muted);max-width:62ch}
 
-/* FlashKa card */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
-.design{display:grid;gap:18px}
-.shot{background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
-.shot img{display:block;width:100%;height:auto}
-.shot figcaption{padding:6px 12px;font-size:.82rem;font-weight:700;text-align:center;background:var(--warn-soft);color:var(--warn);border-top:1px solid var(--warn)}
-.kicker{font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.design h2{font-size:1.5rem;line-height:1.2;margin:2px 0 8px}
-.design .lead{margin-bottom:8px}
-.status{color:var(--muted);font-size:.93rem}
-.actions{display:grid;gap:14px}
-.btn{display:flex;align-items:center;justify-content:center;min-height:56px;padding:10px 22px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:1.08rem;font-weight:700;text-align:center;text-decoration:none;overflow-wrap:normal}
+section{margin-top:40px}
+section:first-of-type{margin-top:0}
+section > h2{font-size:1.45rem;line-height:1.2}
+.sub{margin-top:6px;color:var(--muted);max-width:70ch}
+
+/* the lineup: every light at true scale */
+.lineup{margin-top:16px;display:grid;grid-template-columns:44px minmax(0,1fr);background:var(--stage);border-radius:var(--radius);padding:14px 14px 10px 6px}
+.ruler{position:relative}
+.ruler i{position:absolute;right:0;width:8px;height:1px;background:var(--rule)}
+.ruler i.l{width:14px}
+.ruler b{position:absolute;right:18px;transform:translateY(-50%);font-size:.72rem;font-weight:600;color:var(--muted);white-space:nowrap}
+.photo{position:relative}
+.photo img{display:block;width:100%;height:auto}
+.photo .ground{position:absolute;left:0;right:0;top:96.27%;height:1px;background:var(--rule);opacity:.6}
+.hot{position:absolute;display:block;border-radius:10px;text-decoration:none;color:var(--text)}
+.hot::before{content:"";position:absolute;inset:-2.5% -16%;border-radius:12px;border:2px solid transparent;transition:border-color .2s}
+.hot::after{content:"";position:absolute;inset:-3% -20%;background:var(--stage);opacity:0;transition:opacity .25s;pointer-events:none}
+.js .lineup.picked .hot:not(.sel)::after{opacity:.5}
+.hot.sel::before{border-color:var(--accent)}
+.hot:hover::after,.hot:focus-visible::after{opacity:0 !important}
+.hot .tag{position:absolute;left:50%;bottom:100%;transform:translate(-50%,-6px);padding:4px 8px;border-radius:8px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow);font-size:.8rem;line-height:1.25;white-space:nowrap;text-align:center;opacity:0;pointer-events:none;transition:opacity .15s}
+.hot:hover .tag,.hot:focus-visible .tag{opacity:1}
+.hot .tag span{display:block;color:var(--muted)}
+.scale-note{margin-top:8px;color:var(--muted);font-size:.85rem}
+
+/* the light picker */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;padding:0;list-style:none}
+.chips button{font:inherit;font-size:.92rem;min-height:44px;padding:6px 14px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer}
+.chips button span{color:var(--muted);margin-left:6px}
+.chips button:hover{border-color:var(--accent)}
+.chips button[aria-selected="true"]{background:var(--accent);border-color:transparent;color:var(--accent-ink)}
+.chips button[aria-selected="true"] span{color:var(--accent-ink);opacity:.8}
+.no-js-hide{display:none}
+.js .no-js-hide{display:flex}
+
+.light{margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;display:grid;gap:18px}
+.js .light[hidden]{display:none}
+.anim{position:relative;background:#ffffff;border-radius:12px;border:1px solid var(--border);overflow:hidden}
+.anim img{display:block;width:100%;height:auto;aspect-ratio:2/1;object-fit:contain;background:#ffffff}
+.anim button{position:absolute;right:8px;top:8px;font:inherit;font-size:.82rem;font-weight:600;min-height:36px;padding:4px 12px;border-radius:999px;border:1px solid #cfd7e2;background:rgba(255,255,255,.92);color:#121820;cursor:pointer}
+.anim figcaption{padding:6px 12px;font-size:.8rem;font-weight:700;text-align:center;background:var(--warn-soft);color:var(--warn);border-top:1px solid var(--warn)}
+.light h3{font-size:1.4rem;line-height:1.2}
+.light .what{margin-top:6px;max-width:60ch}
+.specs{margin-top:14px;display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:.95rem}
+.specs dt{color:var(--muted)}
+.specs dd{font-variant-numeric:tabular-nums}
+.state{margin-top:12px;color:var(--muted);font-size:.88rem}
+.acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:8px 18px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-weight:700;text-align:center;text-decoration:none}
 .btn:hover{border-color:var(--accent)}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
 .btn.primary:hover{filter:brightness(1.08)}
-.need{margin-top:6px;color:var(--muted);font-size:.88rem}
-.demo{padding:12px 14px;border-radius:12px;border:1px solid var(--demo);background:var(--demo-soft);color:var(--text);font-size:.95rem}
-.demo b:first-child{color:var(--demo)}
-.local{color:var(--muted);font-size:.88rem}
 @media (min-width:760px){
-  .card{padding:20px}
-  .design,.actions{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px 26px}
-  .design{align-items:center}
-  .actions{align-items:start}
-  .design .wide,.design .actions{grid-column:1 / -1}
+  .light{grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding:20px;gap:26px;align-items:start}
 }
 
+/* comparison chart */
+.seg{display:inline-flex;flex-wrap:wrap;gap:4px;margin-top:14px;padding:4px;border-radius:12px;background:var(--surface2)}
+.seg button{font:inherit;font-size:.9rem;font-weight:600;min-height:40px;padding:4px 14px;border-radius:9px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+.chart{position:relative;margin-top:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+.chart picture img{display:block;width:100%;height:auto}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart text{fill:var(--text);font-size:12.5px}
+.chart .muted{fill:var(--muted)}
+.chart .grp{fill:var(--muted);font-size:12.5px;font-weight:600}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .ours{fill:var(--ours);stroke:var(--ours)}
+.chart .theirs{fill:var(--theirs);stroke:var(--theirs)}
+.chart .open{fill:var(--surface);stroke-width:2}
+.chart .ring{stroke:var(--surface);stroke-width:2}
+.chart .link{stroke-width:2;opacity:.45;fill:none;transition:opacity .8s .3s}
+.chart .mv{transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+.chart .row:hover .hit,.chart .row:focus .hit{fill:var(--surface2)}
+.chart .row{outline:none}
+.chart .row:focus-visible .hit{stroke:var(--accent);stroke-width:2}
+.chart .hit{fill:transparent}
+.tip{position:absolute;z-index:2;min-width:220px;max-width:300px;padding:10px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--border);box-shadow:0 8px 28px rgba(15,23,42,.18);font-size:.85rem;line-height:1.4;pointer-events:none}
+.tip b{display:block;font-size:.95rem}
+.tip .k{color:var(--muted)}
+.tip .src{margin-top:4px;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;color:var(--muted);font-size:.86rem}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend svg{width:14px;height:14px;overflow:visible}
+.chart-note{margin-top:10px;color:var(--muted);font-size:.86rem;max-width:80ch}
+@media (prefers-reduced-motion:reduce){.chart .mv,.chart .link,.hot::before,.hot::after{transition:none}}
+
+/* drawings */
+.strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(240px,1fr);gap:12px;overflow-x:auto;padding:4px 2px 10px;margin-top:14px;scroll-snap-type:x mandatory}
+.strip a{display:block;scroll-snap-align:start;background:#ffffff;border:1px solid var(--border);border-radius:12px;overflow:hidden;text-decoration:none;color:#121820}
+.strip img{display:block;width:100%;height:auto}
+.strip span{display:block;padding:8px 10px;font-size:.88rem;font-weight:600;border-top:1px solid #cfd7e2}
+
 /* links */
-.more{margin-top:32px}
-.more h2{font-size:1.15rem;margin-bottom:12px}
-.links{list-style:none;padding:0;display:grid;gap:12px}
+.links{list-style:none;padding:0;display:grid;gap:12px;margin-top:14px}
 .links a{display:block;height:100%;padding:14px 16px;border-radius:12px;border:1px solid var(--border);background:var(--surface);box-shadow:var(--shadow);text-decoration:none;color:var(--text);min-height:48px}
 .links a:hover{border-color:var(--accent)}
 .links .t{display:block;font-weight:700;color:var(--accent)}
 .links .d{display:block;margin-top:2px;color:var(--muted);font-size:.9rem}
 @media (min-width:600px){.links{grid-template-columns:1fr 1fr}}
+@media (min-width:900px){.links.three{grid-template-columns:1fr 1fr 1fr}}
 
-.foot{margin-top:32px;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:.86rem;display:grid;gap:8px}
+.foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:.86rem;display:grid;gap:8px}
 .foot .id{white-space:nowrap}
+@media (max-width:520px){
+  .lineup{grid-template-columns:30px minmax(0,1fr);padding:10px 8px 8px 2px}
+  .ruler b{font-size:.62rem;right:12px}
+  .hot .tag{display:none}
+}
 </style>
 </head>
 <body>
+<script>document.documentElement.classList.add('js')</script>
 <div class="wrap">
   <header class="top">
     <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
@@ -99,54 +181,301 @@ a{color:var(--accent)}
     </svg>
     <div>
       <h1>LuxLibre</h1>
-      <p>Open-source firmware, design rules and reference designs for flashlights.</p>
+      <p>Open-source flashlights: one firmware, design rules, and complete designs you can build, change and sell.</p>
     </div>
   </header>
 
   <main>
-    <section class="card design" aria-labelledby="flashka-title">
-      <figure class="shot">
-        <img src="img/housing_closed_bottom.png" width="800" height="460" decoding="async"
-             alt="Computer render of the FlashKa Keychain v0.7 seen from below: a black keychain light with textured panels, a clear square key with a glowing cyan ring between two black rubber keys, and a split ring at one end.">
-        <figcaption>Render &mdash; not yet built</figcaption>
-      </figure>
-      <div>
-        <p class="kicker">Reference design</p>
-        <h2 id="flashka-title">FlashKa Keychain v0.7</h2>
-        <p class="lead">A keychain flashlight with a laser pointer, USB-C charging and Bluetooth. In presenter mode it becomes a Bluetooth keyboard that turns your slides. Version 0.7 is the 1000&nbsp;lm FlashKa: a TIR optic throws the beam about 160&nbsp;m (simulated), one 14500 cell powers it, the body is a faceted octagon, and the three keys sit on the centre line, a clear main key with a glowing ring between two rubber keys.</p>
-        <p class="status">Designed and checked by software; the light figures are simulated. The first one has not been built yet.</p>
-      </div>
-      <div class="actions">
-        <div>
-          <a class="btn primary" href="flashka/flashka-app.html" aria-describedby="need-app">Open the control app</a>
-          <p id="need-app" class="need">Uses Web Bluetooth: Chrome or Edge on Android, Windows, macOS and ChromeOS (on Linux, Chrome may need the Web Bluetooth flag); on iPhone and iPad the free Bluefy browser.</p>
+    <section aria-labelledby="pick-title">
+      <h2 id="pick-title">Pick a light</h2>
+      <p class="sub">Seven designs side by side at true scale (the scale is in millimetres). Choose one to see what it does and where its files are. None of them has been built yet: the pictures are renders and the light figures are simulated.</p>
+
+      <div class="lineup" id="lineup">
+        <div class="ruler" aria-hidden="true">
+          <i class="l" style="top:96.27%"></i><b style="top:96.27%">0</b>
+          <i style="top:86.94%"></i>
+          <i class="l" style="top:77.61%"></i><b style="top:77.61%">20</b>
+          <i style="top:68.28%"></i>
+          <i class="l" style="top:58.96%"></i><b style="top:58.96%">40</b>
+          <i style="top:49.63%"></i>
+          <i class="l" style="top:40.30%"></i><b style="top:40.30%">60</b>
+          <i style="top:30.97%"></i>
+          <i class="l" style="top:21.64%"></i><b style="top:21.64%">80</b>
+          <i style="top:12.31%"></i>
+          <i class="l" style="top:2.99%"></i><b style="top:2.99%">100</b>
         </div>
-        <div>
-          <a class="btn" href="flashka/flashka-flasher.html" aria-describedby="need-fw">Install the firmware</a>
-          <p id="need-fw" class="need">Uses Web Serial: Chrome or Edge on a computer, with a USB-C data cable. Phones and tablets cannot do this. The installer asks whether you have a FlashKa v0.7 or v0.6.</p>
+        <div class="photo">
+          <img src="img/lineup.png" width="3060" height="1286" decoding="async"
+               alt="Render of the seven lights standing side by side at true scale, tallest on the left: FlashKa v0.7 (99.2 mm), EDCO-18 (97.8 mm), EDCO-14 (95.6 mm), EDCO v0.1 (93.5 mm), EDCO Prism (83.0 mm), EDCO Mini-16 (73.5 mm) and EDCO Mini-14 (69.4 mm). All are black anodised with a stainless button.">
+          <span class="ground" aria-hidden="true"></span>
+          <a class="hot" data-id="flashka" href="#flashka" style="left:1.57%;width:7.84%;top:3.73%;height:92.54%" aria-label="FlashKa v0.7, 99.2 mm"><span class="tag">FlashKa v0.7<span>99.2 mm</span></span></a>
+          <a class="hot" data-id="edco-18" href="#edco-18" style="left:15.29%;width:10.20%;top:5.04%;height:91.23%" aria-label="EDCO-18, 97.8 mm"><span class="tag">EDCO-18<span>97.8 mm</span></span></a>
+          <a class="hot" data-id="edco-14" href="#edco-14" style="left:31.37%;width:8.63%;top:7.09%;height:89.18%" aria-label="EDCO-14, 95.6 mm"><span class="tag">EDCO-14<span>95.6 mm</span></span></a>
+          <a class="hot" data-id="edco-v01" href="#edco-v01" style="left:45.88%;width:7.84%;top:9.05%;height:87.22%" aria-label="EDCO v0.1, 93.5 mm"><span class="tag">EDCO v0.1<span>93.5 mm</span></span></a>
+          <a class="hot" data-id="prism" href="#prism" style="left:59.61%;width:10.98%;top:18.84%;height:77.43%" aria-label="EDCO Prism, 83.0 mm"><span class="tag">EDCO Prism<span>83.0 mm</span></span></a>
+          <a class="hot" data-id="mini-16" href="#mini-16" style="left:76.47%;width:8.62%;top:27.75%;height:68.52%" aria-label="EDCO Mini-16, 73.5 mm"><span class="tag">EDCO Mini-16<span>73.5 mm</span></span></a>
+          <a class="hot" data-id="mini-14" href="#mini-14" style="left:90.98%;width:7.45%;top:31.58%;height:64.69%" aria-label="EDCO Mini-14, 69.4 mm"><span class="tag">EDCO Mini-14<span>69.4 mm</span></span></a>
         </div>
       </div>
-      <p class="demo wide"><b>Try the demo.</b> No FlashKa yet? Open the control app and press <b>Try demo mode</b>: a simulated light runs inside the page, in any browser.</p>
-      <p class="local wide">Both pages run entirely in your browser: nothing is uploaded.</p>
+
+      <div class="chips no-js-hide" role="tablist" aria-label="Lights">
+        <button role="tab" data-id="flashka" aria-controls="flashka">FlashKa v0.7<span>99 mm</span></button>
+        <button role="tab" data-id="edco-18" aria-controls="edco-18">EDCO-18<span>98 mm</span></button>
+        <button role="tab" data-id="edco-14" aria-controls="edco-14">EDCO-14<span>96 mm</span></button>
+        <button role="tab" data-id="edco-v01" aria-controls="edco-v01">EDCO v0.1<span>94 mm</span></button>
+        <button role="tab" data-id="prism" aria-controls="prism">EDCO Prism<span>83 mm</span></button>
+        <button role="tab" data-id="mini-16" aria-controls="mini-16">EDCO Mini-16<span>74 mm</span></button>
+        <button role="tab" data-id="mini-14" aria-controls="mini-14">EDCO Mini-14<span>69 mm</span></button>
+      </div>
+
+      <article class="light" id="flashka" role="tabpanel" aria-labelledby="t-flashka">
+        <figure class="anim">
+          <img src="img/cards/flashka_v07.gif" data-apart="img/cards/flashka_v07_exploded.gif" width="400" height="213" decoding="async" loading="lazy"
+               alt="Render of the FlashKa v0.7 turning: the bottom face with the clear main key and its glowing ring between two rubber keys">
+          <button type="button" class="apart">Take it apart</button>
+          <figcaption>Render: not yet built</figcaption>
+        </figure>
+        <div>
+          <h3 id="t-flashka">FlashKa v0.7</h3>
+          <p class="what">A keychain light with a laser pointer and a Bluetooth presenter mode: it turns your slides, and the laser is the pointer. The three keys sit on the centre line of a faceted aluminium body.</p>
+          <dl class="specs">
+            <dt>Size</dt><dd>99.2 × 20 × 18 mm</dd>
+            <dt>Cell</dt><dd>one 14500, 1,500 mAh</dd>
+            <dt>Light at 30 s</dt><dd>966 lm (1,045 lm at switch-on)</dd>
+            <dt>After 10 minutes</dt><dd>about 280 lm</dd>
+            <dt>Throw</dt><dd>6,605 cd, 162 m</dd>
+            <dt>From turbo to the end</dt><dd>2 h 17 min</dd>
+          </dl>
+          <p class="state">Designed and checked by software, with a build guide and upload-ready order files. Light figures are simulated.</p>
+          <div class="acts">
+            <a class="btn primary" href="https://github.com/DomPka/LuxLibre/tree/main/hardware/flashka-keychain-v07">Open the design</a>
+            <a class="btn" href="flashka/flashka-app.html">Try the control app</a>
+            <a class="btn" href="https://github.com/DomPka/LuxLibre/blob/main/hardware/flashka-keychain-v07/FlashKa_v0.7_Build_Guide.pdf">Build guide</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="light" id="edco-18" role="tabpanel" aria-labelledby="t-edco-18">
+        <figure class="anim">
+          <img src="img/cards/edco_v02.gif" data-apart="img/cards/edco_v02_exploded.gif" width="400" height="206" decoding="async" loading="lazy"
+               alt="Render of the EDCO-18 turning: crenellated finned bezel, the fluted twist collar, the stainless button, six flats">
+          <button type="button" class="apart">Take it apart</button>
+          <figcaption>Render: not yet built</figcaption>
+        </figure>
+        <div>
+          <h3 id="t-edco-18">EDCO-18</h3>
+          <p class="what">The brightest LuxLibre light: a Luminus SST-40 at up to 5.7 A from an 18500 cell. The USB-C port sits in the side of the head under a twist collar that seals it.</p>
+          <dl class="specs">
+            <dt>Size</dt><dd>Ø26 head, Ø24 body × 97.8 mm</dd>
+            <dt>Cell</dt><dd>one 18500, 1,500 mAh</dd>
+            <dt>Light at 30 s</dt><dd>1,759 lm</dd>
+            <dt>After 10 minutes</dt><dd>about 330-390 lm</dd>
+            <dt>Throw</dt><dd>about 18,000 cd (estimate)</dd>
+            <dt>From turbo to the end</dt><dd>1 h 39 min</dd>
+          </dl>
+          <p class="state">A concept: housing and firmware header done, circuit boards not drawn yet. Light figures are simulated.</p>
+          <div class="acts">
+            <a class="btn primary" href="https://github.com/DomPka/LuxLibre/tree/main/hardware/edco-v02">Open the design</a>
+            <a class="btn" href="https://github.com/DomPka/LuxLibre/blob/main/hardware/edco-v02/cad/EDCO-18_body_drawing.pdf">Body drawing</a>
+            <a class="btn" href="luxlibre/">Settings page</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="light" id="edco-14" role="tabpanel" aria-labelledby="t-edco-14">
+        <figure class="anim">
+          <img src="img/cards/edco_v02.gif" data-apart="img/cards/edco_v02_exploded.gif" width="400" height="206" decoding="async" loading="lazy"
+               alt="Render of the EDCO-18 turning; the EDCO-14 looks the same in a slimmer body">
+          <button type="button" class="apart">Take it apart</button>
+          <figcaption>Render of the EDCO-18: not yet built</figcaption>
+        </figure>
+        <div>
+          <h3 id="t-edco-14">EDCO-14</h3>
+          <p class="what">The EDCO-18 in a slimmer body for a 14500 cell: the same SST-40, collar and button, a little less current.</p>
+          <dl class="specs">
+            <dt>Size</dt><dd>Ø22 head, Ø20 body × 95.6 mm</dd>
+            <dt>Cell</dt><dd>one 14500, 1,000 mAh</dd>
+            <dt>Light at 30 s</dt><dd>1,561 lm</dd>
+            <dt>After 10 minutes</dt><dd>about 260-320 lm</dd>
+            <dt>Throw</dt><dd>about 11,000 cd (estimate)</dd>
+            <dt>From turbo to the end</dt><dd>1 h 18 min</dd>
+          </dl>
+          <p class="state">A concept: housing and firmware header done, circuit boards not drawn yet. Light figures are simulated.</p>
+          <div class="acts">
+            <a class="btn primary" href="https://github.com/DomPka/LuxLibre/tree/main/hardware/edco-v02">Open the design</a>
+            <a class="btn" href="https://github.com/DomPka/LuxLibre/blob/main/hardware/edco-v02/cad/EDCO-14_body_drawing.pdf">Body drawing</a>
+            <a class="btn" href="luxlibre/">Settings page</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="light" id="edco-v01" role="tabpanel" aria-labelledby="t-edco-v01">
+        <figure class="anim">
+          <img src="img/cards/edco_v01.gif" data-apart="img/cards/edco_v01_exploded.gif" width="400" height="192" decoding="async" loading="lazy"
+               alt="Render of the EDCO v0.1 turning: a plain round tube with the button, a green charge indicator and the label flat">
+          <button type="button" class="apart">Take it apart</button>
+          <figcaption>Render: not yet built</figcaption>
+        </figure>
+        <div>
+          <h3 id="t-edco-v01">EDCO v0.1</h3>
+          <p class="what">The first EDCO: a plain sealed tube with no laser and no radio. Charging, updates and settings go through one sealed USB-C socket in the centre of the tail.</p>
+          <dl class="specs">
+            <dt>Size</dt><dd>Ø20 × 93.5 mm</dd>
+            <dt>Cell</dt><dd>one 14500, 1,500 mAh</dd>
+            <dt>Light at 30 s</dt><dd>966 lm</dd>
+            <dt>After 10 minutes</dt><dd>about 290 lm</dd>
+            <dt>Throw</dt><dd>6,605 cd, 162 m</dd>
+            <dt>From turbo to the end</dt><dd>2 h 21 min</dd>
+          </dl>
+          <p class="state">A concept: housing and firmware header done, circuit boards not drawn yet. Light figures are simulated.</p>
+          <div class="acts">
+            <a class="btn primary" href="https://github.com/DomPka/LuxLibre/tree/main/hardware/edco-v01">Open the design</a>
+            <a class="btn" href="https://github.com/DomPka/LuxLibre/blob/main/hardware/edco-v01/cad/EDCO_body_drawing.pdf">Body drawing</a>
+            <a class="btn" href="luxlibre/">Settings page</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="light" id="prism" role="tabpanel" aria-labelledby="t-prism">
+        <figure class="anim">
+          <img src="img/cards/edco_prism.gif" data-apart="img/cards/edco_prism_exploded.gif" width="400" height="192" decoding="async" loading="lazy"
+               alt="Render of the EDCO Prism turning while its beam steps through white, red, green, blue, yellow, cyan, magenta and amber">
+          <button type="button" class="apart">Take it apart</button>
+          <figcaption>Render: not yet built</figcaption>
+        </figure>
+        <div>
+          <h3 id="t-prism">EDCO Prism</h3>
+          <p class="what">A beam that is white or any colour. A white SST-20 and red, green and blue LEDs share one optic; turbo runs all four. Five clicks turn on the colour, two clicks change it, and the button glows in the beam's colour.</p>
+          <dl class="specs">
+            <dt>Size</dt><dd>Ø28 head, Ø22 body × 83.0 mm</dd>
+            <dt>Cell</dt><dd>one 18350, 1,200 mAh</dd>
+            <dt>Light at 30 s</dt><dd>1,248 lm (944 lm from the white LED alone)</dd>
+            <dt>After 10 minutes</dt><dd>about 280-350 lm</dd>
+            <dt>Throw</dt><dd>about 3,000 cd (estimate)</dd>
+            <dt>From turbo to the end</dt><dd>1 h 29 min</dd>
+          </dl>
+          <p class="state">A concept: housing and firmware header done, circuit boards not drawn yet. Light figures are simulated.</p>
+          <div class="acts">
+            <a class="btn primary" href="https://github.com/DomPka/LuxLibre/tree/main/hardware/edco-prism">Open the design</a>
+            <a class="btn" href="luxlibre/">Pick colours on the settings page</a>
+            <a class="btn" href="https://github.com/DomPka/LuxLibre/blob/main/hardware/edco-prism/cad/EDCO_Prism_body_drawing.pdf">Body drawing</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="light" id="mini-16" role="tabpanel" aria-labelledby="t-mini-16">
+        <figure class="anim">
+          <img src="img/cards/edco_mini.gif" data-apart="img/cards/edco_mini_exploded.gif" width="400" height="182" decoding="async" loading="lazy"
+               alt="Render of the EDCO Mini-16M turning: side-light windows, the stainless button, the USB-C socket and the tail tab with a split ring">
+          <button type="button" class="apart">Take it apart</button>
+          <figcaption>Render: not yet built</figcaption>
+        </figure>
+        <div>
+          <h3 id="t-mini-16">EDCO Mini-16</h3>
+          <p class="what">A sealed keychain light with red and UV side lights, a waterproof USB-C socket and a keyring tab at the tail. The M version has two magnets in the end of the tab.</p>
+          <dl class="specs">
+            <dt>Size</dt><dd>Ø22 head, Ø20 body × 73.5 mm</dd>
+            <dt>Cell</dt><dd>one 16340, 650 mAh</dd>
+            <dt>Light at 30 s</dt><dd>944 lm</dd>
+            <dt>After 10 minutes</dt><dd>about 230 lm</dd>
+            <dt>Throw</dt><dd>about 11,000 cd (estimate)</dd>
+            <dt>From turbo to the end</dt><dd>1 h 07 min</dd>
+          </dl>
+          <p class="state">A concept: housing and firmware header done, circuit boards not drawn yet. Light figures are simulated.</p>
+          <div class="acts">
+            <a class="btn primary" href="https://github.com/DomPka/LuxLibre/tree/main/hardware/edco-mini">Open the design</a>
+            <a class="btn" href="https://github.com/DomPka/LuxLibre/blob/main/hardware/edco-mini/cad/EDCO_Mini-16_body_drawing.pdf">Body drawing</a>
+            <a class="btn" href="luxlibre/">Settings page</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="light" id="mini-14" role="tabpanel" aria-labelledby="t-mini-14">
+        <figure class="anim">
+          <img src="img/cards/edco_mini.gif" data-apart="img/cards/edco_mini_exploded.gif" width="400" height="182" decoding="async" loading="lazy"
+               alt="Render of the EDCO Mini-16M turning; the Mini-14 looks the same, a little smaller">
+          <button type="button" class="apart">Take it apart</button>
+          <figcaption>Render of the Mini-16: not yet built</figcaption>
+        </figure>
+        <div>
+          <h3 id="t-mini-14">EDCO Mini-14</h3>
+          <p class="what">The smallest LuxLibre light: the Mini in a Ø17 body. No high-drain cell of its size is sold today, so it needs a cell made to order.</p>
+          <dl class="specs">
+            <dt>Size</dt><dd>Ø19 head, Ø17 body × 69.4 mm</dd>
+            <dt>Cell</dt><dd>made to order, about 400 mAh</dd>
+            <dt>Light at 30 s</dt><dd>978 lm</dd>
+            <dt>After 10 minutes</dt><dd>about 195 lm</dd>
+            <dt>Throw</dt><dd>about 5,600 cd (estimate)</dd>
+            <dt>From turbo to the end</dt><dd>51 min</dd>
+          </dl>
+          <p class="state">A concept: housing and firmware header done, circuit boards not drawn yet. Light figures are simulated.</p>
+          <div class="acts">
+            <a class="btn primary" href="https://github.com/DomPka/LuxLibre/tree/main/hardware/edco-mini">Open the design</a>
+            <a class="btn" href="https://github.com/DomPka/LuxLibre/blob/main/hardware/edco-mini/cad/EDCO_Mini-14_body_drawing.pdf">Body drawing</a>
+            <a class="btn" href="luxlibre/">Settings page</a>
+          </div>
+        </div>
+      </article>
+      <p class="scale-note">Light figures are lumens out of the front with the LED at 85 °C in 25 °C still air, from the LuxLibre simulator. "From turbo to the end" is the time until the light falls below 10 % of its 30 s output.</p>
     </section>
 
-    <section class="more" aria-labelledby="tools-title">
+    <section aria-labelledby="cmp-title">
+      <h2 id="cmp-title">Against popular lights</h2>
+      <p class="sub">The LuxLibre designs next to 14 lights you can buy, grouped by cell size. The other lights were measured by independent reviewers; the LuxLibre figures are simulated, so read them as targets.</p>
+      <div class="seg" role="group" aria-label="What to compare" hidden>
+        <button type="button" data-mode="light" aria-pressed="true">Light</button>
+        <button type="button" data-mode="runtime" aria-pressed="false">Runtime</button>
+        <button type="button" data-mode="throw" aria-pressed="false">Throw</button>
+      </div>
+      <div class="chart" id="chart">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="img/compare_light_dark.png">
+          <img src="img/compare_light_light.png" width="1500" height="1584" loading="lazy" decoding="async"
+               alt="Dot chart: lumens at 30 s and after 10 minutes for 21 lights in three cell-size groups. LuxLibre designs are blue diamonds (simulated), other lights orange circles (measured).">
+        </picture>
+      </div>
+      <div class="legend" id="legend" hidden>
+        <span><svg viewBox="-7 -7 14 14"><path d="M0 -6L6 0L0 6L-6 0Z" fill="var(--ours)"/></svg>LuxLibre design (simulated)</span>
+        <span><svg viewBox="-7 -7 14 14"><circle r="5.5" fill="var(--theirs)"/></svg>Light you can buy (measured by a reviewer)</span>
+        <span class="lg-light"><svg viewBox="-7 -7 14 14"><circle r="5.5" fill="var(--muted)"/></svg>at 30 s</span>
+        <span class="lg-light"><svg viewBox="-7 -7 14 14"><circle r="4.5" fill="none" stroke="var(--muted)" stroke-width="2"/></svg>after 10 minutes</span>
+      </div>
+      <p class="chart-note">Every number with its source, and the lights left out and why: <a href="https://github.com/DomPka/LuxLibre/blob/main/docs/comparison.md">the full comparison</a> (<a href="data/flashlights.json">data</a>).</p>
+    </section>
+
+    <section aria-labelledby="dwg-title">
+      <h2 id="dwg-title">Drawings</h2>
+      <p class="sub">Every body has an A3 drawing at 2:1 made from the same parameters as its STEP file, with a feature table and tolerances. Each opens as a PDF; the DXF and STEP files sit next to it.</p>
+      <div class="strip">
+        <a href="https://github.com/DomPka/LuxLibre/blob/main/hardware/edco-prism/cad/EDCO_Prism_body_drawing.pdf"><img src="img/drawings/edco_prism.png" width="960" height="679" loading="lazy" decoding="async" alt="EDCO Prism body drawing"><span>EDCO Prism body</span></a>
+        <a href="https://github.com/DomPka/LuxLibre/blob/main/hardware/edco-mini/cad/EDCO_Mini-16_body_drawing.pdf"><img src="img/drawings/edco_mini16.png" width="960" height="679" loading="lazy" decoding="async" alt="EDCO Mini-16 body drawing"><span>EDCO Mini-16 body</span></a>
+        <a href="https://github.com/DomPka/LuxLibre/blob/main/hardware/edco-mini/cad/EDCO_Mini-14_body_drawing.pdf"><img src="img/drawings/edco_mini14.png" width="960" height="679" loading="lazy" decoding="async" alt="EDCO Mini-14 body drawing"><span>EDCO Mini-14 body</span></a>
+        <a href="https://github.com/DomPka/LuxLibre/blob/main/hardware/edco-v02/cad/EDCO-18_body_drawing.pdf"><img src="img/drawings/edco_18.png" width="960" height="679" loading="lazy" decoding="async" alt="EDCO-18 body drawing"><span>EDCO-18 body</span></a>
+        <a href="https://github.com/DomPka/LuxLibre/blob/main/hardware/edco-v02/cad/EDCO-14_body_drawing.pdf"><img src="img/drawings/edco_14.png" width="960" height="679" loading="lazy" decoding="async" alt="EDCO-14 body drawing"><span>EDCO-14 body</span></a>
+        <a href="https://github.com/DomPka/LuxLibre/blob/main/hardware/edco-v01/cad/EDCO_body_drawing.pdf"><img src="img/drawings/edco_v01.png" width="960" height="679" loading="lazy" decoding="async" alt="EDCO v0.1 body drawing"><span>EDCO v0.1 body</span></a>
+        <a href="https://github.com/DomPka/LuxLibre/blob/main/hardware/flashka-keychain-v07/cad/FlashKa_tray_drawing.pdf"><img src="img/drawings/flashka_v07.png" width="960" height="679" loading="lazy" decoding="async" alt="FlashKa v0.7 tray drawing FK-H-01"><span>FlashKa v0.7 tray (one of eight)</span></a>
+      </div>
+    </section>
+
+    <section aria-labelledby="tools-title">
       <h2 id="tools-title">In your browser</h2>
-      <ul class="links">
-        <li><a href="luxlibre/"><span class="t">LuxLibre settings (new)</span><span class="d">Change the settings of a light with the LuxLibre firmware over USB-C, and pick the colours of a colour beam</span></a></li>
+      <p class="sub">These pages run entirely in your browser: nothing is uploaded and there is no account. Each has a demo mode, so you can try it without a light.</p>
+      <ul class="links three">
+        <li><a href="luxlibre/"><span class="t">LuxLibre settings</span><span class="d">Read and change every setting of a light with the LuxLibre firmware over USB-C, and pick the colours of the EDCO Prism. Chrome or Edge on a computer.</span></a></li>
+        <li><a href="flashka/flashka-app.html"><span class="t">FlashKa control app</span><span class="d">Battery, temperature, levels, profiles and the presenter mode over Bluetooth. Chrome or Edge on Android and computers; Bluefy on iPhone and iPad.</span></a></li>
+        <li><a href="flashka/flashka-flasher.html"><span class="t">FlashKa firmware installer</span><span class="d">Writes the firmware through the light's USB-C port and checks it. Chrome or Edge on a computer, with a USB-C data cable.</span></a></li>
       </ul>
     </section>
 
-    <section class="more" aria-labelledby="more-title">
-      <h2 id="more-title">Read more on GitHub</h2>
+    <section aria-labelledby="next-title">
+      <h2 id="next-title">Where to go next</h2>
       <ul class="links">
-        <li><a href="https://github.com/DomPka/LuxLibre"><span class="t">LuxLibre repository</span><span class="d">Firmware, documentation, tools and all design files</span></a></li>
-        <li><a href="https://github.com/DomPka/LuxLibre/tree/main/hardware/flashka-keychain-v07"><span class="t">FlashKa v0.7 design</span><span class="d">Specifications, pictures, cost, CAD and both circuit boards</span></a></li>
-        <li><a href="https://github.com/DomPka/LuxLibre/blob/main/hardware/flashka-keychain-v07/docs/build_guide_v0.7.md"><span class="t">Build guide</span><span class="d">Orders, casting the keys, firmware, assembly and first use of a FlashKa v0.7</span></a></li>
-        <li><a href="https://github.com/DomPka/LuxLibre/blob/main/hardware/flashka-keychain-v07/README.md#compared-with-the-rovyvon-aurora-a2"><span class="t">FlashKa vs RovyVon Aurora A2</span><span class="d">Beams, size and output over fifteen minutes, with every source</span></a></li>
-        <li><a href="https://github.com/DomPka/LuxLibre/blob/main/docs/design-rules.md"><span class="t">Design rules</span><span class="d">Rules with reasons and checks for designing any flashlight</span></a></li>
-        <li><a href="https://github.com/DomPka/LuxLibre/tree/main/hardware/edco-v01"><span class="t">EDCO v0.1 design (new)</span><span class="d">A round, sealed everyday-carry light without laser or radio: USB-C only. A concept with CAD, renders and simulated output</span></a></li>
-        <li><a href="https://github.com/DomPka/LuxLibre/tree/main/hardware/flashka-keychain-v06"><span class="t">FlashKa v0.6 design</span><span class="d">The previous design, with the firmware of both versions and the web pages</span></a></li>
+        <li><a href="https://github.com/DomPka/LuxLibre"><span class="t">The repository</span><span class="d">Firmware, documentation, tools and every design file</span></a></li>
+        <li><a href="https://github.com/DomPka/LuxLibre/blob/main/docs/comparison.md"><span class="t">The comparison</span><span class="d">All seven designs against 14 popular lights, with the reviewers' measurements and sources</span></a></li>
+        <li><a href="https://github.com/DomPka/LuxLibre/blob/main/docs/README.md"><span class="t">Design your own light</span><span class="d">Requirement sheet, choosing parts, 69 design rules and how to test a finished light</span></a></li>
+        <li><a href="https://github.com/DomPka/LuxLibre/blob/main/docs/firmware/README.md"><span class="t">The firmware</span><span class="d">One C++17 firmware for ATtiny1616, CH32V003 and ESP32-C3, with a PC simulator to try it without hardware</span></a></li>
+        <li><a href="https://github.com/DomPka/LuxLibre/blob/main/hardware/flashka-keychain-v07/FlashKa_v0.7_Build_Guide.pdf"><span class="t">Build a FlashKa</span><span class="d">The build guide: orders, casting the keys, firmware, assembly and first use</span></a></li>
+        <li><a href="https://github.com/DomPka/LuxLibre/blob/main/CONTRIBUTING.md"><span class="t">Help</span><span class="d">Report a build or a measurement, suggest a change, or add a design</span></a></li>
       </ul>
     </section>
   </main>
@@ -156,5 +485,250 @@ a{color:var(--accent)}
     <p>Firmware and tools: <span class="id">GPL-3.0-or-later</span>. Hardware design files: <span class="id">CERN-OHL-W-2.0</span>. Documentation: <span class="id">CC-BY-SA-4.0</span>. FlashKa firmware and web pages: MIT or <span class="id">Apache-2.0</span>. <a href="https://github.com/DomPka/LuxLibre/blob/main/LICENSING.md">What the licences mean</a>.</p>
   </footer>
 </div>
+
+<script>
+(() => {
+  'use strict';
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- the light picker ---------- */
+  const ids = ['flashka', 'edco-18', 'edco-14', 'edco-v01', 'prism', 'mini-16', 'mini-14'];
+  const lineup = document.getElementById('lineup');
+  const tabs = [...document.querySelectorAll('.chips button')];
+  const hots = [...document.querySelectorAll('.hot')];
+  function pick(id, focus, push) {
+    if (!ids.includes(id)) id = 'flashka';
+    for (const t of tabs) {
+      const on = t.dataset.id === id;
+      t.setAttribute('aria-selected', on);
+      t.tabIndex = on ? 0 : -1;
+      if (on) t.id = 'tab-' + id; else t.removeAttribute('id');
+    }
+    for (const h of hots) h.classList.toggle('sel', h.dataset.id === id);
+    for (const a of document.querySelectorAll('article.light')) {
+      a.hidden = a.id !== id;
+      if (a.id === id) a.setAttribute('aria-labelledby', 'tab-' + id);
+    }
+    lineup.classList.add('picked');
+    if (push) history.replaceState(null, '', '#' + id);
+    if (focus) document.querySelector('.chips [data-id="' + id + '"]').focus();
+  }
+  for (const t of tabs) t.addEventListener('click', () => pick(t.dataset.id, false, true));
+  for (const h of hots) h.addEventListener('click', (e) => { e.preventDefault(); pick(h.dataset.id, false, true); });
+  document.querySelector('.chips').addEventListener('keydown', (e) => {
+    const i = tabs.findIndex((t) => t.getAttribute('aria-selected') === 'true');
+    let j = null;
+    if (e.key === 'ArrowRight') j = (i + 1) % tabs.length;
+    if (e.key === 'ArrowLeft') j = (i - 1 + tabs.length) % tabs.length;
+    if (e.key === 'Home') j = 0;
+    if (e.key === 'End') j = tabs.length - 1;
+    if (j !== null) { e.preventDefault(); pick(tabs[j].dataset.id, true, true); }
+  });
+  pick(location.hash.slice(1), false, false);
+  addEventListener('hashchange', () => pick(location.hash.slice(1), false, false));
+
+  /* ---------- take it apart: swap the turning render for the exploded one ---------- */
+  for (const fig of document.querySelectorAll('.anim')) {
+    const img = fig.querySelector('img');
+    const btn = fig.querySelector('.apart');
+    const turn = img.getAttribute('src');
+    const apart = img.dataset.apart;
+    let on = false;
+    const set = (v) => {
+      on = v;
+      img.src = on ? apart : turn;
+      btn.textContent = on ? 'Put it together' : 'Take it apart';
+      btn.setAttribute('aria-pressed', on);
+    };
+    btn.addEventListener('click', () => set(!on));
+  }
+
+  /* ---------- comparison chart (data/flashlights.json) ---------- */
+  const chart = document.getElementById('chart');
+  const seg = document.querySelector('.seg');
+  const legend = document.getElementById('legend');
+  const NS = 'http://www.w3.org/2000/svg';
+  const CLASSES = [['small', '16340 and smaller cells'], ['mid', '14500, 18350 and 18500 cells'],
+                   ['large', '18650 and 21700 cells, large built-in packs']];
+  const fmtN = (v) => Math.round(v).toLocaleString('en');
+  const hm = (m) => m >= 60 ? Math.floor(m / 60) + ' h ' + String(m % 60).padStart(2, '0') + ' min' : m + ' min';
+  const MODES = {
+    light: { key: 'lm_30s', max: 2600, ticks: [0, 500, 1000, 1500, 2000, 2500], tick: fmtN, unit: 'lumens out of the front' },
+    runtime: { key: 'runtime_turbo_min', max: 270, ticks: [0, 60, 120, 180, 240], tick: (v) => v ? v / 60 + ' h' : '0',
+               unit: 'from the brightest mode to 10 % of the 30 s output' },
+    throw: { key: 'cd', max: 36000, ticks: [0, 10000, 20000, 30000], tick: (v) => v ? v / 1000 + 'k' : '0',
+             unit: 'peak intensity, candela' },
+  };
+  let data = null, mode = 'light', shown = false;
+
+  function el(name, attrs, parent) {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function tipHtml(x) {
+    const rows = [
+      ['Size', x.length_mm + ' mm long' + (x.diameter_mm ? ', Ø' + x.diameter_mm : '')],
+      ['Cell', x.cell + (x.cell_mah ? ', ' + fmtN(x.cell_mah) + ' mAh' : '')],
+      ['At 30 s', fmtN(x.lm_30s) + ' lm'],
+      ['After 10 min', x.lm_10min == null ? 'no figure' : (x.ours ? x.lm_10min_note : fmtN(x.lm_10min)) + ' lm'],
+      ['Throw', x.cd == null ? 'no figure' : fmtN(x.cd) + ' cd' + (x.cd_basis === 'estimate' ? ' (estimate)' : '')],
+      ['Runtime', x.runtime_turbo_min == null ? 'no figure' : hm(x.runtime_turbo_min)],
+      [x.ours ? 'To build' : 'Price', x.ours ? (x.cost_usd ? x.cost_usd.replace(' to build (batch of five)', ' USD each in a batch of five') : 'not estimated')
+                                               : (x.price_usd ? x.price_usd.toFixed(2) + ' USD' : 'not found')],
+    ];
+    const src = x.ours ? 'Simulated (LuxLibre design, not built yet)'
+                       : 'Measured by ' + x.sources.map((s) => s[0]).join(', ');
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    return '<b>' + esc(x.name) + '</b>' + rows.map((r) => '<div><span class="k">' + r[0] + ':</span> ' + esc(r[1]) + '</div>').join('')
+      + '<div class="src">' + esc(src) + '</div>';
+  }
+
+  function draw() {
+    if (!data) return;
+    const m = MODES[mode];
+    const W = Math.max(320, chart.clientWidth - 28);
+    const narrow = W < 560;
+    const LW = narrow ? 112 : 172, RH = 26, GH = 30, top = 4;
+    const plotW = W - LW - (mode === 'light' ? 16 : 86);
+    const sx = (v) => LW + (Math.min(v, m.max) / m.max) * plotW;
+    const groups = CLASSES.map(([c, title]) => {
+      const all = data.filter((x) => x.class === c);
+      const has = all.filter((x) => x[m.key] != null).sort((a, b) => b[m.key] - a[m.key]);
+      const not = all.filter((x) => x[m.key] == null);
+      return { title, rows: has.concat(not) };
+    });
+    const H = top + groups.reduce((s, g) => s + GH + g.rows.length * RH + 8, 0) + 34;
+    const svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'list',
+                            'aria-label': 'Comparison chart, ' + mode + '. Rows can be focused for details.' });
+    let y = top;
+    const plotTop = y + GH - 6;
+    const gridG = el('g', {}, svg);
+    for (const g of groups) {
+      el('text', { x: 0, y: y + 18, class: 'grp' }, svg).textContent = g.title;
+      y += GH;
+      for (const x of g.rows) {
+        const cls = x.ours ? 'ours' : 'theirs';
+        const row = el('g', { class: 'row', tabindex: 0, role: 'listitem' }, svg);
+        row.setAttribute('aria-label', x.name + ': ' + (x[m.key] == null ? 'no figure' : (mode === 'runtime' ? hm(x[m.key]) : fmtN(x[m.key]))));
+        el('rect', { class: 'hit', x: 0, y: y, width: W, height: RH, rx: 6 }, row);
+        const name = el('text', { x: LW - 10, y: y + RH / 2 + 4.5, 'text-anchor': 'end' }, row);
+        name.textContent = narrow && !x.ours && x.name.length > 14 ? x.name.replace(/^\S+ /, '') : x.name;
+        if (x.ours) name.setAttribute('font-weight', '700');
+        const cy = y + RH / 2;
+        const v = x[m.key];
+        if (v == null) {
+          el('text', { x: LW, y: cy + 4.5, class: 'muted' }, row).textContent =
+            mode === 'runtime' && /burst/.test(x.note || '') ? 'no figure: turbo is a short burst' : 'not measured';
+        } else if (mode === 'light') {
+          const v2 = x.lm_10min;
+          const start = shown ? 1 : 0;
+          if (v2 != null) {
+            const ln = el('line', { class: 'link ' + cls, x1: sx(v2), x2: sx(v), y1: cy, y2: cy }, row);
+            if (!start) ln.style.opacity = 0;
+            const o = el('g', { class: 'mv' }, row);
+            o.dataset.x = sx(v2);
+            if (x.ours) el('path', { d: 'M0 -5.5L5.5 0L0 5.5L-5.5 0Z', class: 'open ' + cls }, o);
+            else el('circle', { r: 5, class: 'open ' + cls }, o);
+            o.style.transform = 'translate(' + (start ? sx(v2) : LW) + 'px,' + cy + 'px)';
+          }
+          const f = el('g', { class: 'mv' }, row);
+          f.dataset.x = sx(v);
+          if (x.ours) el('path', { d: 'M0 -6.5L6.5 0L0 6.5L-6.5 0Z', class: 'ring ' + cls }, f);
+          else el('circle', { r: 6, class: 'ring ' + cls }, f);
+          f.style.transform = 'translate(' + (start ? sx(v) : LW) + 'px,' + cy + 'px)';
+        } else {
+          const bw = sx(v) - LW;
+          const b = el('rect', { x: LW, y: cy - 7, height: 14, width: Math.max(bw, 2), rx: 3, class: cls + ' mv' }, row);
+          b.style.transformOrigin = LW + 'px ' + cy + 'px';
+          b.style.transform = shown ? 'scaleX(1)' : 'scaleX(0)';
+          b.dataset.bar = 1;
+          el('text', { x: sx(v) + 6, y: cy + 4.5, class: 'muted' }, row).textContent = mode === 'runtime' ? hm(v) : fmtN(v);
+        }
+        const reach = sx(Math.max(v || 0, mode === 'light' ? (x.lm_10min || 0) : 0)) + (mode === 'light' ? 14 : 70);
+        row.addEventListener('mouseenter', () => showTip(x, row, reach));
+        row.addEventListener('focus', () => showTip(x, row, reach));
+        row.addEventListener('mouseleave', hideTip);
+        row.addEventListener('blur', hideTip);
+        y += RH;
+      }
+      y += 8;
+    }
+    for (const t of (narrow ? m.ticks.filter((_, i) => i % 2 === 0) : m.ticks)) {
+      el('line', { class: 'gl', x1: sx(t), x2: sx(t), y1: plotTop, y2: y }, gridG);
+      el('text', { x: sx(t), y: y + 16, 'text-anchor': 'middle', class: 'muted' }, svg).textContent = m.tick(t);
+    }
+    el('text', { x: LW, y: y + 32, class: 'muted' }, svg).textContent = m.unit;
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + (y + 38));
+    chart.replaceChildren(svg, tip);
+    legend.hidden = false;
+    for (const e of legend.querySelectorAll('.lg-light')) e.hidden = mode !== 'light';
+    if (!shown) {
+      const io = new IntersectionObserver((es) => {
+        if (es.some((e) => e.isIntersecting)) { io.disconnect(); shown = true; settle(svg); }
+      }, { threshold: 0.02 });
+      io.observe(svg);
+    } else settle(svg);
+  }
+  function settle(svg) {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      let i = 0;
+      for (const row of svg.querySelectorAll('.row')) {
+        for (const g of row.querySelectorAll('.mv')) {
+          if (!reduce) g.style.transitionDelay = (i * 18) + 'ms';
+          if (g.dataset.bar) g.style.transform = 'scaleX(1)';
+          else if (g.tagName === 'g') {
+            const cy = g.style.transform.match(/,\s*([\d.]+)px/)[1];
+            g.style.transform = 'translate(' + g.dataset.x + 'px,' + cy + 'px)';
+          }
+        }
+        for (const ln of row.querySelectorAll('.link')) ln.style.opacity = '';
+        i++;
+      }
+    }));
+  }
+  const tip = document.createElement('div');
+  tip.className = 'tip';
+  tip.hidden = true;
+  function showTip(x, row, reach) {
+    /* beside the row's marks when there is room on the right, else under (or over) the row */
+    tip.innerHTML = tipHtml(x);
+    tip.hidden = false;
+    const r = row.getBoundingClientRect(), c = chart.getBoundingClientRect();
+    const svg = chart.querySelector('svg');
+    const k = svg.getBoundingClientRect().width / svg.viewBox.baseVal.width;
+    const sideX = (svg.getBoundingClientRect().left - c.left) + reach * k;
+    let left, topY;
+    if (sideX + tip.offsetWidth < chart.clientWidth - 8) {
+      left = sideX;
+      topY = Math.min(Math.max(4, r.top - c.top + r.height / 2 - tip.offsetHeight / 2), chart.clientHeight - tip.offsetHeight - 4);
+    } else {
+      left = Math.min(Math.max(8, r.left - c.left + 20), chart.clientWidth - tip.offsetWidth - 8);
+      topY = r.bottom - c.top + 6;
+      if (topY + tip.offsetHeight > chart.clientHeight - 4) topY = r.top - c.top - tip.offsetHeight - 6;
+    }
+    tip.style.left = left + 'px';
+    tip.style.top = topY + 'px';
+  }
+  function hideTip() { tip.hidden = true; }
+
+  fetch('data/flashlights.json').then((r) => r.ok ? r.json() : Promise.reject(r.status)).then((j) => {
+    data = j.lights;
+    seg.hidden = false;
+    draw();
+    let w = chart.clientWidth;
+    new ResizeObserver(() => { if (Math.abs(chart.clientWidth - w) > 4) { w = chart.clientWidth; draw(); } }).observe(chart);
+  }).catch(() => { /* keep the static picture */ });
+  for (const b of seg.querySelectorAll('button')) {
+    b.addEventListener('click', () => {
+      mode = b.dataset.mode;
+      for (const o of seg.querySelectorAll('button')) o.setAttribute('aria-pressed', o === b);
+      shown = true;
+      draw();
+    });
+  }
+})();
+</script>
 </body>
 </html>

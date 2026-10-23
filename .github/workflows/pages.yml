@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Publishes the web site on GitHub Pages:
-#   https://dompka.github.io/LuxLibre/          landing page (site/)
+#   https://dompka.github.io/LuxLibre/          landing page (site/), with pictures and data copied from docs/
+#   https://dompka.github.io/LuxLibre/luxlibre/ LuxLibre settings page (site/luxlibre/)
 #   https://dompka.github.io/LuxLibre/flashka/  FlashKa menu, control app and firmware installer (v0.7 and v0.6)
 #                                               (hardware/flashka-keychain-v06/app/, without the screenshots)
 # One-time setup in the repository: Settings > Pages > Build and deployment > Source: "GitHub Actions".
@@ -12,6 +13,8 @@ on:
     branches: [main]
     paths:
       - "site/**"
+      - "docs/img/**"
+      - "docs/data/**"
       - "hardware/flashka-keychain-v06/app/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
@@ -42,6 +45,12 @@ jobs:
           mkdir -p _site/flashka
           cp -R site/. _site/
           cp "$app/index.html" "$app/flashka-app.html" "$app/flashka-flasher.html" _site/flashka/
+          # pictures and data of the landing page (kept in docs/, where the README uses them too)
+          mkdir -p _site/img/cards _site/img/drawings _site/data
+          cp docs/img/lineup.png docs/img/compare_light_light.png docs/img/compare_light_dark.png _site/img/
+          cp docs/img/cards/*.gif _site/img/cards/
+          cp docs/img/drawings/*.png _site/img/drawings/
+          cp docs/data/flashlights.json _site/data/
           touch _site/.nojekyll
           find _site -type f -printf '%10s  %p\n' | sort -k2
       - uses: actions/upload-pages-artifact@v3

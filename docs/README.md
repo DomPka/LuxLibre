@@ -34,16 +34,26 @@ the previous design, or
 [../hardware/flashka-keychain-v05/README.md](../hardware/flashka-keychain-v05/README.md) for v0.5,
 each with the build guide PDF in its folder.
 
+**I want to choose a light**
+
+[comparison.md](comparison.md): every LuxLibre design next to popular lights of the same cell size, with the
+reviewers' measurements and the simulated figures side by side.
+
 **I want to follow EDCO**
 
-[../hardware/edco-v01/README.md](../hardware/edco-v01/README.md): the round, sealed
-everyday-carry light without laser or radio (a concept: housing and firmware header, no boards
-yet).
+EDCO is the family of round, sealed everyday-carry lights without laser or radio. All are concepts: the housing and
+the firmware board header exist, the boards are not drawn yet.
+
+* [EDCO Prism](../hardware/edco-prism/README.md): 18350, 83 mm, a white or any-colour beam.
+* [EDCO Mini](../hardware/edco-mini/README.md): 16340 keychain light of about 70 mm, red and UV side lights.
+* [EDCO v0.2](../hardware/edco-v02/README.md): about 1,760 lm in two sizes (18500 and 14500).
+* [EDCO v0.1](../hardware/edco-v01/README.md): the first one, 14500 in a Ø20 tube.
 
 ## All documents
 
 | Document | Contents |
 |---|---|
+| [comparison.md](comparison.md) | the LuxLibre designs against 14 popular everyday-carry lights: light at 30 s and after 10 minutes, throw, runtime, size, price; simulated against measured, with sources |
 | [design-rules.md](design-rules.md) | 69 rules (requirements, battery, charging, LED, driver, thermal, mechanical, firmware, lasers, manufacturing) with reasons, sources and checks |
 | [choosing-parts.md](choosing-parts.md) | how to choose any part; cells, LEDs, optics, drivers, MCUs, chargers, protection, small parts, housing; worked example; cost; using search tools and AI assistants |
 | [flashlight-types.md](flashlight-types.md) | twelve kinds of lights with parts direction, dominant rules and firmware settings |
