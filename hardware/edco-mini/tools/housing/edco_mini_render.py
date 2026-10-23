@@ -200,7 +200,7 @@ def views(out, finish, only):
                   ("Stainless button, glowing membrane", (p.x_btn + 1.0, 0.0, p.RH + 2.5), "T"),
                   ("Waterproof USB-C", (p.x_btn, 0.0, -p.RH - 1.0), "B"),
                   ("16340 cell", (p.x_cell0 + 18, 0.0, -2.0), "B"),
-                  ("Keyring slot, steel pin, magnets", (p.L - 1.0, 0.0, -p.R - 1.0), "B")]
+                  ("Tail tab: keyring hole, magnets", (p.L - 1.0, 0.0, -p.R - 1.0), "B")]
         shoot(parts, "mini16_section.png", out, direction=(0.0, -1.0, 0.16), up=(0, 0, 1), ratio=0.42, fill=0.92,
               view_angle=12.0, labels=labels)
     if want("exploded"):
@@ -227,7 +227,7 @@ def views(out, finish, only):
                   ("Main board + waterproof USB-C", (p.board_x1 - 3, 0.0, -2.0), "B"),
                   ("16340 cell", (5.0 + p.x_cell0 + 18, 0.0, 9.0), "T"),
                   ("POM sled", (24.0, 0.0, -15.0 - 9.0), "B"),
-                  ("Body, magnets, steel pin", (48.0, 0.0, -36.0 - 11.0), "B")]
+                  ("Body with the tail tab, magnets", (48.0, 0.0, -36.0 - 11.0), "B")]
         shoot(parts, "mini16_exploded.png", out, direction=(-0.10, -1.0, 0.30), up=(0, 0, 1), ratio=0.58,
               fill=0.94, view_angle=14.0, labels=labels)
     if want("sizes"):

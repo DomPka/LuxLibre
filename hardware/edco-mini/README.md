@@ -1,21 +1,22 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
 # EDCO Mini v0.1
 
-EDCO Mini is the small sister of [EDCO v0.2](../edco-v02/README.md): a sealed keychain light of at most 70 mm,
+EDCO Mini is the small sister of [EDCO v0.2](../edco-v02/README.md): a sealed keychain light of about 70 mm,
 made to beat the best 60 mm keychain lights on light, throw, battery and water. It comes in **two sizes**:
 
 | | EDCO Mini-16 | EDCO Mini-14 |
 |---|---|---|
 | Cell | one 16340 (Vapcell INR16340 T6, 650 mAh) | a made-to-order Ø14 × 35 mm high-rate LiPo cell (about 400 mAh) |
 | Body / head | Ø20 / Ø22 mm | Ø17 / Ø19 mm |
-| Length | 69.9 mm | 66.0 mm |
-| Versions | Mini-16 (no magnet) and Mini-16M (four magnets in the tail face) | Mini-14 and Mini-14M |
+| Length | 73.5 mm with the keyring tab | 69.4 mm |
+| Versions | Mini-16 (no magnet) and Mini-16M (two magnets in the end of the tail tab) | Mini-14 and Mini-14M |
 
-Both run a Luminus **SST-20** LED behind a TIR optic, with **red and UV side lights**, a **keyring slot with a
-steel cross pin** in the tail, and a **waterproof USB-C socket** on the side of the head. The **M versions** add
-**four magnets** flush in the tail face; the plain versions have none. There is no laser and no radio.
+Both run a Luminus **SST-20** LED behind a TIR optic, with **red and UV side lights**, a **keyring tab** at the
+tail with an obround hole for a split ring or a lanyard, and a **waterproof USB-C socket** on the side of the
+head. The **M versions** add **two magnets** flush in the end of the tab; the plain versions have none. There is
+no laser and no radio.
 
-![EDCO Mini-16M, black anodised: crenellated bezel, two side-light windows, the stainless button, a split ring in the tail slot (render)](assets/mini16_hero.png)
+![EDCO Mini-16M, black anodised: crenellated bezel, two side-light windows, the stainless button, a split ring through the tail tab (render)](assets/mini16_hero.png)
 
 *Render made from the design files.*
 
@@ -38,22 +39,22 @@ exist, the maker's claims are used.
 |---|---|---|---|---|
 | Light at switch-on, out of the front | 608 lm measured (A3 Pro), 650 lm claimed | **944 lm** | **978 lm** | better |
 | Light at 30 s | 416 lm measured (A3 Pro), 381 lm (A9 Pro) | **944 lm** | **978 lm** | better |
-| Light at 10 min | 119 lm measured (A3 Pro) | **about 220 lm** | **about 195 lm** | better |
+| Light at 10 min | 119 lm measured (A3 Pro) | **about 230 lm** | **about 195 lm** | better |
 | Peak intensity / throw | 3,241 cd, 114 m measured (A9 Pro) | **about 11,000 cd, 210 m** (estimate) | **about 5,600 cd, 150 m** (estimate) | better |
 | Battery | 330 mAh, sealed | **650 mAh** (950 mAh with the Vapcell T9) | about 400 mAh (made to order) | better |
 | Runtime at about 115 lm (medium) | 1 h 44 min (measured, falling from 118 to 67 lm) | **2 h 38 min** (113 lm all the way) | 1 h 37 min (117 lm) | better |
 | Runtime at about 20 lm (low) | 6 h 22 min measured | **13 h 15 min** | **8 h 8 min** | better |
-| Runtime from the brightest mode | 1 h 13 min (High, measured; about 100-120 lm after the first minutes) | 1 h 10 min (about 220 lm after the first minutes) | 53 min (about 195 lm) | about the same time, twice the light |
+| Runtime from the brightest mode | 1 h 13 min (High, measured; about 100-120 lm after the first minutes) | 1 h 7 min (about 230 lm after the first minutes) | 51 min (about 195 lm) | about the same time, twice the light |
 | Moon | 0.25-0.5 lm, 72 h claimed | 1.4 lm, 47 h | 1.4 lm, 29 h | **worse** (see [open points](#open-points-before-the-first-order)) |
 | Charging | USB-C, 45-58 min measured | USB-C at 1 A, about 55-60 min (estimate) | USB-C at 0.5 A, about 55-60 min (estimate) | about the same |
 | Water | IPX6 claimed (IP65-IP66 on some pages) | **IPX8 target**, not tested | IPX8 target, not tested | better (if the test passes) |
 | Side lights | A8 only: UV 365 nm, red, warm white; UV for 100 min (claimed) | **UV 365 nm and red**; UV for about 2 h 10 min | UV 365 nm and red; UV for about 1 h 20 min | same colours, no white; longer UV |
-| Magnet, keyring, lanyard | clip-on magnetic tail piece, magnetic clip, keyring loop at the tail | a slot across the tail with a stainless cross pin for a split ring or a lanyard; M version: four magnets flush in the tail face | the same | magnets built in; no clip |
-| Size | 60.5 × 15.6 mm (63.8 mm with the tail magnet) | 69.9 × 22 mm | 66.0 × 19 mm | **worse** |
-| Weight | 17.6 g (A8), 24 g (A4 Pro, titanium), about 40 g (A9 Pro, copper) | about 53 g (estimate) | about 32 g (estimate) | **worse** |
+| Magnet, keyring, lanyard | clip-on magnetic tail piece, magnetic clip, keyring loop at the tail | a flat tab at the tail with an obround hole for a split ring or a lanyard; M version: two magnets flush in the tab's end | the same | magnets built in; no clip |
+| Size | 60.5 × 15.6 mm (63.8 mm with the tail magnet) | 73.5 × 22 mm | 69.4 × 19 mm | **worse** |
+| Weight | 17.6 g (A8), 24 g (A4 Pro, titanium), about 40 g (A9 Pro, copper) | about 54 g (estimate) | about 33 g (estimate) | **worse** |
 
 The Mini-16 is better on everything except size, weight and moon runtime. The size and weight are the price of
-twice the battery and a body that can hold about 220 lm for a long time. The moon runtime can be fixed in the
+twice the battery and a body that can hold about 230 lm for a long time. The moon runtime can be fixed in the
 firmware.
 
 The Mini-14 wins on light, throw, low runtime and water, but its made-to-order cell is only a little larger than
@@ -71,8 +72,8 @@ the budgetlightforum.com thread on the titanium A4 Pro (63.8 mm with the magnet,
 | **Front.** Crenellated bezel, three fins, the TIR optic. | **Port.** The waterproof USB-C socket sits in the head's wall; the plug rests on the head. |
 | ![The UV side light on (render)](assets/mini16_side_uv.png) | ![The red side light on (render)](assets/mini16_side_red.png) |
 | **UV side light.** 365 nm, out of a clear rod in front of the button. | **Red side light.** Out of the second rod; the button's membrane glows as the indicator. |
-| ![Tail: the keyring slot with its steel cross pin and a split ring (render)](assets/mini16_tail.png) | ![Tail of the M version: the slot and four magnets (render)](assets/mini16m_tail.png) |
-| **Tail.** A slot across the tail face with a stainless cross pin; the split ring or a lanyard goes round the pin. | **M version.** The same slot, with four magnets flush in the tail face. |
+| ![Tail: the keyring tab with its obround hole and a split ring (render)](assets/mini16_tail.png) | ![Tail of the M version: the tab with two magnets in its end (render)](assets/mini16m_tail.png) |
+| **Tail.** The round tube bevels down to a flat tab; the split ring or a lanyard goes through its obround hole. | **M version.** The same tab, with two magnets flush in its end: the light stands on steel. |
 
 ![Mini-16M and Mini-14 side by side (render)](assets/mini_sizes.png)
 
@@ -82,9 +83,9 @@ the budgetlightforum.com thread on the titanium A4 Pro (63.8 mm with the magnet,
 
 | Item | EDCO Mini-16 | EDCO Mini-14 |
 |---|---|---|
-| Size | Ø20 body, Ø22 head × 69.9 mm | Ø17 body, Ø19 head × 66.0 mm |
-| Aluminium parts (body, bezel, head insert; from the CAD) | 22.7 g (M: 22.2 g) | 15.6 g (M: 15.3 g) |
-| Whole light (estimate) | about 53 g, of which the cell about 20 g | about 32 g, of which the cell about 10 g |
+| Size | Ø20 body, Ø22 head × 73.5 mm (with the keyring tab) | Ø17 body, Ø19 head × 69.4 mm |
+| Aluminium parts (body, bezel, head insert; from the CAD) | 23.4 g (M: 23.1 g) | 16.1 g (M: 16.0 g) |
+| Whole light (estimate) | about 54 g, of which the cell about 20 g | about 33 g, of which the cell about 10 g |
 | LED | Luminus SST-20-W Gen 2, 6500 K, on a 16 mm copper DTP board | the same on a 12 mm board |
 | Optic | LEDiL FA10887 TINA-RS for XP-E, Ø16.1 × 9.7 mm, 13° with an XP-E (fit over the SST-20 dome to be checked) | Carclo 12079 10 mm IP66 spot, flange Ø12.5 mm, about 6 mm tall; 89 % and 23° with an XP-G |
 | Turbo (simulated) | 2,850 mA: about 1,110 lm at the LED and 944 lm out of the front with the LED at 85 °C; about 10 % more in the first seconds with a cool LED | 2,850 mA: about 1,110 lm at the LED, 978 lm out of the front |
@@ -95,8 +96,8 @@ the budgetlightforum.com thread on the titanium A4 Pro (63.8 mm with the magnet,
 | Charging | 1 A: TI BQ24050 (2 × 2 mm, LCSC C2859551) instead of the TP4057; about 55-60 min (estimate) | 0.5 A, about 55-60 min (estimate) |
 | Side lights | UV: Nichia NVSU233B-U365 (365 nm, 3.5 × 3.5 mm), about 250 mA from the cell (roughly 0.35-0.4 W of UV at the LED; it falls as the cell runs down). Red: a 2.0 × 1.6 mm power LED, about 150 mA. Each shines through a clear rod: fused quartz for the UV, PMMA for the red | the same |
 | Button | Ø6.5 mm stainless cap on a sealed, glowing membrane (halo indicator), Alps SKRKAEE020 | Ø5.8 mm cap |
-| Keyring, lanyard | a slot across the tail face, 2.4 mm wide and 3 mm deep, open at both sides, with a Ø1.2 mm stainless pin pressed across it. A split ring (wire up to about 0.9 mm) or a thin lanyard cord goes round the pin | the same |
-| Magnets (M version only) | four supermagnete S-05-02-N52N, Ø5 × 2 mm, N52, about 680 g pull each on thick steel (rated), flush in the tail face with their poles alternating | four S-04-02-N, Ø4 × 2 mm, N45, about 420 g each |
+| Keyring, lanyard | a flat tab at the tail, 10 mm thick, with an obround hole 3.2 × 10 mm through it. A split ring of at least about 14 mm across (checked in the CAD with a 16.8 mm ring of 0.8 mm wire) or a lanyard cord goes through it | an 8.5 mm tab with a 3.0 × 8 mm hole; a ring of at least about 12 mm (checked with 12.8 mm) |
+| Magnets (M version only) | two supermagnete S-05-02-N52N, Ø5 × 2 mm, N52, about 680 g pull each on thick steel (rated), flush in the tab's end face with opposite poles out | two S-04-02-N, Ø4 × 2 mm, N45, about 420 g each |
 | Water | IPX8 is the target, not tested. Seals: the optic gasket, the face O-ring of the head insert, the button membrane, the USB-C socket's seal ring, the two bonded light rods | the same |
 | Firmware | LuxLibre, board [`edco-mini-16`](../../firmware/boards/edco-mini-16/board.h) | board [`edco-mini-14`](../../firmware/boards/edco-mini-14/board.h) |
 
@@ -108,18 +109,18 @@ LuxLibre simulator runs with each size's board header: 25 °C still air, a full 
 | | EDCO Mini-16 | EDCO Mini-14 |
 |---|---|---|
 | Turbo | 944 lm, full for 45 s (the turbo timer); 56 s with the timer off | 978 lm, full for 33 s (the temperature regulator) |
-| High (1.5 A) | 578 lm for 146 s | 599 lm for 91 s |
-| Sustained (temperature regulator, `THM_LIMIT` 48 °C) | about 200-230 lm, body at most 47.3 °C | about 160-195 lm, body at most 47.0 °C |
-| Turbo from a half-full cell, at 30 s | 837 lm | 839 lm |
-| On a 35 °C day | full turbo for 26 s, then about 90-130 lm; body at most 48.0 °C | 15 s, then about 80-110 lm; 47.9 °C |
-| Runtime from turbo to the ANSI end point | 70 min | 53 min |
+| High (1.5 A) | 578 lm for 150 s | 599 lm for 93 s |
+| Sustained (temperature regulator, `THM_LIMIT` 48 °C) | about 230-240 lm after 5 min (a dip to about 180 lm at 2-3 min), body at most 47.1 °C | about 195-215 lm (a dip to about 170 lm), body at most 46.8 °C |
+| Turbo from a half-full cell, at 30 s | 837 lm | 840 lm |
+| On a 35 °C day | full turbo for 26 s, then about 90-170 lm, settling at about 140 lm; body at most 47.9 °C | 14 s, then about 80-140 lm, settling at about 120 lm; 47.8 °C |
+| Runtime from turbo to the ANSI end point | 67 min | 51 min |
 | Medium (244 mA, 113-117 lm) | 2 h 38 min | 1 h 37 min |
 | Low (40 mA, 18-19 lm) | 13 h 15 min | 8 h 8 min |
 | Moon (3 mA, 1.4 lm) | 47 h | 29 h |
 | UV side light (1 W from the cell, kept constant in the simulator) | about 2 h 10 min | about 1 h 20 min |
 
-* **Small bodies heat fast.** The SST-20 at 2.85 A turns about 8 W into heat in 14-23 g of aluminium. Turbo
-  therefore lasts well under a minute, and the light then holds about 200 lm. The temperature regulator looks
+* **Small bodies heat fast.** The SST-20 at 2.85 A turns about 8 W into heat in 16-23 g of aluminium. Turbo
+  therefore lasts well under a minute, and the light then holds about 200-230 lm. The temperature regulator looks
   10 s ahead (`THM_LEAD` 10). With the default 4 s, it swung between 70 and 330 lm in these bodies.
 * **Why moon is short.** At moon the LED takes 3 mA, but the awake ESP32-C3 takes about 10 mA. Automatic light
   sleep between the 10 ms ticks would cut that to about 1-2 mA and give a moon of several days. It is the first
@@ -174,15 +175,16 @@ From the front to the tail:
    * On top: the switch, the halo LED and the two side LEDs.
 5. **Cell.** Its + strip goes to the rear of the main board. The − strip runs forward along the bottom of the
    cell.
-6. **Tail.** Closed, with three grooves.
-   * **Keyring slot:** a slot runs across the tail face, open at both sides, 2.4 mm wide and 3.05 mm deep, with a
-     rounded bottom. A Ø1.2 mm stainless pin is pressed across it, 1.45 mm in from the face. The split ring or a
-     lanyard cord goes round the pin and sits inside the slot, flush with the tail.
-   * **What is left:** 0.85 mm of metal between the pin and the tail face, and 0.6 mm between the slot's floor and
-     the cell bay.
-   * **M version:** four magnets are bonded into pockets in the tail face, two on each side of the slot, their
-     poles alternating. The tail face stays flat, so the light sticks to steel with the ring in its slot. Both
-     versions are the same length.
+6. **Tail.** Closed, with three grooves over the end of the cell, then a **keyring tab**.
+   * **Tab:** behind the cell bay, the round tube bevels down at 55° on two sides to a flat tab, 10 mm thick on
+     the Mini-16 (8.5 mm on the Mini-14) and as wide as the body. Its end corners are rounded (R3.5 / R3) and its
+     end edges chamfered 1 mm, so it does not wear holes in a pocket.
+   * **Keyring hole:** an obround hole, 3.2 × 10 mm (3.0 × 8 mm), goes through the tab's flats, with 1.2 mm of
+     metal to the cell bay and 2.8 mm to the end. A split ring or a lanyard cord goes through it. The tab is thick,
+     so the ring has to be at least about 14 mm across (12 mm on the Mini-14) to turn through the hole.
+   * **M version:** two magnets are bonded into pockets in the tab's flat end face, side by side, with opposite
+     poles out. The light stands on steel on its tail; the ring swings aside onto a flat. Both versions are the
+     same length.
 
 ![Exploded view of EDCO Mini-16 (render)](assets/mini16_exploded.png)
 
@@ -198,8 +200,8 @@ From the front to the tail:
    * Fit the clear pin, the membrane, the cap and the button collar (press-fit with retaining compound).
 4. **Fit the head.** Fit the head insert with its face O-ring, the LED board on paste, the optic and its gasket.
    Screw on the bezel with medium-strength thread-locker.
-5. **Finish the tail.** Press the stainless pin across the slot. In the M version, bond the four magnets into
-   their pockets with the poles alternating. Thread the split ring or the lanyard round the pin.
+5. **Finish the tail.** In the M version, bond the two magnets into their pockets, opposite poles out. Thread
+   the split ring or the lanyard through the tab's hole.
 
 ## Electronics: what changes from EDCO v0.1
 
@@ -222,38 +224,42 @@ The firmware gains side lights for every board that sets `LX_HAS_SIDE`:
 ## Cost (rough estimate)
 
 There is no workbook yet. The Mini has the same parts count as EDCO v0.1 less the tail board and flex, plus two
-side LEDs, two rods, a steel pin and, in the M version, four magnets; its metal parts are smaller. Roughly 650-750 USD for one light, about 220-250 USD
-each for five, all fees, shipping and VAT included (estimate).
+side LEDs, two rods and, in the M version, two magnets; its metal parts are smaller. Roughly 650-750 USD for
+one light, about 220-250 USD each for five, all fees, shipping and VAT included (estimate).
 
 ## What has been checked
 
-* **CAD interference:** no part overlaps a neighbour in any of the four versions (35 pairs, 37 with the magnets).
+* **CAD interference:** no part overlaps a neighbour in any of the four versions (33 pairs, 35 with the magnets).
   They include:
   * body / head insert, bezel / insert, body / sled, sled / board, body / cell;
   * body / USB-C shell, seal ring and socket body;
   * body / light rods, sled / light rods, LEDs / rods;
   * body / button pin and collar, body / magnet, body / face O-ring;
-  * body / cross pin, cross pin / split ring, body / split ring, magnets / split ring.
+  * body / split ring, magnets / split ring.
 * **Walls, Mini-16:**
   * 1.3 mm over the cell, 0.9 mm under the flats;
   * 2.3 mm in the head section;
   * 0.99 mm at the thread root, 0.94 mm at the run-out;
   * 1.2 mm under the button counterbore;
   * 0.95 mm in the bezel over the insert, 0.6 mm at its fins;
-  * tail: 0.85 mm of face over the cross pin, 0.6 mm from the slot floor to the cell bay;
-  * M version: 1.55 mm under the magnets, 0.75 mm from the magnet pockets to the slot, 0.65 mm to the pin hole.
+  * tail: 0.9 mm under the tail grooves; 1.2 mm from the cell bay to the keyring hole, 2.8 mm from the hole to
+    the end, 3.66 mm beside it;
+  * M version: 0.7 mm from the magnet pockets to the keyring hole, 1.45 mm to the end chamfers, 0.65 mm to the
+    rounded corners.
 * **Walls, Mini-14:**
   * 1.0 mm over the cell, 0.8 mm under the flats;
   * 2.0 mm in the head section;
   * 0.69 mm at the thread root, 0.64 mm at the run-out;
   * 0.9 mm under the button counterbore;
   * 0.95 / 0.6 mm in the bezel;
-  * tail: 0.85 / 0.6 mm, as on the Mini-16;
-  * M version: 1.55 mm under the magnets, 0.65 mm from the magnet pockets to the slot and to the pin hole.
+  * tail: 0.6 mm under the tail grooves; 1.2 / 2.8 mm around the keyring hole as on the Mini-16, 3.36 mm beside
+    it;
+  * M version: 0.7 mm from the magnet pockets to the keyring hole, 1.2 mm to the end chamfers, 0.55 mm to the
+    rounded corners.
 * **Below JLCCNC's recommended 0.8 mm (above their 0.5 mm minimum):**
   * the bezel at its fins (0.6 mm, both sizes);
-  * the slot floor to the cell bay (0.6 mm, all versions);
-  * the magnet pockets to the slot and to the pin hole (0.65-0.75 mm, M versions);
+  * the Mini-14's tube under the tail grooves (0.6 mm; grooves 0.2 mm deep instead of 0.4 would give 0.8 mm);
+  * the magnet pockets to the keyring hole and to the rounded corners (0.55-0.7 mm, M versions);
   * the Mini-14's thread root and run-out (0.69 / 0.64 mm).
 * **Fits:**
   * Main board: 15.4 × 14.9 mm (Mini-16) and 13.9 × 14.5 mm (Mini-14), 0.32-0.34 mm from the bore.
@@ -295,10 +301,12 @@ All numbers are in [cad/edco_mini_interface.json](cad/edco_mini_interface.json),
     would fix that, if there is room on the board.
   * The UV rod must be UV-grade fused quartz (ordinary PMMA blocks most of 365 nm).
   * Bonded rods are a seal of their own and need the water test too.
-* **The tail slot and the magnets.**
-  * The slot leaves 0.6 mm of floor over the cell bay: check it with JLCCNC, and press the pin in before
-    anodising, or ream its hole after.
-  * Rated pulls are for a thick steel plate. On a curved, painted or thin surface the four magnets hold much
+* **The tail tab and the magnets.**
+  * The tab's bevels, flats and hole are milled after the body is turned: check the set-up and its price with
+    JLCCNC.
+  * The tab makes the Mini-16 73.5 mm long, 3.5 mm over the 70 mm aim. A 10 mm optic about 6 mm tall, as on the
+    Mini-14, would make it roughly 3.5 mm shorter at about half the throw (estimate, not modelled).
+  * Rated pulls are for a thick steel plate. On a curved, painted or thin surface the two magnets hold much
     less. N52 is rated to 65 °C; the tail stays below about 48 °C.
 * **The board.** Both boards are smaller than EDCO v0.1's (about 200-230 mm² a side). Fitting everything needs
   4 layers and 0201 parts, to be proven when the board is drawn.

@@ -21,8 +21,10 @@
    "magnet": false,
    "mag_d": 4.0,
    "mag_t": 2.0,
-   "mag_y": 3.3,
-   "mag_z": 3.9,
+   "mag_y": 2.9,
+   "lug_t": 8.5,
+   "hole_l": 8.0,
+   "hole_w": 3.0,
    "pitch": 0.5,
    "fin_n": 3,
    "fin_d": 0.35,
@@ -79,11 +81,11 @@
    ],
    "strip_t": 0.15,
    "insul_t": 0.15,
-   "tail_wall": 3.65,
-   "slot_w": 2.4,
-   "slot_depth": 3.05,
-   "bar_d": 1.2,
-   "bar_x": 1.45,
+   "tail_wall": 1.2,
+   "end_bar": 2.8,
+   "ramp_deg": 55.0,
+   "tab_rc": 3.0,
+   "end_chamfer": 1.0,
    "tail_grooves": 3,
    "groove_w": 0.7,
    "groove_d": 0.4,
@@ -92,11 +94,11 @@
   },
   "name": "EDCO Mini-14",
   "size": "14",
-  "length_mm": 66.0,
+  "length_mm": 69.35,
   "body_od": 17.0,
   "head_od": 19.0,
   "mass_g": {
-   "body": 10.11,
+   "body": 10.62,
    "ring": 2.73,
    "insert": 2.78,
    "cap": 0.23,
@@ -107,16 +109,15 @@
    "optic_lens": 0.3,
    "mcpcb": 1.22,
    "uv_rod": 0.14,
-   "red_rod": 0.05,
-   "bar": 0.14
+   "red_rod": 0.05
   },
-  "aluminium_g": 15.62,
+  "aluminium_g": 16.13,
   "thermal_g": {
    "head_aluminium": 9.21,
-   "body_aluminium": 6.41,
+   "body_aluminium": 6.92,
    "led_board_copper": 1.22,
    "tube_section_mm2": 50.3,
-   "tube_length_mm": 39.5
+   "tube_length_mm": 42.9
   },
   "walls_mm": {
    "tube over the cell": 1.0,
@@ -128,8 +129,10 @@
    "bezel over the insert": 0.95,
    "bezel at its fins (over the insert)": 0.6,
    "bezel over the thread (minor diameter)": 1.27,
-   "tail face over the cross pin": 0.85,
-   "slot floor to the cell bay": 0.6
+   "cell bay to the keyring hole": 1.2,
+   "tab end beyond the hole": 2.8,
+   "tab beside the hole (at its flats)": 3.36,
+   "tube under the tail grooves": 0.6
   },
   "fits_mm": {
    "board width": 13.86,
@@ -141,7 +144,7 @@
    "UV rod length": 9.17,
    "cell radial room": 0.5,
    "thread engagement": 2.3,
-   "ring room under the cross pin": 1.0
+   "keyring hole (along x across)": "3.0 x 8.0"
   },
   "stack_x_mm": {
    "optic": 2.0,
@@ -156,9 +159,9 @@
    "board1": 26.2,
    "cell0": 26.95,
    "cell1": 61.95,
-   "L": 66.0
+   "L": 69.35
   },
-  "outer_area_mm2": 4105.0,
+  "outer_area_mm2": 4284.0,
   "interference_mm3": {
    "body / insert": 0.0,
    "body / ring": 0.0,
@@ -192,9 +195,7 @@
    "cell / insulator": 0.0,
    "board / usb_body": 0.0,
    "bp_sw_body / pin": 0.0,
-   "body / split_ring": 0.0,
-   "body / bar": 0.0,
-   "bar / split_ring": 0.0
+   "body / split_ring": 0.0
   }
  },
  "EDCO Mini-14M": {
@@ -219,8 +220,10 @@
    "magnet": true,
    "mag_d": 4.0,
    "mag_t": 2.0,
-   "mag_y": 3.3,
-   "mag_z": 3.9,
+   "mag_y": 2.9,
+   "lug_t": 8.5,
+   "hole_l": 8.0,
+   "hole_w": 3.0,
    "pitch": 0.5,
    "fin_n": 3,
    "fin_d": 0.35,
@@ -277,11 +280,11 @@
    ],
    "strip_t": 0.15,
    "insul_t": 0.15,
-   "tail_wall": 3.65,
-   "slot_w": 2.4,
-   "slot_depth": 3.05,
-   "bar_d": 1.2,
-   "bar_x": 1.45,
+   "tail_wall": 1.2,
+   "end_bar": 2.8,
+   "ramp_deg": 55.0,
+   "tab_rc": 3.0,
+   "end_chamfer": 1.0,
    "tail_grooves": 3,
    "groove_w": 0.7,
    "groove_d": 0.4,
@@ -290,11 +293,11 @@
   },
   "name": "EDCO Mini-14M",
   "size": "14",
-  "length_mm": 66.0,
+  "length_mm": 69.35,
   "body_od": 17.0,
   "head_od": 19.0,
   "mass_g": {
-   "body": 9.81,
+   "body": 10.47,
    "ring": 2.73,
    "insert": 2.78,
    "cap": 0.23,
@@ -304,18 +307,17 @@
    "optic_holder": 0.52,
    "optic_lens": 0.3,
    "mcpcb": 1.22,
-   "magnet": 0.75,
+   "magnet": 0.38,
    "uv_rod": 0.14,
-   "red_rod": 0.05,
-   "bar": 0.14
+   "red_rod": 0.05
   },
-  "aluminium_g": 15.32,
+  "aluminium_g": 15.98,
   "thermal_g": {
    "head_aluminium": 9.21,
-   "body_aluminium": 6.11,
+   "body_aluminium": 6.77,
    "led_board_copper": 1.22,
    "tube_section_mm2": 50.3,
-   "tube_length_mm": 39.5
+   "tube_length_mm": 42.9
   },
   "walls_mm": {
    "tube over the cell": 1.0,
@@ -327,12 +329,13 @@
    "bezel over the insert": 0.95,
    "bezel at its fins (over the insert)": 0.6,
    "bezel over the thread (minor diameter)": 1.27,
-   "tail face over the cross pin": 0.85,
-   "slot floor to the cell bay": 0.6,
-   "under the magnets": 1.55,
-   "magnet pocket to the slot": 0.65,
-   "magnet pocket to the pin hole": 0.65,
-   "magnet pocket to the tail edge": 0.84
+   "cell bay to the keyring hole": 1.2,
+   "tab end beyond the hole": 2.8,
+   "tab beside the hole (at its flats)": 3.36,
+   "tube under the tail grooves": 0.6,
+   "magnet pockets to the keyring hole": 0.7,
+   "magnet pockets to the end chamfers": 1.2,
+   "magnet pockets to the rounded corners": 0.55
   },
   "fits_mm": {
    "board width": 13.86,
@@ -344,7 +347,7 @@
    "UV rod length": 9.17,
    "cell radial room": 0.5,
    "thread engagement": 2.3,
-   "ring room under the cross pin": 1.0
+   "keyring hole (along x across)": "3.0 x 8.0"
   },
   "stack_x_mm": {
    "optic": 2.0,
@@ -359,9 +362,9 @@
    "board1": 26.2,
    "cell0": 26.95,
    "cell1": 61.95,
-   "L": 66.0
+   "L": 69.35
   },
-  "outer_area_mm2": 4105.0,
+  "outer_area_mm2": 4284.0,
   "interference_mm3": {
    "body / insert": 0.0,
    "body / ring": 0.0,
@@ -397,8 +400,6 @@
    "board / usb_body": 0.0,
    "bp_sw_body / pin": 0.0,
    "body / split_ring": 0.0,
-   "body / bar": 0.0,
-   "bar / split_ring": 0.0,
    "magnet / split_ring": 0.0
   }
  },
@@ -424,8 +425,10 @@
    "magnet": false,
    "mag_d": 5.0,
    "mag_t": 2.0,
-   "mag_y": 3.8,
-   "mag_z": 4.5,
+   "mag_y": 3.3,
+   "lug_t": 10.0,
+   "hole_l": 10.0,
+   "hole_w": 3.2,
    "pitch": 0.5,
    "fin_n": 3,
    "fin_d": 0.35,
@@ -482,11 +485,11 @@
    ],
    "strip_t": 0.15,
    "insul_t": 0.15,
-   "tail_wall": 3.65,
-   "slot_w": 2.4,
-   "slot_depth": 3.05,
-   "bar_d": 1.2,
-   "bar_x": 1.45,
+   "tail_wall": 1.2,
+   "end_bar": 2.8,
+   "ramp_deg": 55.0,
+   "tab_rc": 3.5,
+   "end_chamfer": 1.0,
    "tail_grooves": 3,
    "groove_w": 0.7,
    "groove_d": 0.4,
@@ -495,11 +498,11 @@
   },
   "name": "EDCO Mini-16",
   "size": "16",
-  "length_mm": 69.9,
+  "length_mm": 73.45,
   "body_od": 20.0,
   "head_od": 22.0,
   "mass_g": {
-   "body": 14.44,
+   "body": 15.11,
    "ring": 3.82,
    "insert": 4.43,
    "cap": 0.29,
@@ -510,16 +513,15 @@
    "optic_lens": 0.8,
    "mcpcb": 2.7,
    "uv_rod": 0.19,
-   "red_rod": 0.07,
-   "bar": 0.17
+   "red_rod": 0.07
   },
-  "aluminium_g": 22.69,
+  "aluminium_g": 23.36,
   "thermal_g": {
    "head_aluminium": 13.64,
-   "body_aluminium": 9.05,
+   "body_aluminium": 9.72,
    "led_board_copper": 2.7,
    "tube_section_mm2": 76.4,
-   "tube_length_mm": 38.6
+   "tube_length_mm": 42.2
   },
   "walls_mm": {
    "tube over the cell": 1.3,
@@ -531,8 +533,10 @@
    "bezel over the insert": 0.95,
    "bezel at its fins (over the insert)": 0.6,
    "bezel over the thread (minor diameter)": 1.27,
-   "tail face over the cross pin": 0.85,
-   "slot floor to the cell bay": 0.6
+   "cell bay to the keyring hole": 1.2,
+   "tab end beyond the hole": 2.8,
+   "tab beside the hole (at its flats)": 3.66,
+   "tube under the tail grooves": 0.9
   },
   "fits_mm": {
    "board width": 15.4,
@@ -544,7 +548,7 @@
    "UV rod length": 12.17,
    "cell radial room": 0.4,
    "thread engagement": 2.3,
-   "ring room under the cross pin": 1.0
+   "keyring hole (along x across)": "3.2 x 10.0"
   },
   "stack_x_mm": {
    "optic": 2.0,
@@ -559,9 +563,9 @@
    "board1": 30.6,
    "cell0": 31.35,
    "cell1": 65.85,
-   "L": 69.9
+   "L": 73.45
   },
-  "outer_area_mm2": 5113.0,
+  "outer_area_mm2": 5336.0,
   "interference_mm3": {
    "body / insert": 0.0,
    "body / ring": 0.0,
@@ -595,9 +599,7 @@
    "cell / insulator": 0.0,
    "board / usb_body": 0.0,
    "bp_sw_body / pin": 0.0,
-   "body / split_ring": 0.0,
-   "body / bar": 0.0,
-   "bar / split_ring": 0.0
+   "body / split_ring": 0.0
   }
  },
  "EDCO Mini-16M": {
@@ -622,8 +624,10 @@
    "magnet": true,
    "mag_d": 5.0,
    "mag_t": 2.0,
-   "mag_y": 3.8,
-   "mag_z": 4.5,
+   "mag_y": 3.3,
+   "lug_t": 10.0,
+   "hole_l": 10.0,
+   "hole_w": 3.2,
    "pitch": 0.5,
    "fin_n": 3,
    "fin_d": 0.35,
@@ -680,11 +684,11 @@
    ],
    "strip_t": 0.15,
    "insul_t": 0.15,
-   "tail_wall": 3.65,
-   "slot_w": 2.4,
-   "slot_depth": 3.05,
-   "bar_d": 1.2,
-   "bar_x": 1.45,
+   "tail_wall": 1.2,
+   "end_bar": 2.8,
+   "ramp_deg": 55.0,
+   "tab_rc": 3.5,
+   "end_chamfer": 1.0,
    "tail_grooves": 3,
    "groove_w": 0.7,
    "groove_d": 0.4,
@@ -693,11 +697,11 @@
   },
   "name": "EDCO Mini-16M",
   "size": "16",
-  "length_mm": 69.9,
+  "length_mm": 73.45,
   "body_od": 20.0,
   "head_od": 22.0,
   "mass_g": {
-   "body": 13.98,
+   "body": 14.88,
    "ring": 3.82,
    "insert": 4.43,
    "cap": 0.29,
@@ -707,18 +711,17 @@
    "optic_holder": 1.45,
    "optic_lens": 0.8,
    "mcpcb": 2.7,
-   "magnet": 1.18,
+   "magnet": 0.59,
    "uv_rod": 0.19,
-   "red_rod": 0.07,
-   "bar": 0.17
+   "red_rod": 0.07
   },
-  "aluminium_g": 22.23,
+  "aluminium_g": 23.13,
   "thermal_g": {
    "head_aluminium": 13.64,
-   "body_aluminium": 8.59,
+   "body_aluminium": 9.49,
    "led_board_copper": 2.7,
    "tube_section_mm2": 76.4,
-   "tube_length_mm": 38.6
+   "tube_length_mm": 42.2
   },
   "walls_mm": {
    "tube over the cell": 1.3,
@@ -730,12 +733,13 @@
    "bezel over the insert": 0.95,
    "bezel at its fins (over the insert)": 0.6,
    "bezel over the thread (minor diameter)": 1.27,
-   "tail face over the cross pin": 0.85,
-   "slot floor to the cell bay": 0.6,
-   "under the magnets": 1.55,
-   "magnet pocket to the slot": 0.75,
-   "magnet pocket to the pin hole": 0.65,
-   "magnet pocket to the tail edge": 1.06
+   "cell bay to the keyring hole": 1.2,
+   "tab end beyond the hole": 2.8,
+   "tab beside the hole (at its flats)": 3.66,
+   "tube under the tail grooves": 0.9,
+   "magnet pockets to the keyring hole": 0.7,
+   "magnet pockets to the end chamfers": 1.45,
+   "magnet pockets to the rounded corners": 0.65
   },
   "fits_mm": {
    "board width": 15.4,
@@ -747,7 +751,7 @@
    "UV rod length": 12.17,
    "cell radial room": 0.4,
    "thread engagement": 2.3,
-   "ring room under the cross pin": 1.0
+   "keyring hole (along x across)": "3.2 x 10.0"
   },
   "stack_x_mm": {
    "optic": 2.0,
@@ -762,9 +766,9 @@
    "board1": 30.6,
    "cell0": 31.35,
    "cell1": 65.85,
-   "L": 69.9
+   "L": 73.45
   },
-  "outer_area_mm2": 5113.0,
+  "outer_area_mm2": 5336.0,
   "interference_mm3": {
    "body / insert": 0.0,
    "body / ring": 0.0,
@@ -800,8 +804,6 @@
    "board / usb_body": 0.0,
    "bp_sw_body / pin": 0.0,
    "body / split_ring": 0.0,
-   "body / bar": 0.0,
-   "bar / split_ring": 0.0,
    "magnet / split_ring": 0.0
   }
  }

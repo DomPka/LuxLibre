@@ -16,8 +16,8 @@ Front to tail:
                   against the band's front face, a key that stops it turning while the bezel is tightened
     body        - the band (thread), the head section (the same diameter as the bezel) with the USB-C hole
                   (-Z), the two side-light windows and the button (+Z); then the tube with six flats, the label,
-                  three tail grooves, and a keyring slot across the tail face with a stainless cross pin (M version:
-                  four magnets in the tail face beside the slot)
+                  three tail grooves, and a tab at the tail (two bevels, two flats) with a long keyring hole through
+                  it (M version: two magnets in the tab's end face)
     cartridge   - insert, main board in a POM sled (waterproof USB-C socket on its underside, looking down
                   through the hole, axial; the switch, the halo LED and the red and UV side LEDs on its top
                   side, under the button pin and two clear light rods), the cell
@@ -25,7 +25,7 @@ Front to tail:
 Frame: X along the light, X = 0 at the front of the bezel's crenellations, X = L at the tail face; button on
 +Z; port on -Z (under the button). Units mm.
 
-Each size comes in two versions: without a magnet, and M (Mini-16M, Mini-14M) with four magnets in the tail face.
+Each size comes in two versions: without a magnet, and M (Mini-16M, Mini-14M) with two magnets in the tail tab's end.
 
 usage:  python3 edco_mini.py <out_dir> [--size 14|16|both]
 """
@@ -45,18 +45,18 @@ if not os.path.exists(FONT):
 SIZES = {
     # body, head (= bezel = head section), bore, band (thread major), cell, optic, LED board, flats, button, magnet.
     # Mini-14: a made-to-order high-rate LiPo cell Ø14 x 35 (no off-the-shelf high-drain 14350 found), Carclo 12079
-    #          10 mm IP66 spot optic (flange Ø12.5, about 6 mm tall: inferred from the drawing); M version: four
-    #          supermagnete S-04-02-N (Ø4 x 2, N45, about 420 g each)
+    #          10 mm IP66 spot optic (flange Ø12.5, about 6 mm tall: inferred from the drawing); M version: two
+    #          supermagnete S-04-02-N (Ø4 x 2, N45, about 420 g each) in the end of the tail tab
     # Mini-16: Vapcell INR16340 T6 (650 mAh, 6 A; Ø16.5 x 34.0) or T9 (950 mAh, 3 A); the bay takes 16.6 x 34.5.
     #          LEDiL FA10887 TINA-RS for XP-E (Ø16.1 x 9.7, 13 deg; its fit over the SST-20 dome is to be checked),
-    #          M version: four supermagnete S-05-02-N52N (Ø5 x 2, N52, about 680 g each)
+    #          M version: two supermagnete S-05-02-N52N (Ø5 x 2, N52, about 680 g each) in the end of the tail tab
     # Both: Luminus SST-20-W Gen 2 (3.45 mm, 3.0 A maximum)
     "14": dict(name="EDCO Mini-14", body_od=17.0, head_od=19.0, bore_d=15.0, band_d=17.0, cell_d=14.0,
                cell_len=35.0, cell_name="14350", opt_d=12.5, opt_h=6.0, mcpcb_d=12.0, mcpcb_t=1.2, led_w=3.45,
-               flat_r=8.3, cap_d=5.8, btn_cb_d=7.4, mag_d=4.0, mag_t=2.0, mag_y=3.3, mag_z=3.9),
+               flat_r=8.3, cap_d=5.8, btn_cb_d=7.4, mag_d=4.0, mag_t=2.0, mag_y=2.9, lug_t=8.5, hole_l=8.0, hole_w=3.0, tab_rc=3.0),
     "16": dict(name="EDCO Mini-16", body_od=20.0, head_od=22.0, bore_d=17.4, band_d=20.0, cell_d=16.6,
                cell_len=34.5, cell_name="16340", opt_d=16.1, opt_h=9.7, mcpcb_d=16.0, mcpcb_t=1.5, led_w=3.45,
-               flat_r=9.6, cap_d=6.5, btn_cb_d=8.2, mag_d=5.0, mag_t=2.0, mag_y=3.8, mag_z=4.5),
+               flat_r=9.6, cap_d=6.5, btn_cb_d=8.2, mag_d=5.0, mag_t=2.0, mag_y=3.3, lug_t=10.0, hole_l=10.0, hole_w=3.2, tab_rc=3.5),
 }
 
 
@@ -79,11 +79,13 @@ class P:
     flat_r: float = 0.0          # six flats along the tube, at this distance from the axis
     cap_d: float = 0.0           # stainless button cap
     btn_cb_d: float = 0.0        # counterbore for the membrane + collar
-    magnet: bool = False         # the M version: four NdFeB discs flush in the tail face, two each side of the slot
+    magnet: bool = False         # the M version: two NdFeB discs flush in the end face of the tail tab
     mag_d: float = 4.0
     mag_t: float = 2.0
-    mag_y: float = 3.0           # magnet centres at (+-mag_y, +-mag_z) on the tail face
-    mag_z: float = 3.7
+    mag_y: float = 4.4           # magnet centres at (+-mag_y, 0) on the tab's end face
+    lug_t: float = 8.5           # tail tab: thickness between its two flats (Z)
+    hole_l: float = 8.0          # keyring hole through the tab (Z): long side across (Y)
+    hole_w: float = 3.0          #   and short side along the light (X): wide enough for a split ring through the tab
     # common
     pitch: float = 0.5           # M17 x 0.5 / M20 x 0.5
     fin_n: int = 3               # cooling fins round the bezel
@@ -117,11 +119,11 @@ class P:
     win_y: tuple = (-1.75, 1.75) # rod positions across: UV, red
     strip_t: float = 0.15
     insul_t: float = 0.15
-    tail_wall: float = 3.65      # solid tail behind the cell bay: the keyring slot and its floor
-    slot_w: float = 2.4          # keyring slot across the tail face (open at both sides), width
-    slot_depth: float = 3.05
-    bar_d: float = 1.2           # stainless cross pin across the slot (press fit): the split ring or lanyard goes round it
-    bar_x: float = 1.45          # pin centre, from the tail face
+    tail_wall: float = 1.2       # metal between the cell bay and the keyring hole
+    end_bar: float = 2.8         # the tab's end beyond the hole (the loop the ring goes round)
+    ramp_deg: float = 55.0       # slope of the bevels from the round tube down to the tab's flats
+    tab_rc: float = 3.0          # the tab's end corners, rounded in the top view
+    end_chamfer: float = 1.0     # 45 deg chamfer on the end's top and bottom edges (a slimmer loop)
     tail_grooves: int = 3
     groove_w: float = 0.7
     groove_d: float = 0.4
@@ -189,7 +191,15 @@ class P:
     @property
     def x_bay1(self): return self.x_cell1 + self.strip_t + self.insul_t + 0.1
     @property
-    def L(self): return self.x_bay1 + self.tail_wall
+    def x_hole(self): return self.x_bay1 + self.tail_wall + self.hole_w / 2   # keyring hole centre
+    @property
+    def L(self): return self.x_bay1 + self.tail_wall + self.hole_w + self.end_bar
+    @property
+    def ramp_len(self): return (self.R - self.lug_t / 2) / math.tan(math.radians(self.ramp_deg))
+    @property
+    def x_grooves(self): return [self.x_bay1 - 1.0 - i * 1.6 for i in range(self.tail_grooves)]
+    @property
+    def x_flats_end(self): return min(self.x_grooves) - self.groove_w / 2 - 0.8
     # ---- derived (Z)
     @property
     def z_mouth(self): return -(self.RH - self.mouth_recess)
@@ -298,7 +308,7 @@ def build_body(p, cosmetic=True):
     for (d, y) in ((p.uv_rod_d, p.win_y[0]), (p.red_rod_d, p.win_y[1])):
         body = body.cut(cyl_z(d + 0.1, 0.0, RH + 2, x=p.x_win, y=y))
     # six flats on the tube, from the step to the tail grooves
-    xf0, xf1 = p.x_step + 1.2, p.L - 2.0 - p.tail_grooves * 1.6 - 0.8
+    xf0, xf1 = p.x_step + 1.2, p.x_flats_end
     for k in range(6):
         cutter = box(xf0, xf1, -20, 20, p.flat_r, p.flat_r + 6)
         body = body.cut(rot_x(cutter, 60 * k))
@@ -307,32 +317,51 @@ def build_body(p, cosmetic=True):
     body = body.cut(pocket)
     body = body.cut(cyl_z(p.btn_cb_d, p.z_cb_floor, RH + 2, x=p.x_btn))
     body = body.cut(cyl_z(2.6, 0.0, p.z_cb_floor + 0.01, x=p.x_btn))
-    # tail grooves
-    for i in range(p.tail_grooves):
-        xg = p.L - 2.0 - i * 1.6
+    # tail grooves, just in front of the tab
+    for xg in p.x_grooves:
         body = body.cut(revolve_x([(xg - p.groove_w / 2, R - p.groove_d), (xg + p.groove_w / 2, R - p.groove_d),
                                    (xg + p.groove_w / 2, R + 1), (xg - p.groove_w / 2, R + 1)]))
-    # keyring slot across the tail face (open at both sides, round-bottomed), the hole for the stainless cross pin,
-    # and (M version) four magnet pockets in the tail face beside the slot
-    slot = box(p.L - p.slot_depth, p.L + 1, -p.R - 1, p.R + 1, -p.slot_w / 2, p.slot_w / 2)
-    slot = slot.edges("|Y").edges("<X").fillet(0.5)
-    body = body.cut(slot)
-    body = body.cut(cyl_z(p.bar_d, -p.R - 1, p.R + 1, x=p.L - p.bar_x))
+    # tail tab: two bevels and flats (+Z, -Z) behind the cell bay, a long keyring hole through it, and (M version)
+    # two magnet pockets in its end face
+    for s in (1, -1):
+        body = body.cut(tab_cutter(p, s))
+    body = body.cut(cq.Workplane("XY").workplane(offset=-p.R - 1).center(p.x_hole, 0)
+                    .slot2D(p.hole_l, p.hole_w, 90).extrude(2 * p.R + 2))
+    # rounded end corners (top view) and chamfered end edges
+    rc = p.tab_rc
+    keep = box(p.L - 2 * rc - 1.0, p.L, -p.R, p.R, -p.R - 1, p.R + 1).edges("|Z").edges(">X").fillet(rc)
+    body = body.cut(box(p.L - 2 * rc - 0.5, p.L + 1, -p.R - 1, p.R + 1, -p.R - 1, p.R + 1).cut(keep))
+    c = p.end_chamfer
+    for s in (1, -1):
+        tri = [(p.L - c, s * (p.lug_t / 2 + 0.01)), (p.L + 0.01, s * (p.lug_t / 2 + 0.01)),
+               (p.L + 0.01, s * (p.lug_t / 2 - c))]
+        body = body.cut(cq.Workplane("XZ").polyline(tri).close().extrude(p.R + 2, both=True))
     if p.magnet:
-        for (sy, sz) in ((1, 1), (-1, 1), (1, -1), (-1, -1)):
-            body = body.cut(cyl_x(p.mag_d + 0.1, p.L - p.mag_t - 0.1, p.L + 1, y=sy * p.mag_y, z=sz * p.mag_z))
+        for sy in (1, -1):
+            body = body.cut(cyl_x(p.mag_d + 0.1, p.L - p.mag_t - 0.1, p.L + 1, y=sy * p.mag_y))
     return body
 
 
+def tab_cutter(p, s):
+    """removes everything beyond z = s * lug_t / 2 behind the cell bay, with a bevel from the round tube"""
+    t = math.tan(math.radians(p.ramp_deg))
+    x0 = p.x_bay1                                       # the bevel starts where the cell bay ends
+    top = p.R + 2.0
+    pts = [(x0 - (top - p.R) / t, top), (x0 + p.ramp_len, p.lug_t / 2), (p.L + 1, p.lug_t / 2), (p.L + 1, top)]
+    pts = [(x, s * z) for (x, z) in pts]
+    return cq.Workplane("XZ").polyline(pts).close().extrude(p.R + 2, both=True)
+
+
 def tail_clearances(p):
-    """metal left round the keyring slot, the cross pin and the magnets, mm"""
-    out = {"tail face over the cross pin": round(p.bar_x - p.bar_d / 2, 2),
-           "slot floor to the cell bay": round(p.tail_wall - p.slot_depth, 2)}
+    """metal left round the tail tab's keyring hole and the magnets, mm"""
+    out = {"cell bay to the keyring hole": round(p.tail_wall, 2),
+           "tab end beyond the hole": round(p.end_bar, 2),
+           "tab beside the hole (at its flats)": round(math.sqrt(p.R ** 2 - (p.lug_t / 2) ** 2) - p.hole_l / 2, 2),
+           "tube under the tail grooves": round(p.R - p.groove_d - p.rb, 2)}
     if p.magnet:
-        out["under the magnets"] = round(p.tail_wall - p.mag_t - 0.1, 2)
-        out["magnet pocket to the slot"] = round(p.mag_z - (p.mag_d + 0.1) / 2 - p.slot_w / 2, 2)
-        out["magnet pocket to the pin hole"] = round(p.mag_y - (p.mag_d + 0.1) / 2 - p.bar_d / 2, 2)
-        out["magnet pocket to the tail edge"] = round(p.R - 0.5 - math.hypot(p.mag_y, p.mag_z) - (p.mag_d + 0.1) / 2, 2)
+        out["magnet pockets to the keyring hole"] = round(p.end_bar - p.mag_t - 0.1, 2)
+        out["magnet pockets to the end chamfers"] = round(p.lug_t / 2 - p.end_chamfer - (p.mag_d + 0.1) / 2, 2)
+        out["magnet pockets to the rounded corners"] = round(p.R - p.tab_rc - p.mag_y - (p.mag_d + 0.1) / 2, 2)
     return out
 
 
@@ -533,30 +562,27 @@ def build_magnet(p):
     if not p.magnet:
         return None
     m = None
-    for (sy, sz) in ((1, 1), (-1, 1), (1, -1), (-1, -1)):
-        c = cyl_x(p.mag_d, p.L - p.mag_t - 0.08, p.L - 0.08, y=sy * p.mag_y, z=sz * p.mag_z)
+    for sy in (1, -1):
+        c = cyl_x(p.mag_d, p.L - p.mag_t - 0.08, p.L - 0.08, y=sy * p.mag_y)
         m = c if m is None else m.union(c)
     return m
 
 
-def build_bar(p):
-    """stainless cross pin, pressed through both sides of the slot; its ends sit 0.4 mm below the surface"""
-    return cyl_z(p.bar_d - 0.02, -(p.R - 0.4), p.R - 0.4, x=p.L - p.bar_x)
-
-
-def build_split_ring(p, r=6.0, wire=0.8):
-    """a split ring (two turns) round the cross pin, through the slot: it passes between the pin and the slot floor"""
-    gap_mid = p.bar_x + p.bar_d / 2 + (p.slot_depth - p.bar_x - p.bar_d / 2) / 2
-    cx = p.L - gap_mid + r
+def build_split_ring(p, wire=0.8):
+    """a split ring (two turns) through the tab's keyring hole and round the tab's end. It lies in the XZ plane; at
+    mid-depth it touches the hole's front, and where it leaves the tab (at the flats) it is still inside the hole"""
+    r = 6.0 if p.size == "14" else 8.0
+    hs = p.x_hole - p.hole_w / 2
+    cx = hs + wire / 2 + 0.15 + r
     rings = None
-    for dz in (-0.42, 0.42):
-        tr = cq.Workplane("XY").add(cq.Solid.makeTorus(r, wire / 2, cq.Vector(cx, 0.0, dz), cq.Vector(0, 0, 1)))
+    for dy in (-0.42, 0.42):
+        tr = cq.Workplane("XY").add(cq.Solid.makeTorus(r, wire / 2, cq.Vector(cx, dy, 0.0), cq.Vector(0, 1, 0)))
         rings = tr if rings is None else rings.union(tr)
     return rings
 
 
 def build_label(p):
-    xc = (p.x_step + 1.2 + p.L - 2.0 - p.tail_grooves * 1.6 - 0.8) / 2
+    xc = (p.x_step + 1.2 + p.x_flats_end) / 2
     t = (cq.Workplane("XY").workplane(offset=p.flat_r)
          .text(p.label_text, p.label_size, 0.015, font=FONT, kind="regular", halign="center", valign="center"))
     return t.rotate((0, 0, 0), (0, 0, 1), 90).translate((xc, 0, 0))
@@ -581,7 +607,6 @@ def build_all(p):
     d["membrane"], d["btn_collar"], d["cap"], d["pin"] = build_button(p)
     d["cell"], d["cell_plus"], d["strip_plus"], d["strip_minus"], d["insulator"] = build_cell(p)
     d["magnet"] = build_magnet(p)
-    d["bar"] = build_bar(p)
     d["split_ring"] = build_split_ring(p)
     d["label"] = build_label(p)
     return d
@@ -593,7 +618,7 @@ def checks(p, d):
     vol = {k: solid(v).Volume() for k, v in d.items() if v is not None}
     rho = {"body": 2.70, "ring": 2.70, "insert": 2.70, "cap": 7.93, "btn_collar": 7.93, "sled": 1.41, "pin": 1.19,
            "optic_holder": 1.20, "optic_lens": 1.19, "mcpcb": 8.96, "magnet": 7.5, "uv_rod": 2.2, "red_rod": 1.19,
-           "bar": 7.93}
+           }
     mass = {k: round(vol[k] * rho[k] / 1000, 2) for k in rho if k in vol}
     out["mass_g"] = mass
     out["aluminium_g"] = round(sum(mass[k] for k in ("body", "ring", "insert")), 2)
@@ -629,7 +654,7 @@ def checks(p, d):
         "UV rod length": round(p.RH - (p.z_board_top + 0.1 + p.uv_led[2]), 2),
         "cell radial room": round(rb - p.cell_d / 2, 2),
         "thread engagement": round(p.thread_len - 0.7, 2),
-        "ring room under the cross pin": round(p.slot_depth - p.bar_x - p.bar_d / 2, 2),
+        "keyring hole (along x across)": "%.1f x %.1f" % (p.hole_w, p.hole_l),
     }
     out["stack_x_mm"] = {k: round(v, 2) for k, v in dict(
         optic=p.x_opt0, led_board=p.x_opt1, band_front=p.x_bf, bezel_rear=p.x_r1, head_section=p.x_hs0,
@@ -645,7 +670,7 @@ def checks(p, d):
              ("body", "face_oring"), ("body", "uv_rod"), ("body", "red_rod"), ("sled", "uv_rod"),
              ("sled", "red_rod"), ("bp_uv_led", "uv_rod"), ("bp_red_led", "red_rod"), ("body", "magnet"),
              ("cell", "insulator"), ("board", "usb_body"), ("bp_sw_body", "pin"), ("body", "split_ring"),
-             ("body", "bar"), ("bar", "split_ring"), ("magnet", "split_ring")]
+             ("magnet", "split_ring")]
     pairs = [(a, b) for (a, b) in pairs if d.get(a) is not None and d.get(b) is not None]
     no_thread = box(p.x_r1 + 0.05, p.L + 1, -30, 30, -30, 30).val()
     inter = {}

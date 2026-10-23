@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Board: EDCO Mini-16 v0.1 (LuxLibre reference design #3, hardware/edco-mini/), Ø20 x 69.9 mm (head Ø22).
+// Board: EDCO Mini-16 v0.1 (LuxLibre reference design #3, hardware/edco-mini/), Ø20 x 73.5 mm (head Ø22).
 //
-// EDCO Mini: the small, sealed sister of EDCO v0.2, at most 70 mm long. No laser, no radio; a waterproof USB-C
+// EDCO Mini: the small, sealed sister of EDCO v0.2, about 70 mm long. No laser, no radio; a waterproof USB-C
 // socket on the side of the head is the only way in (charging, firmware, settings over the ESP32-C3's USB
 // serial/JTAG port). Red and UV side lights shine out of two clear rods in front of the button (LX_HAS_SIDE).
 // LED: Luminus SST-20-W Gen 2 (6500 K, G1), datasheet maximum 3.0 A DC, on a 16 mm copper DTP board under a
@@ -102,17 +102,18 @@
 // Body from the EDCO Mini CAD (hardware/edco-mini/cad/edco_mini_interface.json; 6061 0.896 J/gK, copper 0.385 J/gK):
 //  head  = bezel 3.82 g + head insert 4.43 g + body in front of the step (head section, band) 5.39 g = 13.64 g
 //          of aluminium (12.22 J/K) + copper LED board 2.70 g (1.04 J/K) = 13.26 J/K
-//  body  = the tube behind the step, 9.08 g = 8.14 J/K (sled, board, button and cell not counted)
-//  head to body: one piece of aluminium; tube section 67 mm2 (d20 / d17.4, less the flats), 38.5 mm long,
-//                L / (3 k A) = 1.15 K/W, 1.2 K/W
-//  body to air: 5110 mm2 plus the bezel fins (about 200 mm2) x 11 W/m2K = 17.1 K/W
+//  body  = the tube behind the step with the tail tab, 9.72 g = 8.71 J/K (sled, board, button and cell not
+//          counted)
+//  head to body: one piece of aluminium; tube section 67 mm2 (d20 / d17.4, less the flats), 42.2 mm long,
+//                L / (3 k A) = 1.26 K/W, 1.3 K/W
+//  body to air: 5336 mm2 plus the bezel fins (about 200 mm2) x 11 W/m2K = 16.4 K/W
 //  Sensor lag 4 s: the NTC sits on the main board 1-2 mm behind the head insert.
 #define LX_SIM_CAPACITY_MAH 620
 #define LX_SIM_RINT_MOHM 75
 #define LX_SIM_C_HEAD_MJ 13260        // mJ/K
-#define LX_SIM_C_BODY_MJ 8140        // mJ/K
-#define LX_SIM_R_HEAD_BODY_MK 1200    // mK/W
-#define LX_SIM_R_BODY_AMB_MK 17100   // mK/W
+#define LX_SIM_C_BODY_MJ 8710        // mJ/K
+#define LX_SIM_R_HEAD_BODY_MK 1300    // mK/W
+#define LX_SIM_R_BODY_AMB_MK 16400   // mK/W
 #define LX_SIM_SENSOR_TAU_MS 4000
 #define LX_SIM_DROP_MOHM 128         // battery (under load) to LED at 100 % duty (as EDCO v0.1)
 #define LX_SIM_OCV_V 2.50, 3.05, 3.25, 3.38, 3.47, 3.54, 3.61, 3.68, 3.77, 3.86, 3.95, 4.05, 4.20

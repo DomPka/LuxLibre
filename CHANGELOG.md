@@ -10,10 +10,10 @@ change the firmware keeps its version.
 ### Hardware
 
 - EDCO Mini v0.1, reference design #3 ([hardware/edco-mini/](hardware/edco-mini/README.md)), a concept:
-  a sealed keychain light of at most 70 mm in two sizes, Mini-16 (one 16340, Ø20 × 69.9 mm) and Mini-14
-  (Ø17 × 66.0 mm, needs a made-to-order cell). An SST-20 behind a TIR optic (944-978 lm out of the front,
-  simulated), red and UV side lights, a waterproof USB-C socket in the side of the head, and a keyring slot
-  with a steel cross pin in the tail; the M versions (Mini-16M, Mini-14M) add four magnets in the tail face.
+  a sealed keychain light of about 70 mm in two sizes, Mini-16 (one 16340, Ø20 × 73.5 mm) and Mini-14
+  (Ø17 × 69.4 mm, needs a made-to-order cell). An SST-20 behind a TIR optic (944-978 lm out of the front,
+  simulated), red and UV side lights, a waterproof USB-C socket in the side of the head, and a keyring tab
+  with an obround hole at the tail; the M versions (Mini-16M, Mini-14M) add two magnets in the end of the tab.
   CadQuery model with checks, STEP files, renders, and a comparison with the best 60 mm keychain lights.
 - EDCO v0.2 ([hardware/edco-v02/](hardware/edco-v02/README.md)), a concept in two sizes (18500 and
   14500): an SST-40 at up to 5.7 A, USB-C on the side under a twist collar, a crenellated finned bezel.
