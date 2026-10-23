@@ -9,12 +9,13 @@ made to beat the best 60 mm keychain lights on light, throw, battery and water. 
 | Cell | one 16340 (Vapcell INR16340 T6, 650 mAh) | a made-to-order Ø14 × 35 mm high-rate LiPo cell (about 400 mAh) |
 | Body / head | Ø20 / Ø22 mm | Ø17 / Ø19 mm |
 | Length | 69.9 mm | 66.0 mm |
+| Versions | Mini-16 (no magnet) and Mini-16M (four magnets in the tail face) | Mini-14 and Mini-14M |
 
-Both run a Luminus **SST-20** LED behind a TIR optic, with **red and UV side lights**, a **magnet in the tail**,
-**holes for a keyring and a lanyard** through the tail corners, and a **waterproof USB-C socket** on the side of the
-head. There is no laser and no radio.
+Both run a Luminus **SST-20** LED behind a TIR optic, with **red and UV side lights**, a **keyring slot with a
+steel cross pin** in the tail, and a **waterproof USB-C socket** on the side of the head. The **M versions** add
+**four magnets** flush in the tail face; the plain versions have none. There is no laser and no radio.
 
-![EDCO Mini-16, black anodised: crenellated bezel, two side-light windows, the stainless button (render)](assets/mini16_hero.png)
+![EDCO Mini-16M, black anodised: crenellated bezel, two side-light windows, the stainless button, a split ring in the tail slot (render)](assets/mini16_hero.png)
 
 *Render made from the design files.*
 
@@ -47,7 +48,7 @@ exist, the maker's claims are used.
 | Charging | USB-C, 45-58 min measured | USB-C at 1 A, about 55-60 min (estimate) | USB-C at 0.5 A, about 55-60 min (estimate) | about the same |
 | Water | IPX6 claimed (IP65-IP66 on some pages) | **IPX8 target**, not tested | IPX8 target, not tested | better (if the test passes) |
 | Side lights | A8 only: UV 365 nm, red, warm white; UV for 100 min (claimed) | **UV 365 nm and red**; UV for about 2 h 10 min | UV 365 nm and red; UV for about 1 h 20 min | same colours, no white; longer UV |
-| Magnet, keyring, lanyard | magnetic tail, magnetic clip, keyring loop at the tail | magnet in the tail face; two Ø2.2 mm holes through the tail corners, one for a split ring, one for a lanyard cord | the same | ring and lanyard at once; no clip |
+| Magnet, keyring, lanyard | clip-on magnetic tail piece, magnetic clip, keyring loop at the tail | a slot across the tail with a stainless cross pin for a split ring or a lanyard; M version: four magnets flush in the tail face | the same | magnets built in; no clip |
 | Size | 60.5 × 15.6 mm (63.8 mm with the tail magnet) | 69.9 × 22 mm | 66.0 × 19 mm | **worse** |
 | Weight | 17.6 g (A8), 24 g (A4 Pro, titanium), about 40 g (A9 Pro, copper) | about 53 g (estimate) | about 32 g (estimate) | **worse** |
 
@@ -70,8 +71,10 @@ the budgetlightforum.com thread on the titanium A4 Pro (63.8 mm with the magnet,
 | **Front.** Crenellated bezel, three fins, the TIR optic. | **Port.** The waterproof USB-C socket sits in the head's wall; the plug rests on the head. |
 | ![The UV side light on (render)](assets/mini16_side_uv.png) | ![The red side light on (render)](assets/mini16_side_red.png) |
 | **UV side light.** 365 nm, out of a clear rod in front of the button. | **Red side light.** Out of the second rod; the button's membrane glows as the indicator. |
-| ![Tail: magnet, grooves, the keyring and lanyard holes with a split ring and a cord (render)](assets/mini16_tail.png) | ![Mini-16 and Mini-14 side by side (render)](assets/mini_sizes.png) |
-| **Tail.** A magnet in the tail face, three grooves, a keyring hole and a lanyard hole through the corners. | **Two sizes.** Mini-16 (black) and Mini-14 (clear anodised). |
+| ![Tail: the keyring slot with its steel cross pin and a split ring (render)](assets/mini16_tail.png) | ![Tail of the M version: the slot and four magnets (render)](assets/mini16m_tail.png) |
+| **Tail.** A slot across the tail face with a stainless cross pin; the split ring or a lanyard goes round the pin. | **M version.** The same slot, with four magnets flush in the tail face. |
+
+![Mini-16M and Mini-14 side by side (render)](assets/mini_sizes.png)
 
 ![EDCO-18 v0.2, Mini-16 and Mini-14 (render)](assets/mini_family.png)
 
@@ -80,7 +83,7 @@ the budgetlightforum.com thread on the titanium A4 Pro (63.8 mm with the magnet,
 | Item | EDCO Mini-16 | EDCO Mini-14 |
 |---|---|---|
 | Size | Ø20 body, Ø22 head × 69.9 mm | Ø17 body, Ø19 head × 66.0 mm |
-| Aluminium parts (body, bezel, head insert; from the CAD) | 22.7 g | 15.6 g |
+| Aluminium parts (body, bezel, head insert; from the CAD) | 22.7 g (M: 22.2 g) | 15.6 g (M: 15.3 g) |
 | Whole light (estimate) | about 53 g, of which the cell about 20 g | about 32 g, of which the cell about 10 g |
 | LED | Luminus SST-20-W Gen 2, 6500 K, on a 16 mm copper DTP board | the same on a 12 mm board |
 | Optic | LEDiL FA10887 TINA-RS for XP-E, Ø16.1 × 9.7 mm, 13° with an XP-E (fit over the SST-20 dome to be checked) | Carclo 12079 10 mm IP66 spot, flange Ø12.5 mm, about 6 mm tall; 89 % and 23° with an XP-G |
@@ -92,7 +95,8 @@ the budgetlightforum.com thread on the titanium A4 Pro (63.8 mm with the magnet,
 | Charging | 1 A: TI BQ24050 (2 × 2 mm, LCSC C2859551) instead of the TP4057; about 55-60 min (estimate) | 0.5 A, about 55-60 min (estimate) |
 | Side lights | UV: Nichia NVSU233B-U365 (365 nm, 3.5 × 3.5 mm), about 250 mA from the cell (roughly 0.35-0.4 W of UV at the LED; it falls as the cell runs down). Red: a 2.0 × 1.6 mm power LED, about 150 mA. Each shines through a clear rod: fused quartz for the UV, PMMA for the red | the same |
 | Button | Ø6.5 mm stainless cap on a sealed, glowing membrane (halo indicator), Alps SKRKAEE020 | Ø5.8 mm cap |
-| Magnet | supermagnete S-10-1.5-N52N, Ø10 × 1.5 mm, N52, about 1.2 kg pull on thick steel, in the tail face | S-08-02-N, Ø8 × 2 mm, about 1.1 kg |
+| Keyring, lanyard | a slot across the tail face, 2.4 mm wide and 3 mm deep, open at both sides, with a Ø1.2 mm stainless pin pressed across it. A split ring (wire up to about 0.9 mm) or a thin lanyard cord goes round the pin | the same |
+| Magnets (M version only) | four supermagnete S-05-02-N52N, Ø5 × 2 mm, N52, about 680 g pull each on thick steel (rated), flush in the tail face with their poles alternating | four S-04-02-N, Ø4 × 2 mm, N45, about 420 g each |
 | Water | IPX8 is the target, not tested. Seals: the optic gasket, the face O-ring of the head insert, the button membrane, the USB-C socket's seal ring, the two bonded light rods | the same |
 | Firmware | LuxLibre, board [`edco-mini-16`](../../firmware/boards/edco-mini-16/board.h) | board [`edco-mini-14`](../../firmware/boards/edco-mini-14/board.h) |
 
@@ -170,13 +174,15 @@ From the front to the tail:
    * On top: the switch, the halo LED and the two side LEDs.
 5. **Cell.** Its + strip goes to the rear of the main board. The − strip runs forward along the bottom of the
    cell.
-6. **Tail.** Closed, with three grooves and a magnet bonded into a pocket in the tail face.
-   * **Keyring and lanyard:** two Ø2.2 mm holes run at 45° from the tail face out to the side, one at the top
-     and one at the bottom, with their edges broken. One takes a split ring (both turns, wire up to 1.0 mm) for
-     the keys, the other a lanyard cord of up to 2 mm.
-   * **Why holes, not a loop:** a loop sticking out of the tail would make the light 3 mm longer (the Mini-16 would
-     pass 70 mm) and would keep the magnet off the steel. With the holes in the corners, the magnet still sits
-     flat on steel while the ring hangs off the side.
+6. **Tail.** Closed, with three grooves.
+   * **Keyring slot:** a slot runs across the tail face, open at both sides, 2.4 mm wide and 3.05 mm deep, with a
+     rounded bottom. A Ø1.2 mm stainless pin is pressed across it, 1.45 mm in from the face. The split ring or a
+     lanyard cord goes round the pin and sits inside the slot, flush with the tail.
+   * **What is left:** 0.85 mm of metal between the pin and the tail face, and 0.6 mm between the slot's floor and
+     the cell bay.
+   * **M version:** four magnets are bonded into pockets in the tail face, two on each side of the slot, their
+     poles alternating. The tail face stays flat, so the light sticks to steel with the ring in its slot. Both
+     versions are the same length.
 
 ![Exploded view of EDCO Mini-16 (render)](assets/mini16_exploded.png)
 
@@ -192,7 +198,8 @@ From the front to the tail:
    * Fit the clear pin, the membrane, the cap and the button collar (press-fit with retaining compound).
 4. **Fit the head.** Fit the head insert with its face O-ring, the LED board on paste, the optic and its gasket.
    Screw on the bezel with medium-strength thread-locker.
-5. **Fit the magnet.** Bond it into the tail pocket. Thread the split ring and the lanyard.
+5. **Finish the tail.** Press the stainless pin across the slot. In the M version, bond the four magnets into
+   their pockets with the poles alternating. Thread the split ring or the lanyard round the pin.
 
 ## Electronics: what changes from EDCO v0.1
 
@@ -215,35 +222,39 @@ The firmware gains side lights for every board that sets `LX_HAS_SIDE`:
 ## Cost (rough estimate)
 
 There is no workbook yet. The Mini has the same parts count as EDCO v0.1 less the tail board and flex, plus two
-side LEDs, two rods and a magnet; its metal parts are smaller. Roughly 650-750 USD for one light, about 220-250 USD
+side LEDs, two rods, a steel pin and, in the M version, four magnets; its metal parts are smaller. Roughly 650-750 USD for one light, about 220-250 USD
 each for five, all fees, shipping and VAT included (estimate).
 
 ## What has been checked
 
-* **CAD interference:** no part overlaps a neighbour in either size (35 pairs). They include:
+* **CAD interference:** no part overlaps a neighbour in any of the four versions (35 pairs, 37 with the magnets).
+  They include:
   * body / head insert, bezel / insert, body / sled, sled / board, body / cell;
   * body / USB-C shell, seal ring and socket body;
   * body / light rods, sled / light rods, LEDs / rods;
   * body / button pin and collar, body / magnet, body / face O-ring;
-  * body / split ring and lanyard cord, threaded through their holes.
+  * body / cross pin, cross pin / split ring, body / split ring, magnets / split ring.
 * **Walls, Mini-16:**
   * 1.3 mm over the cell, 0.9 mm under the flats;
   * 2.3 mm in the head section;
   * 0.99 mm at the thread root, 0.94 mm at the run-out;
   * 1.2 mm under the button counterbore;
   * 0.95 mm in the bezel over the insert, 0.6 mm at its fins;
-  * 2.0 mm of tail floor under the magnet.
+  * tail: 0.85 mm of face over the cross pin, 0.6 mm from the slot floor to the cell bay;
+  * M version: 1.55 mm under the magnets, 0.75 mm from the magnet pockets to the slot, 0.65 mm to the pin hole.
 * **Walls, Mini-14:**
   * 1.0 mm over the cell, 0.8 mm under the flats;
   * 2.0 mm in the head section;
   * 0.69 mm at the thread root, 0.64 mm at the run-out;
   * 0.9 mm under the button counterbore;
   * 0.95 / 0.6 mm in the bezel;
-  * 1.5 mm under the magnet.
+  * tail: 0.85 / 0.6 mm, as on the Mini-16;
+  * M version: 1.55 mm under the magnets, 0.65 mm from the magnet pockets to the slot and to the pin hole.
 * **Below JLCCNC's recommended 0.8 mm (above their 0.5 mm minimum):**
   * the bezel at its fins (0.6 mm, both sizes);
-  * the metal between the keyring and lanyard holes and the cell bay (0.6 mm, both);
-  * the Mini-14's thread root and run-out (0.69 / 0.64 mm) and its holes to the magnet pocket (0.69 mm).
+  * the slot floor to the cell bay (0.6 mm, all versions);
+  * the magnet pockets to the slot and to the pin hole (0.65-0.75 mm, M versions);
+  * the Mini-14's thread root and run-out (0.69 / 0.64 mm).
 * **Fits:**
   * Main board: 15.4 × 14.9 mm (Mini-16) and 13.9 × 14.5 mm (Mini-14), 0.32-0.34 mm from the bore.
   * Socket: mouth 0.25 mm below the head's crest, through a 2.3 / 2.1 mm wall.
@@ -284,6 +295,11 @@ All numbers are in [cad/edco_mini_interface.json](cad/edco_mini_interface.json),
     would fix that, if there is room on the board.
   * The UV rod must be UV-grade fused quartz (ordinary PMMA blocks most of 365 nm).
   * Bonded rods are a seal of their own and need the water test too.
+* **The tail slot and the magnets.**
+  * The slot leaves 0.6 mm of floor over the cell bay: check it with JLCCNC, and press the pin in before
+    anodising, or ream its hole after.
+  * Rated pulls are for a thick steel plate. On a curved, painted or thin surface the four magnets hold much
+    less. N52 is rated to 65 °C; the tail stays below about 48 °C.
 * **The board.** Both boards are smaller than EDCO v0.1's (about 200-230 mm² a side). Fitting everything needs
   4 layers and 0201 parts, to be proven when the board is drawn.
 * **Replacing the cell** ([BAT-2](../../docs/design-rules.md#bat-2)), as for EDCO: fine for your own light. From
@@ -294,7 +310,7 @@ All numbers are in [cad/edco_mini_interface.json](cad/edco_mini_interface.json),
 
 | Path | What |
 |---|---|
-| [cad/](cad/) | for each size (`EDCO_Mini-16_*`, `EDCO_Mini-14_*`): body, bezel and head insert as STEP (plain thread diameters), and the assembly STEP |
+| [cad/](cad/) | for each version (`EDCO_Mini-16_*`, `EDCO_Mini-16M_*`, `EDCO_Mini-14_*`, `EDCO_Mini-14M_*`): the body and the assembly as STEP; the bezel and head insert once per size (plain thread diameters) |
 | [cad/edco_mini_interface.json](cad/edco_mini_interface.json) | sizes, walls, fits, masses, the thermal split and the interference check of both sizes |
 | [tools/housing/edco_mini.py](tools/housing/edco_mini.py) | the CadQuery model (sizes in `SIZES`, common dimensions in class `P`): `python3 edco_mini.py ../../cad --size both` |
 | [tools/housing/edco_mini_render.py](tools/housing/edco_mini_render.py) | the renders: `xvfb-run -a python3 edco_mini_render.py ../../assets` (uses the FlashKa v0.7 renderer) |

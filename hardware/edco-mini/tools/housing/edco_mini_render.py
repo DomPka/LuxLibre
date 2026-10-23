@@ -85,7 +85,7 @@ def mat_map(finish, size):
             "sled": "pom", "board": "fr4", "membrane": "pmma_pipe", "btn_collar": "steel_pol", "cap": "steel_pol",
             "pin": "pmma_pipe", "uv_rod": "quartz", "red_rod": "pmma_pipe", "cell": "wrap" + size,
             "cell_plus": "cell_top", "strip_plus": "nickel", "strip_minus": "nickel", "insulator": "polyimide",
-            "magnet": "magnet", "split_ring": "steel_sat", "lanyard": "cord"}
+            "magnet": "magnet", "split_ring": "steel_sat", "lanyard": "cord", "bar": "steel_sat"}
 
 
 def mat_of(name, mm):
@@ -106,8 +106,8 @@ CUT = ("body", "ring", "insert", "face_oring", "gasket", "optic_holder", "optic_
 
 
 class Model:
-    def __init__(self, size):
-        self.p = H.P(size=size)
+    def __init__(self, size, magnet=False):
+        self.p = H.P(size=size, magnet=magnet)
         self.d = H.build_all(self.p)
         self._pd = {}
 
@@ -155,7 +155,7 @@ def shoot(parts, name, out, **kw):
 
 def views(out, finish, only):
     want = (lambda n: only is None or n in only)
-    m16 = Model("16")
+    m16 = Model("16", magnet=True)         # the main renders: the M version (magnets in the tail face)
     p = m16.p
     if finish == "natural":
         m14 = Model("14")
@@ -184,8 +184,13 @@ def views(out, finish, only):
             shoot(parts, nm, out, direction=(-0.55, 0.35, 1.0), up=(-1.0, 0.0, 0.3), ratio=0.62, fill=0.88,
                   view_angle=16.0, glow_radius=3.0, glow_strength=1.0)
     if want("tail"):
-        parts = m16.parts(finish, skip=closed_skip(m16))
+        m16n = Model("16", magnet=False)
+        parts = m16n.parts(finish, skip=closed_skip(m16n))
         shoot(parts, "mini16_tail.png", out, direction=(1.0, -0.5, 0.45), up=(0, 0, 1), ratio=0.62, fill=0.88,
+              view_angle=18.0)
+    if want("tail_m"):
+        parts = m16.parts(finish, skip=closed_skip(m16) + ("split_ring",))
+        shoot(parts, "mini16m_tail.png", out, direction=(1.0, -0.5, 0.45), up=(0, 0, 1), ratio=0.62, fill=0.88,
               view_angle=18.0)
     if want("section"):
         parts = m16.parts(finish, skip=("split_ring", "lanyard"), cut=True, glow=HALO)
@@ -195,7 +200,7 @@ def views(out, finish, only):
                   ("Stainless button, glowing membrane", (p.x_btn + 1.0, 0.0, p.RH + 2.5), "T"),
                   ("Waterproof USB-C", (p.x_btn, 0.0, -p.RH - 1.0), "B"),
                   ("16340 cell", (p.x_cell0 + 18, 0.0, -2.0), "B"),
-                  ("Magnet in the tail", (p.L - 1.0, 0.0, -p.R - 1.0), "B")]
+                  ("Keyring slot, steel pin, magnets", (p.L - 1.0, 0.0, -p.R - 1.0), "B")]
         shoot(parts, "mini16_section.png", out, direction=(0.0, -1.0, 0.16), up=(0, 0, 1), ratio=0.42, fill=0.92,
               view_angle=12.0, labels=labels)
     if want("exploded"):
@@ -205,7 +210,7 @@ def views(out, finish, only):
                "sled": (0.0, -15.0), "membrane": (0.0, 12.0), "btn_collar": (0.0, 15.0), "cap": (0.0, 18.0),
                "pin": (0.0, 9.0), "uv_rod": (0.0, 10.0), "red_rod": (0.0, 10.0),
                "body": (0.0, -36.0), "label": (0.0, -36.0), "split_ring": (0.0, -36.0), "lanyard": (0.0, -36.0),
-               "magnet": (9.0, -36.0)}
+               "magnet": (9.0, -36.0), "bar": (0.0, -36.0)}
         cart = ("cell", "cell_plus", "strip_plus", "strip_minus", "insulator")
         offs = {}
         for nm in m16.d:
@@ -222,20 +227,20 @@ def views(out, finish, only):
                   ("Main board + waterproof USB-C", (p.board_x1 - 3, 0.0, -2.0), "B"),
                   ("16340 cell", (5.0 + p.x_cell0 + 18, 0.0, 9.0), "T"),
                   ("POM sled", (24.0, 0.0, -15.0 - 9.0), "B"),
-                  ("Body, magnet", (48.0, 0.0, -36.0 - 11.0), "B")]
+                  ("Body, magnets, steel pin", (48.0, 0.0, -36.0 - 11.0), "B")]
         shoot(parts, "mini16_exploded.png", out, direction=(-0.10, -1.0, 0.30), up=(0, 0, 1), ratio=0.58,
               fill=0.94, view_angle=14.0, labels=labels)
     if want("sizes"):
         m14 = Model("14")
         pa = m16.parts("black", skip=closed_skip(m16) + ("split_ring", "lanyard"), glow=HALO, shift=(0, -14.0, 0))
         pb = m14.parts("natural", skip=closed_skip(m14) + ("split_ring", "lanyard"), glow=HALO, shift=(0, 14.0, 0))
-        labels = [("Mini-16: 16340, Ø%g x %.1f mm" % (m16.p.body_od, m16.p.L + 1e-6), (0.0, -14.0, 0.0), "T"),
+        labels = [("Mini-16M: 16340, Ø%g x %.1f mm" % (m16.p.body_od, m16.p.L + 1e-6), (0.0, -14.0, 0.0), "T"),
                   ("Mini-14: 14350, Ø%g x %.1f mm" % (m14.p.body_od, m14.p.L + 1e-6), (0.0, 14.0, 0.0), "T")]
         shoot(pa + pb, "mini_sizes.png", out, direction=(-0.15, 0.25, 1.0), up=(-1.0, 0.0, 0.0), ratio=0.95,
               fill=0.90, view_angle=16.0, glow_radius=2.2, labels=labels)
     if want("family"):
         import edco_v02 as V
-        m14 = Model("14")
+        m14 = Model("14", magnet=True)
         v18 = V.P(size="18")
         dv = V.build_all(v18, 180.0)
         skip_v = ("sled", "board", "pin", "cell", "cell_plus", "strip_plus", "strip_minus", "insulator", "membrane",
@@ -251,8 +256,8 @@ def views(out, finish, only):
         pa = m16.parts("black", skip=closed_skip(m16) + ("split_ring", "lanyard"))
         pb = m14.parts("black", skip=closed_skip(m14) + ("split_ring", "lanyard"), shift=(0, 28.0, 0))
         labels = [("EDCO-18 v0.2, %.1f mm" % v18.L, (0.0, -36.0, 0.0), "T"),
-                  ("Mini-16, %.1f mm" % (m16.p.L + 1e-6), (0.0, 0.0, 0.0), "T"),
-                  ("Mini-14, %.1f mm" % (m14.p.L + 1e-6), (0.0, 28.0, 0.0), "T")]
+                  ("Mini-16M, %.1f mm" % (m16.p.L + 1e-6), (0.0, 0.0, 0.0), "T"),
+                  ("Mini-14M, %.1f mm" % (m14.p.L + 1e-6), (0.0, 28.0, 0.0), "T")]
         shoot(pv + pa + pb, "mini_family.png", out, direction=(-0.15, 0.25, 1.0), up=(-1.0, 0.0, 0.0), ratio=1.1,
               fill=0.90, view_angle=16.0, labels=labels)
 
