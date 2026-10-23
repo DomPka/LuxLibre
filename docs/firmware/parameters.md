@@ -60,3 +60,7 @@ Defaults written as `LX_DEF_...` come from the board header; the value shown is 
 | `LASER_VMIN` | 3200 | 900 ... 3800 | mV/cell | No laser below this cell voltage (cheap laser modules drift when the supply sags) |
 | `SIDE_RED` | 40 (`LX_DEF_SIDE_RED`) | 1 ... 100 | % | Brightness of the red side light (5 clicks from off) |
 | `SIDE_UV` | 100 (`LX_DEF_SIDE_UV`) | 0 ... 100 | % | Brightness of the UV side light; 0 = no UV (two clicks in the side light then do nothing) |
+| `COLOR_SET` | 135 (`LX_DEF_COLOR_SET`) | 1 ... 255 | bits | Colours that two clicks step through in the colour beam: 1 = red, 2 = green, 4 = blue, 8 = yellow, 16 = cyan, 32 = magenta, 64 = white from the three colours, 128 = the custom colour COL_R / COL_G / COL_B (add the numbers) |
+| `COL_R` | 100 (`LX_DEF_COL_R`) | 0 ... 100 | % | Custom colour: share of the red LED (the strongest of the three runs at the full colour brightness) |
+| `COL_G` | 35 (`LX_DEF_COL_G`) | 0 ... 100 | % | Custom colour: share of the green LED |
+| `COL_B` | 0 (`LX_DEF_COL_B`) | 0 ... 100 | % | Custom colour: share of the blue LED (red, green and blue all 0 = red) |

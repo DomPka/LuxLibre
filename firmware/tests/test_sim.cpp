@@ -266,6 +266,23 @@ TEST(side_light_gestures) {
     CHECK(sim::side_red() == 0);
 }
 
+TEST(colour_gestures_do_nothing_without_a_colour_beam) {
+    fresh();
+    sim::click(1);
+    sim::run_script();
+    uint8_t lvl = sim::level();
+    sim::click(4);                               // white <-> colour: not on this board
+    sim::run_script();
+    CHECK(ui::state() == ui::S_ON && !ui::color_active() && sim::level() == lvl && sim::led_a() > 0);
+    sim::click(1);
+    sim::run_script();
+    sim::click(5);                               // five clicks stay the side light
+    sim::run_script();
+    CHECK(ui::state() == ui::S_SIDE && sim::color_req_ma(0) == 0);
+    sim::click(1);
+    sim::run_script();
+}
+
 TEST(side_light_refused_in_lockout_and_by_protection) {
     fresh();
     sim::click(4);                               // lockout

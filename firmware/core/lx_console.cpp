@@ -5,6 +5,7 @@
 #if LX_HAS_CONSOLE || defined(LX_HOST)
 
 #include "lx_battery.h"
+#include "lx_color.h"
 #include "lx_light.h"
 #include "lx_params.h"
 #include "lx_ramp.h"
@@ -100,7 +101,7 @@ void execute(const char* line_in) {
     if (n == 0) return;
 
     if (eq(w[0], "help")) {
-        out("help ver status list get set save defaults [all] level off reboot wdtest\nok\n");
+        out("help ver status list get set save defaults [all] level color off reboot wdtest\ncolor N [red|green|blue|yellow|cyan|magenta|white|custom]\nok\n");
     } else if (eq(w[0], "ver")) {
         out("LuxLibre " LX_FW_VERSION " / " LX_BOARD_NAME "\nok\n");
     } else if (eq(w[0], "status")) {
@@ -115,6 +116,13 @@ void execute(const char* line_in) {
         out_kv("battery_pct", battery::percent());
         out_kv("thermal_cap", thermal::cap());
         out_kv("lvp_cap", battery::cap());
+#if LX_HAS_COLOR
+        out("beam=");
+        out(ui::color_active() ? "colour" : "white");
+        out("\ncolor=");
+        out(color::name(ui::color_index()));
+        out("\n");
+#endif
         out("ok\n");
     } else if (eq(w[0], "list")) {
         for (uint8_t k = 0; k < P_COUNT; k++) print_param(k);
@@ -149,6 +157,17 @@ void execute(const char* line_in) {
     } else if (eq(w[0], "level") && n == 2) {
         int32_t v;
         if (!parse_int(w[1], v) || v < 0 || v > LEVEL_MAX || !ui::remote_level((uint8_t)v)) {
+            out("err not allowed\n");
+            return;
+        }
+        out("ok\n");
+    } else if (eq(w[0], "color") && (n == 2 || n == 3)) {
+        // colour beam at a level (0 = off), in the colour used last or the one named: lets a
+        // settings page show the colour while COL_R / COL_G / COL_B are being changed
+        int32_t v;
+        int c = n == 3 ? color::find(w[2]) : -1;
+        if (n == 3 && c < 0) { out("err unknown colour\n"); return; }
+        if (!parse_int(w[1], v) || v < 0 || v > LEVEL_MAX || !ui::remote_color((uint8_t)v, c)) {
             out("err not allowed\n");
             return;
         }

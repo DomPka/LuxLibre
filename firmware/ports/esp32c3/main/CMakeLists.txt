@@ -5,7 +5,7 @@ idf_component_register(
          "${FW}/core/lx_params.cpp" "${FW}/core/lx_ramp.cpp" "${FW}/core/lx_input.cpp"
          "${FW}/core/lx_thermal.cpp" "${FW}/core/lx_battery.cpp" "${FW}/core/lx_aux.cpp"
          "${FW}/core/lx_storage.cpp" "${FW}/core/lx_ui.cpp" "${FW}/core/lx_console.cpp"
-         "${FW}/core/lx_light.cpp"
+         "${FW}/core/lx_light.cpp" "${FW}/core/lx_color.cpp"
     INCLUDE_DIRS "${FW}/core" "${FW}/hal" "${FW}/boards/${LX_BOARD}"
     REQUIRES driver esp_adc esp_timer nvs_flash esp_system)
 target_compile_options(${COMPONENT_LIB} PRIVATE -fno-exceptions -fno-rtti)

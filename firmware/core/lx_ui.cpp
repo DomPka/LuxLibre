@@ -3,6 +3,7 @@
 #include "lx_aux.h"
 #include "lx_battery.h"
 #include "lx_board.h"
+#include "lx_color.h"
 #include "lx_params.h"
 #include "lx_storage.h"
 #include "lx_thermal.h"
@@ -27,6 +28,7 @@ const Binding k_bindings[] LX_FLASH = {
     {L_ALL,            S_OFF,    EVB(EV_CLICK, 3),     A_BATTCHECK, 0},
     {L_ALL,            S_OFF,    EVB(EV_CLICK, 4),     A_LOCK, 0},
     {L_ALL,            S_OFF,    EVB(EV_CLICK, 5),     A_SIDE_ON, 0},
+    {L_ALL,            S_OFF,    EVB(EV_CLICK, 5),     A_COLOR_ON, 0},
     {L_ALL,            S_OFF,    EVB(EV_CLICK, 9),     A_FACTORY_RESET, 0},
     // ---- light on ----
     {L_ALL,            S_ON,     EVB(EV_CLICK, 1),     A_OFF, 0},
@@ -39,6 +41,9 @@ const Binding k_bindings[] LX_FLASH = {
     {L_MODES | L_SIMPLE, S_ON,   EVB(EV_HOLD_END, 1),  A_MODE_END, 0},
     {L_RAMP | L_MODES, S_ON,     EVB(EV_CLICK, 2),     A_TURBO_TOGGLE, 0},
     {L_ALL,            S_ON,     EVB(EV_CLICK, 3),     A_BATTCHECK, 0},
+    {L_ALL,            S_ON,     EVB(EV_CLICK, 4),     A_CHANNEL, 0},
+    // ---- colour beam on (boards with a colour beam): before the "light on" lines ----
+    {L_ALL,            S_COLOR,  EVB(EV_CLICK, 2),     A_COLOR_NEXT, 0},
     // ---- lockout ----
     {L_ALL,            S_LOCK,   EVB(EV_CLICK, 4),     A_UNLOCK, 0},
     {L_ALL,            S_LOCK,   EVB(EV_CLICK, 0),     A_TICK_BLINK, 0},
@@ -87,6 +92,10 @@ uint32_t g_laser_ms = 0;
 bool g_laser_cut = false;
 
 bool g_side_uv = false;       // side light colour: false = red, true = UV (kept while powered)
+
+bool g_color = false;         // S_ON shows the colour beam instead of the white one
+uint8_t g_color_idx = 0;      // colour of the colour beam (stored with the level memory)
+uint8_t g_color_level = 0;    // colour beam level used last (0 = not used yet since power-up)
 
 uint8_t g_fb_count = 0;       // feedback blinks on the main LED (boards without aux LED)
 uint16_t g_fb_t = 0;
@@ -139,6 +148,7 @@ void set_mem(uint8_t lvl) {
 void go_on(uint8_t lvl) {
     g_state = S_ON;
     g_level = clamp<uint8_t>(lvl, 1, LEVEL_MAX);
+    g_color = false;
     g_turbo = false;
     g_ramping = false;
     g_mode_holding = false;
@@ -148,6 +158,7 @@ void go_on(uint8_t lvl) {
 
 void go_off() {
     g_state = S_OFF;
+    g_color = false;
     g_turbo = false;
     g_ramping = false;
     g_mode_holding = false;
@@ -156,6 +167,28 @@ void go_off() {
 }
 
 uint8_t mode_level(uint8_t i) { return (uint8_t)p((ParamId)(P_MODE_1 + i)); }
+
+// The level at the top of what holding the button reaches: the colour LEDs' full current.
+uint8_t top_level() {
+    if (layout() == L_RAMP) return ceil_lvl();
+    uint8_t n = (uint8_t)p(P_MODE_CNT), top = 1;
+    for (uint8_t i = 0; i < n; i++) top = max_of(top, mode_level(i));
+    if (layout() == L_SIMPLE) top = min_of(top, (uint8_t)p(P_SIMPLE_MAX));
+    return top;
+}
+
+// The halo under the button shows the colour beam's colour for a second.
+void halo_colour() {
+    uint8_t pct[3];
+    color::mix(g_color_idx, pct);
+    aux::show_color((uint8_t)(pct[0] * 255 / 100), (uint8_t)(pct[1] * 255 / 100), (uint8_t)(pct[2] * 255 / 100));
+}
+
+// Remember the level of the beam that is on: the white beam's level memory, or the colour level.
+void remember(uint8_t lvl) {
+    if (g_color) g_color_level = lvl;
+    else set_mem(lvl);
+}
 
 void step_mode() {
     uint8_t n = (uint8_t)p(P_MODE_CNT);
@@ -249,7 +282,7 @@ bool sos_on(uint32_t t) {
 void run_action(uint8_t action, uint8_t arg, const Event& e) {
     switch (action) {
     case A_OFF:
-        if (g_state == S_ON && !g_turbo) set_mem(g_level);
+        if (g_state == S_ON && !g_turbo) remember(g_level);
         go_off();
         break;
     case A_ON_MEM: {
@@ -326,7 +359,7 @@ void run_action(uint8_t action, uint8_t arg, const Event& e) {
     case A_RAMP_END:
         if (!g_ramping) break;
         g_ramping = false;
-        set_mem(g_level);
+        remember(g_level);
         break;
     case A_MODE_NEXT:
         step_mode();
@@ -344,10 +377,10 @@ void run_action(uint8_t action, uint8_t arg, const Event& e) {
     case A_MODE_END:
         if (!g_mode_holding) break;
         g_mode_holding = false;
-        set_mem(g_level);
+        remember(g_level);
         break;
     case A_BATTCHECK:
-        if (g_state == S_ON && !g_turbo) set_mem(g_level);
+        if (g_state == S_ON && !g_turbo) remember(g_level);
         g_turbo = false;
         start_blinky(B_BATT);
         break;
@@ -421,6 +454,33 @@ void run_action(uint8_t action, uint8_t arg, const Event& e) {
         g_side_uv = p(P_SIDE_UV) > 0 ? !g_side_uv : false;
         battery::user_action();
         break;
+    case A_COLOR_ON: {
+        if (!LX_HAS_COLOR || !switch_on_allowed()) break;
+        uint8_t lvl = g_color_level;
+        if (!lvl) lvl = layout() == L_RAMP ? (uint8_t)p(P_MEM_LEVEL) : mode_level(p(P_MODE_CNT) > 1 ? 1 : 0);
+        go_on(lvl);
+        g_color = true;
+        g_color_idx = color::valid(g_color_idx);
+        break;
+    }
+    case A_COLOR_NEXT: {
+        uint8_t c = color::next(g_color_idx);
+        if (c != g_color_idx) { g_color_idx = c; g_mem_dirty = true; }
+        halo_colour();
+        battery::user_action();
+        break;
+    }
+    case A_CHANNEL:
+        if (!LX_HAS_COLOR) break;
+        if (g_turbo) { g_turbo = false; g_level = g_before_turbo; }
+        g_ramping = false;
+        g_mode_holding = false;
+        if (g_color) g_color_level = g_level;
+        g_color = !g_color;
+        g_color_idx = color::valid(g_color_idx);
+        if (g_color) halo_colour();
+        battery::user_action();
+        break;
     case A_FACTORY_RESET:
         params::reset_defaults(true);              // keeps BAT_CAL and THM_OFFSET
         storage::save_params();
@@ -448,6 +508,8 @@ void init(const Memory& m) {
     if (g_locked) g_state = S_LOCK;
     g_fb_count = 0;
     g_flash_ms = 0;
+    g_color_idx = m.color < color::C_COUNT ? m.color : 0;
+    g_color_level = 0;
 }
 
 uint8_t layout() {
@@ -458,19 +520,37 @@ uint8_t layout() {
     }
 }
 
+bool action_available(uint8_t action) {
+    switch (action) {
+    case A_SIDE_ON:
+    case A_SIDE_NEXT: return LX_HAS_SIDE != 0;
+    case A_COLOR_ON:
+    case A_COLOR_NEXT:
+    case A_CHANNEL: return LX_HAS_COLOR != 0;
+    default: return true;
+    }
+}
+
 void handle(const Event& e) {
     if (e.type == EV_NONE) return;
     uint8_t ev_exact = EVB(e.type, e.count);
     uint8_t ev_any = EVB(e.type, 0);
     uint8_t lay = layout();
-    for (uint8_t i = 0; i < LX_ARRAY_LEN(k_bindings); i++) {
-        uint8_t layouts = lx_flash_u8(&k_bindings[i].layouts);
-        uint8_t st = lx_flash_u8(&k_bindings[i].state);
-        uint8_t ev = lx_flash_u8(&k_bindings[i].event);
-        if (!(layouts & lay) || st != g_state) continue;
-        if (ev != ev_exact && ev != ev_any) continue;
-        run_action(lx_flash_u8(&k_bindings[i].action), lx_flash_u8(&k_bindings[i].arg), e);
-        return;
+    // With the colour beam on, its own lines come first; the rest falls through to S_ON.
+    bool overlay = g_state == S_ON && g_color;
+    for (uint8_t pass = overlay ? 0 : 1; pass < 2; pass++) {
+        uint8_t want = pass == 0 ? (uint8_t)S_COLOR : (uint8_t)g_state;
+        for (uint8_t i = 0; i < LX_ARRAY_LEN(k_bindings); i++) {
+            uint8_t layouts = lx_flash_u8(&k_bindings[i].layouts);
+            uint8_t st = lx_flash_u8(&k_bindings[i].state);
+            uint8_t ev = lx_flash_u8(&k_bindings[i].event);
+            uint8_t act = lx_flash_u8(&k_bindings[i].action);
+            if (!(layouts & lay) || st != want) continue;
+            if (ev != ev_exact && ev != ev_any) continue;
+            if (!action_available(act)) continue;      // e.g. 5 clicks: side light or colour beam
+            run_action(act, lx_flash_u8(&k_bindings[i].arg), e);
+            return;
+        }
     }
 }
 
@@ -509,6 +589,16 @@ bool remote_level(uint8_t lvl) {
     if (lvl == 0) { remote_off(); return true; }
     if (battery::empty() || thermal::shutdown()) return false;
     go_on(lvl);
+    return true;
+}
+
+bool remote_color(uint8_t lvl, int colour) {
+    if (!LX_HAS_COLOR || g_locked || lvl > LEVEL_MAX || colour >= color::C_COUNT) return false;
+    if (lvl == 0) { remote_off(); return true; }
+    if (battery::empty() || thermal::shutdown()) return false;
+    go_on(lvl);
+    g_color = true;
+    g_color_idx = colour >= 0 ? (uint8_t)colour : color::valid(g_color_idx);
     return true;
 }
 
@@ -588,6 +678,10 @@ uint8_t side_uv() {
     return pct_to_duty(p(P_SIDE_UV));
 }
 
+bool color_active() { return LX_HAS_COLOR && g_state == S_ON && g_color; }
+uint8_t color_index() { return g_color_idx < color::C_COUNT ? g_color_idx : 0; }
+void color_ma(uint8_t level, uint16_t ma[3]) { color::currents_ma(level, top_level(), color_index(), ma); }
+
 bool busy() {
     return g_state == S_ON || g_state == S_BLINKY || g_state == S_LASER || g_state == S_MOMENT ||
            g_state == S_SIDE || g_fb_count != 0 || g_flash_ms != 0;
@@ -597,6 +691,7 @@ Memory memory() {
     Memory m;
     m.level = g_mem;
     m.locked = g_locked ? 1 : 0;
+    m.color = g_color_idx;
     return m;
 }
 bool memory_dirty() { return g_mem_dirty; }
@@ -616,6 +711,7 @@ const char* state_name(uint8_t st) {
     case S_LASER: return "laser";
     case S_MOMENT: return "momentary";
     case S_SIDE: return "side light";
+    case S_COLOR: return "colour beam";
     default: return "?";
     }
 }
@@ -648,6 +744,9 @@ const char* action_text(uint8_t action, uint8_t arg) {
     case A_FACTORY_RESET: return "factory reset: all parameters back to their defaults except the calibration (5 blinks)";
     case A_SIDE_ON: return "side light on (boards with red and UV side LEDs): the colour used last, red at first (SIDE_RED, SIDE_UV)";
     case A_SIDE_NEXT: return "switch the side light between red and UV (UV only if SIDE_UV > 0)";
+    case A_COLOR_ON: return "colour beam on (boards with a colour beam and no side lights): the colour and brightness used last";
+    case A_COLOR_NEXT: return "next colour: the colours chosen in COLOR_SET (red, green, blue, ..., the custom colour COL_R / COL_G / COL_B); the indicator shows the new colour for 1 s";
+    case A_CHANNEL: return "switch between the white beam and the colour beam at the same brightness (boards with a colour beam)";
     default: return "";
     }
 }

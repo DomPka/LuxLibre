@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // gen_docs - writes docs/firmware/parameters.md and docs/firmware/user-interface.md from
-// the same tables the firmware runs (parameter list, button bindings, level mapping).
-//   build/gen_docs <output directory>
+// the same tables the firmware runs (parameter list, button bindings, level mapping), and
+// parameters.json (names, ranges, units, meanings) for the settings web page.
+//   build/gen_docs <docs directory> [<web page directory>]
 #include <cmath>
 #include <cstdio>
 #include <string>
@@ -89,6 +90,34 @@ void write_parameters(const std::string& dir) {
     std::printf("wrote %s\n", path.c_str());
 }
 
+std::string json_escape(const std::string& in) {
+    std::string s;
+    for (char c : in) {
+        if (c == '"' || c == '\\') { s += '\\'; s += c; }
+        else if ((unsigned char)c < 0x20) s += ' ';
+        else s += c;
+    }
+    return s;
+}
+
+void write_params_json(const std::string& dir) {
+    std::string path = dir + "/parameters.json";
+    FILE* f = std::fopen(path.c_str(), "w");
+    if (!f) { std::perror(path.c_str()); return; }
+    std::fprintf(f, "{\n  \"generated_by\": \"firmware/tools/gen_docs.cpp from core/lx_params_list.h - do not edit\",\n");
+    std::fprintf(f, "  \"firmware\": \"%s\",\n  \"parameters\": [\n", LX_FW_VERSION);
+    size_t n = sizeof(k_docs) / sizeof(k_docs[0]);
+    for (size_t i = 0; i < n; i++) {
+        const ParamDoc& d = k_docs[i];
+        std::fprintf(f, "    {\"name\": \"%s\", \"min\": %ld, \"max\": %ld, \"unit\": \"%s\", \"desc\": \"%s\"}%s\n",
+                     d.name, d.mn, d.mx, json_escape(unit_text(d.unit)).c_str(), json_escape(d.desc).c_str(),
+                     i + 1 < n ? "," : "");
+    }
+    std::fprintf(f, "  ]\n}\n");
+    std::fclose(f);
+    std::printf("wrote %s\n", path.c_str());
+}
+
 void write_ui(const std::string& dir) {
     std::string path = dir + "/user-interface.md";
     FILE* f = std::fopen(path.c_str(), "w");
@@ -98,6 +127,11 @@ void write_ui(const std::string& dir) {
     std::fprintf(f, "*Click* = press shorter than `CLICK_MS` (400 ms). Clicks belong to one gesture while the pause "
                     "between them is shorter than `CLICK_MS`. *Hold* = press longer than `CLICK_MS`. "
                     "The layout is chosen with the parameter `UI_STYLE`.\n\n");
+    std::fprintf(f, "Lines marked for boards with certain hardware (side lights, a colour beam) do nothing on other "
+                    "boards. *Colour beam* means the light is on with the colour beam instead of the white one: "
+                    "its own lines come first, and every other gesture works as in *on* (hold changes the "
+                    "brightness, 3 clicks give the battery check). The level that holding the button reaches at the "
+                    "top (`RAMP_CEIL`, or the highest mode) gives the colour LEDs their full current.\n\n");
     const char* names[3] = {"Ramp layout (UI_STYLE = 0, default)", "Modes layout (UI_STYLE = 1)",
                             "Simple layout (UI_STYLE = 2)"};
     const uint8_t masks[3] = {ui::L_RAMP, ui::L_MODES, ui::L_SIMPLE};
@@ -146,5 +180,6 @@ int main(int argc, char** argv) {
     std::string dir = argc > 1 ? argv[1] : ".";
     write_parameters(dir);
     write_ui(dir);
+    if (argc > 2) write_params_json(argv[2]);
     return 0;
 }

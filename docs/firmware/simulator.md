@@ -113,6 +113,8 @@ the optic factor are optional; whatever the header does not describe keeps the k
 | `LX_SIM_OCV_V` | optional: the cell's own open-circuit curve, 13 values in V at 0, 3, 5, 10, 20, 30 ... 100 % (default: the built-in NMC curve) |
 | `LX_SIM_DROP_MOHM` | optional: resistance from the battery (under load) to the LED when the driver runs at 100 % duty, mΩ; the LED current is then at most (V - Vf0) / (Rs + this), so the light dims as the cell sags (default: not modelled) |
 | `LX_LED_LM_MA`, `LX_LED_LM` | flux table of the LED: currents in mA and lumens at the LED (the datasheet's rating temperature), same number of points |
+| `LX_SIM_COLOR_VF0_MV`, `LX_SIM_COLOR_RS_MOHM`, `LX_SIM_COLOR_LM` | colour beam (`LX_HAS_COLOR`): for red, green and blue, the voltage model V = VF0 + RS × I and the lumens at the LED at `LX_COLOR_MAX_MA`; the model gives 15 % more lumens per amp at low current. The sinks are linear: all the power the cell gives them is heat in the head, less the light |
+| `LX_SIM_COLOR_DROP_MOHM` | colour beam: sense resistor and FET of a sink; a colour LED gets at most (V - VF0) / (RS + this) (default 150 mΩ) |
 | `LX_OPTIC_PCT` | part of the light that leaves the front (optic, window), in % |
 
 The FlashKa Keychain v0.7 header

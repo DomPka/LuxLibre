@@ -2,7 +2,9 @@
 // LuxLibre firmware - HAL for the ESP32-C3 with ESP-IDF 5.x (boards: FlashKa Keychain v0.5, v0.6).
 //
 // Resources: LEDC 13-bit 9.77 kHz (LED current set point + 3 RGB channels, active low, + 2 side-light
-// channels on boards with LX_HAS_SIDE),
+// channels on boards with LX_HAS_SIDE), an MCP4728 4-channel 12-bit I2C DAC for the set points of the
+// three colour-LED current sinks on boards with LX_HAS_COLOR (the chip has no pins left for three
+// more PWM set points),
 // ADC1 oneshot with curve-fitting calibration (VBAT / 2 on GPIO0, NTC on GPIO1), light sleep
 // with GPIO wake-up (button) and timer wake-up, NVS blob for the settings, USB-Serial-JTAG
 // for the text console, task watchdog 3 s.
@@ -42,6 +44,16 @@
 #include "../../../core/lx_thermal.h"
 #include "../../../hal/lx_hal.h"
 #include "../../../hal/lx_ntc.h"
+
+#if LX_HAS_COLOR
+#include "driver/i2c_master.h"
+#if !defined(LX_ESP_GPIO_I2C_SDA) || !defined(LX_ESP_GPIO_I2C_SCL)
+#error "board.h: the colour beam needs LX_ESP_GPIO_I2C_SDA and LX_ESP_GPIO_I2C_SCL (MCP4728 DAC)"
+#endif
+#ifndef LX_ESP_COLOR_DAC_ADDR
+#define LX_ESP_COLOR_DAC_ADDR 0x60   // MCP4728 with address bits 000
+#endif
+#endif
 
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 2, 0)
 #define LX_ADC_ATTEN ADC_ATTEN_DB_12
@@ -104,6 +116,30 @@ nvs_handle_t g_nvs = 0;
 uint8_t g_store[LX_STORAGE_SIZE];
 TickType_t g_last_wake = 0;
 bool g_console = false;
+
+#if LX_HAS_COLOR
+// Colour beam: MCP4728 channels A, B, C = red, green, blue set points (12 bit, VDD reference: code
+// 4095 = LX_COLOR_FULL_MA); channel D is not used. A channel at 0 is powered down with its
+// output pulled to ground through 1 kOhm, so the sink is firmly off; all four powered down, the
+// chip takes well under 1 uA. Only changed codes are sent (no I2C traffic in a steady state).
+i2c_master_bus_handle_t g_i2c = nullptr;
+i2c_master_dev_handle_t g_dac = nullptr;
+uint16_t g_dac_code[3] = {0xFFFF, 0xFFFF, 0xFFFF};
+
+void dac_write(const uint16_t code[3]) {
+    if (!g_dac) return;
+    uint8_t b[8];
+    for (int c = 0; c < 4; c++) {
+        uint16_t v = c < 3 ? code[c] : 0;
+        uint8_t pd = v ? 0 : 1;                  // fast write: 0 0 PD1 PD0 D11..D8, D7..D0
+        b[2 * c] = (uint8_t)((pd << 4) | ((v >> 8) & 0x0F));
+        b[2 * c + 1] = (uint8_t)(v & 0xFF);
+    }
+    if (i2c_master_transmit(g_dac, b, sizeof b, 10) == ESP_OK) {
+        for (int c = 0; c < 3; c++) g_dac_code[c] = code[c];
+    }
+}
+#endif
 
 // charger: CHG_SET low = charge (~300 mA; v0.7: ~500 mA), high = off, floating = 10 mA trickle.
 // The FlashKa has no VBUS sense pin: while charging is off, CHG_SET is floated for one 100 ms
@@ -261,6 +297,29 @@ void init() {
 #if LX_HAS_SIDE
     ledc_ch(CH_SIDE_RED, LX_ESP_GPIO_SIDE_RED, LX_ESP_SIDE_RED_ACTIVE_LOW);
     ledc_ch(CH_SIDE_UV, LX_ESP_GPIO_SIDE_UV, LX_ESP_SIDE_UV_ACTIVE_LOW);
+#endif
+#if LX_HAS_COLOR
+    // 3b. colour-LED set points: I2C bus and the DAC, all channels to 0 (powered down)
+    {
+        i2c_master_bus_config_t bc;
+        memset(&bc, 0, sizeof bc);
+        bc.i2c_port = I2C_NUM_0;
+        bc.sda_io_num = (gpio_num_t)LX_ESP_GPIO_I2C_SDA;
+        bc.scl_io_num = (gpio_num_t)LX_ESP_GPIO_I2C_SCL;
+        bc.clk_source = I2C_CLK_SRC_DEFAULT;
+        bc.glitch_ignore_cnt = 7;
+        bc.flags.enable_internal_pullup = 0;     // 10 k pull-ups on the board
+        if (i2c_new_master_bus(&bc, &g_i2c) == ESP_OK) {
+            i2c_device_config_t dc;
+            memset(&dc, 0, sizeof dc);
+            dc.dev_addr_length = I2C_ADDR_BIT_LEN_7;
+            dc.device_address = LX_ESP_COLOR_DAC_ADDR;
+            dc.scl_speed_hz = 400000;
+            if (i2c_master_bus_add_device(g_i2c, &dc, &g_dac) != ESP_OK) g_dac = nullptr;
+        }
+        const uint16_t zero[3] = {0, 0, 0};
+        dac_write(zero);
+    }
 #endif
     // 4. ADC
     adc_oneshot_unit_init_cfg_t u;
@@ -487,6 +546,22 @@ void set_side(uint8_t red, uint8_t uv) {
 }
 #else
 void set_side(uint8_t, uint8_t) {}
+#endif
+
+#if LX_HAS_COLOR
+void set_color(uint16_t red_ma, uint16_t green_ma, uint16_t blue_ma) {
+    const uint16_t ma[3] = {red_ma, green_ma, blue_ma};
+    uint16_t code[3];
+    for (int c = 0; c < 3; c++) {
+        uint32_t m = ma[c] > LX_COLOR_MAX_MA ? LX_COLOR_MAX_MA : ma[c];
+        uint32_t v = (m * 4095u + LX_COLOR_FULL_MA / 2) / LX_COLOR_FULL_MA;
+        if (m && !v) v = 1;
+        code[c] = (uint16_t)v;
+    }
+    if (code[0] != g_dac_code[0] || code[1] != g_dac_code[1] || code[2] != g_dac_code[2]) dac_write(code);
+}
+#else
+void set_color(uint16_t, uint16_t, uint16_t) {}
 #endif
 
 void set_charge(bool enable, bool allowed) {

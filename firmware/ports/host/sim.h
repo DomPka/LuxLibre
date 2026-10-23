@@ -56,6 +56,15 @@ struct Config {
     // side lights (boards with LX_HAS_SIDE): electrical power at full duty, W
     double side_red_w = 0.05;
     double side_uv_w = 0.5;
+    // colour beam (boards with LX_HAS_COLOR): red, green, blue LEDs on linear current sinks fed
+    // straight from the cell. V = vf0 + rs x I per LED; a sink cannot give more than
+    // (V_cell - vf0) / (rs + drop). Flux: color_lm lumens at color_max_a (at the LED), with 15 %
+    // more lumens per amp at low current (board header LX_SIM_COLOR_...)
+    double color_max_a = 1.0;
+    double color_vf0[3] = {2.0, 2.7, 2.7};
+    double color_rs[3] = {0.3, 0.3, 0.3};
+    double color_lm[3] = {100.0, 250.0, 40.0};
+    double color_drop_ohm = 0.15;
     // electronics (MCU, regulator, op-amp) while awake, A; asleep it is 0.3 mA (board header LX_SIM_MCU_UA)
     double mcu_awake_a = 0.0003;
     bool keep_storage = false;      // keep the emulated EEPROM from the previous run
@@ -96,6 +105,9 @@ double t_sensor();
 double v_pack();
 double soc();
 bool laser();
+double color_a(int c);              // current of colour LED c (0 = red, 1 = green, 2 = blue), A
+double color_lumens();              // light of the three colour LEDs (included in lumens())
+uint16_t color_req_ma(int c);       // colour current requested by the firmware, mA
 uint8_t side_red();                 // side light duty written by the firmware (0-255)
 uint8_t side_uv();
 uint8_t aux_r();

@@ -46,6 +46,8 @@ std::vector<Sample> g_log;
 uint16_t g_power = 0;
 bool g_laser = false;
 uint8_t g_side_red = 0, g_side_uv = 0;
+uint16_t g_col_req[3] = {0, 0, 0};   // colour LED currents set by the firmware, mA
+double g_i_col[3] = {0, 0, 0};       // what the sinks deliver, A
 bool g_charge_en = false;
 uint8_t g_r = 0, g_g = 0, g_b = 0;
 
@@ -83,6 +85,24 @@ void apply_events() {
     }
 }
 
+// Colour LED currents at a cell voltage v (linear sinks: limited by the headroom); returns the sum.
+double color_currents(double v) {
+    double sum = 0.0;
+    for (int c = 0; c < 3; c++) {
+        double req = g_col_req[c] / 1000.0;
+        double room = (v - g_cfg.color_vf0[c]) / (g_cfg.color_rs[c] + g_cfg.color_drop_ohm);
+        g_i_col[c] = req > 0 ? std::min(req, std::max(0.0, room)) : 0.0;
+        sum += g_i_col[c];
+    }
+    return sum;
+}
+
+double color_led_power() {
+    double p = 0.0;
+    for (int c = 0; c < 3; c++) p += (g_cfg.color_vf0[c] + g_cfg.color_rs[c] * g_i_col[c]) * g_i_col[c];
+    return p;
+}
+
 void physics(double dt) {
     // LED and driver
     double frac = g_power / 65535.0;
@@ -100,7 +120,7 @@ void physics(double dt) {
     double i_bat = 0.0;
     if (g_cfg.drop_ohm <= 0.0) {
         for (int k = 0; k < 3; k++) {   // terminal voltage depends on the current
-            i_bat = (p_in + p_laser) / std::max(v, 1.0) + i_mcu;
+            i_bat = (p_in + p_laser) / std::max(v, 1.0) + i_mcu + color_currents(v);
             v = ocv - i_bat * g_cfg.r_int_ohm;
         }
     } else {
@@ -113,7 +133,7 @@ void physics(double dt) {
             p_led = v_led * g_i_led;
             double i_led_in = g_cfg.efficiency > 0 ? std::min(p_led / g_cfg.efficiency / std::max(v, 1.0), g_i_led) : 0.0;
             p_in = i_led_in * std::max(v, 1.0);
-            i_bat = i_led_in + p_laser / std::max(v, 1.0) + i_mcu;
+            i_bat = i_led_in + p_laser / std::max(v, 1.0) + i_mcu + color_currents(v);
             v = ocv - i_bat * g_cfg.r_int_ohm;
         }
     }
@@ -124,7 +144,10 @@ void physics(double dt) {
     g_soc -= g_i_bat * dt / (g_cfg.capacity_mah * 3.6);
     g_soc = std::min(1.0, std::max(0.0, g_soc));
     // thermal: heat in the head, conduction to the body, body to the air
-    double heat = p_in - g_cfg.light_fraction * p_led + p_laser * 0.8;
+    // colour sinks: everything the cell gives them is heat in the head, less the light
+    double i_col = g_i_col[0] + g_i_col[1] + g_i_col[2];
+    double heat = p_in - g_cfg.light_fraction * p_led + p_laser * 0.8 +
+                  v * i_col - g_cfg.light_fraction * color_led_power();
     double q_hb = (g_th - g_tb) / g_cfg.r_head_body;
     double q_ba = (g_tb - g_cfg.ambient_c) / g_cfg.r_body_amb;
     g_th += (heat - q_hb) * dt / g_cfg.c_head;
@@ -169,6 +192,9 @@ Config keychain_preset() {
     c.efficiency = LX_DRIVER_EFF_PCT / 100.0;
 #endif
     c.cells = LX_BAT_CELLS;
+#if LX_HAS_COLOR
+    c.color_max_a = LX_COLOR_MAX_MA / 1000.0;
+#endif
     c.sensor_noise_c = 0.2;         // NTC on a 12-bit ADC: a few counts of noise
     return c;
 }
@@ -218,6 +244,23 @@ Config board_preset() {
 #ifdef LX_SIM_MCU_UA
     c.mcu_awake_a = LX_SIM_MCU_UA / 1e6;
 #endif
+#ifdef LX_SIM_COLOR_VF0_MV
+    {
+        static const int vf[] = {LX_SIM_COLOR_VF0_MV};
+        static const int rs[] = {LX_SIM_COLOR_RS_MOHM};
+        static const int lm[] = {LX_SIM_COLOR_LM};
+        static_assert(sizeof(vf) / sizeof(vf[0]) == 3 && sizeof(rs) / sizeof(rs[0]) == 3 && sizeof(lm) / sizeof(lm[0]) == 3,
+                      "LX_SIM_COLOR_VF0_MV, LX_SIM_COLOR_RS_MOHM and LX_SIM_COLOR_LM need 3 values (red, green, blue)");
+        for (int k = 0; k < 3; k++) {
+            c.color_vf0[k] = vf[k] / 1000.0;
+            c.color_rs[k] = rs[k] / 1000.0;
+            c.color_lm[k] = lm[k];
+        }
+    }
+#endif
+#ifdef LX_SIM_COLOR_DROP_MOHM
+    c.color_drop_ohm = LX_SIM_COLOR_DROP_MOHM / 1000.0;
+#endif
 #ifdef LX_SIM_SIDE_RED_MW
     c.side_red_w = LX_SIM_SIDE_RED_MW / 1000.0;
 #endif
@@ -266,6 +309,7 @@ void reset(const Config& c) {
     g_power = 0;
     g_laser = false;
     g_side_red = g_side_uv = 0;
+    for (int k = 0; k < 3; k++) { g_col_req[k] = 0; g_i_col[k] = 0.0; }
     g_charge_en = false;
     g_r = g_g = g_b = 0;
     g_log.clear();
@@ -324,7 +368,18 @@ void run_script(uint32_t extra_ms) {
 uint32_t now() { return g_now; }
 uint8_t level() { return lx::light::output_level(); }
 double led_a() { return g_i_led; }
-double lumens() {
+double color_lumens() {
+    double lm = 0.0;
+    for (int c = 0; c < 3; c++) {
+        double x = g_cfg.color_max_a > 0 ? g_i_col[c] / g_cfg.color_max_a : 0.0;
+        if (x > 0) lm += g_cfg.color_lm[c] * x * (1.15 - 0.15 * x);
+    }
+    return lm;
+}
+double color_a(int c) { return c >= 0 && c < 3 ? g_i_col[c] : 0.0; }
+uint16_t color_req_ma(int c) { return c >= 0 && c < 3 ? g_col_req[c] : 0; }
+
+double white_lumens() {
     double i = g_i_led;
     const std::vector<double>& ta = g_cfg.lm_table_a;
     const std::vector<double>& tl = g_cfg.lm_table_lm;
@@ -338,6 +393,7 @@ double lumens() {
     double lm = i * g_cfg.lm_per_a * (1.0 - g_cfg.droop_per_a * i) * (1.0 - 0.003 * (g_th - 25.0));
     return lm > 0 ? lm : 0.0;
 }
+double lumens() { return white_lumens() + color_lumens(); }
 double lumens_front() { return lumens() * g_cfg.optic; }
 double t_head() { return g_th; }
 double t_body() { return g_tb; }
@@ -382,6 +438,7 @@ namespace hal {
 void init() {
     sim::g_power = 0;
     sim::g_laser = false;
+    for (int k = 0; k < 3; k++) sim::g_col_req[k] = 0;
     sim::g_side_red = sim::g_side_uv = 0;
     sim::g_r = sim::g_g = sim::g_b = 0;
 }
@@ -436,6 +493,17 @@ void set_side(uint8_t red, uint8_t uv) {
 #else
     (void)red;
     (void)uv;
+#endif
+}
+void set_color(uint16_t red_ma, uint16_t green_ma, uint16_t blue_ma) {
+#if LX_HAS_COLOR
+    sim::g_col_req[0] = std::min<uint16_t>(red_ma, LX_COLOR_FULL_MA);
+    sim::g_col_req[1] = std::min<uint16_t>(green_ma, LX_COLOR_FULL_MA);
+    sim::g_col_req[2] = std::min<uint16_t>(blue_ma, LX_COLOR_FULL_MA);
+#else
+    (void)red_ma;
+    (void)green_ma;
+    (void)blue_ma;
 #endif
 }
 void set_charge(bool enable, bool allowed) { (void)allowed; sim::g_charge_en = enable; }

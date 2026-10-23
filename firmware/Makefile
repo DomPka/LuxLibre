@@ -3,14 +3,14 @@
 #
 #   make test                         unit + behaviour tests on the PC (needs g++)
 #   make sim [BOARD=<board>]          the PC simulator (build/luxsim, or build/luxsim-<board>)
-#   make docs                         regenerate docs/firmware/parameters.md and user-interface.md
+#   make docs                         regenerate docs/firmware/*.md and site/luxlibre/parameters.json
 #   make tiny1616 BOARD=<board>       ATtiny1616 firmware (needs avr-gcc), e.g. example-tiny1616-pwm
 #   make ch32v003 BOARD=<board>       CH32V003 firmware (needs riscv64-unknown-elf-gcc)
 #   ESP32-C3: see ports/esp32c3/README.md (ESP-IDF, idf.py build)
 
 CORE_SRC := core/lx_params.cpp core/lx_ramp.cpp core/lx_input.cpp core/lx_thermal.cpp \
             core/lx_battery.cpp core/lx_aux.cpp core/lx_storage.cpp core/lx_ui.cpp \
-            core/lx_console.cpp core/lx_light.cpp
+            core/lx_console.cpp core/lx_light.cpp core/lx_color.cpp
 BUILD := build
 
 # ---------------------------------------------------------------- PC (host)
@@ -33,10 +33,14 @@ $(BUILD)/test_sim: tests/test_sim.cpp $(CORE_SRC) ports/host/sim.cpp | $(BUILD)
 $(BUILD)/test_basic: tests/test_basic.cpp $(CORE_SRC) ports/host/sim.cpp | $(BUILD)
 	$(HOST_CXX) $(HOST_FLAGS) -Iboards/host-sim-basic -Icore -o $@ tests/test_basic.cpp $(CORE_SRC) ports/host/sim.cpp
 
-test: $(BUILD)/test_units $(BUILD)/test_sim $(BUILD)/test_basic
+$(BUILD)/test_color: tests/test_color.cpp $(CORE_SRC) ports/host/sim.cpp | $(BUILD)
+	$(HOST_CXX) $(HOST_FLAGS) -Iboards/host-sim-color -Icore -o $@ tests/test_color.cpp $(CORE_SRC) ports/host/sim.cpp
+
+test: $(BUILD)/test_units $(BUILD)/test_sim $(BUILD)/test_basic $(BUILD)/test_color
 	./$(BUILD)/test_units
 	./$(BUILD)/test_sim
 	./$(BUILD)/test_basic
+	./$(BUILD)/test_color
 
 # make sim                 -> build/luxsim with the full-featured host-sim board
 # make sim BOARD=<board>   -> build/luxsim-<board>: the simulator with a real board header
@@ -52,7 +56,8 @@ $(BUILD)/gen_docs: tools/gen_docs.cpp $(CORE_SRC) ports/host/sim.cpp | $(BUILD)
 	$(HOST_CXX) $(HOST_FLAGS) -Iboards/host-sim -Icore -o $@ tools/gen_docs.cpp $(CORE_SRC) ports/host/sim.cpp
 
 docs: $(BUILD)/gen_docs
-	./$(BUILD)/gen_docs ../docs/firmware
+	mkdir -p ../site/luxlibre
+	./$(BUILD)/gen_docs ../docs/firmware ../site/luxlibre
 
 clean:
 	rm -rf $(BUILD)

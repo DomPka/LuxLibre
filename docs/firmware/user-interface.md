@@ -4,6 +4,8 @@
 
 *Click* = press shorter than `CLICK_MS` (400 ms). Clicks belong to one gesture while the pause between them is shorter than `CLICK_MS`. *Hold* = press longer than `CLICK_MS`. The layout is chosen with the parameter `UI_STYLE`.
 
+Lines marked for boards with certain hardware (side lights, a colour beam) do nothing on other boards. *Colour beam* means the light is on with the colour beam instead of the white one: its own lines come first, and every other gesture works as in *on* (hold changes the brightness, 3 clicks give the battery check). The level that holding the button reaches at the top (`RAMP_CEIL`, or the highest mode) gives the colour LEDs their full current.
+
 ## Ramp layout (UI_STYLE = 0, default)
 
 | Light is | Gesture | Action |
@@ -15,12 +17,15 @@
 | off | 3 clicks | battery check: volts per cell as blinks (3.8 V = 3 blinks, pause, 8 blinks), repeats |
 | off | 4 clicks | lockout on (3 blinks) |
 | off | 5 clicks | side light on (boards with red and UV side LEDs): the colour used last, red at first (SIDE_RED, SIDE_UV) |
+| off | 5 clicks | colour beam on (boards with a colour beam and no side lights): the colour and brightness used last |
 | off | 9 clicks | factory reset: all parameters back to their defaults except the calibration (5 blinks) |
 | on | 1 click | switch off |
 | on | hold | ramp up while held (down if already at the ceiling) |
 | on | 1 click, then hold | ramp down while held |
 | on | 2 clicks | turbo on; again: back to the previous level |
 | on | 3 clicks | battery check: volts per cell as blinks (3.8 V = 3 blinks, pause, 8 blinks), repeats |
+| on | 4 clicks | switch between the white beam and the colour beam at the same brightness (boards with a colour beam) |
+| colour beam | 2 clicks | next colour: the colours chosen in COLOR_SET (red, green, blue, ..., the custom colour COL_R / COL_G / COL_B); the indicator shows the new colour for 1 s |
 | lockout | 4 clicks | lockout off |
 | lockout | any click(s) | short indicator flash, nothing else |
 | lockout | hold | moon while held (if LOCK_MOON = 1) |
@@ -40,11 +45,14 @@
 | off | 3 clicks | battery check: volts per cell as blinks (3.8 V = 3 blinks, pause, 8 blinks), repeats |
 | off | 4 clicks | lockout on (3 blinks) |
 | off | 5 clicks | side light on (boards with red and UV side LEDs): the colour used last, red at first (SIDE_RED, SIDE_UV) |
+| off | 5 clicks | colour beam on (boards with a colour beam and no side lights): the colour and brightness used last |
 | off | 9 clicks | factory reset: all parameters back to their defaults except the calibration (5 blinks) |
 | on | 1 click | switch off |
 | on | hold | next mode, repeating every MODE_MS while held (moon/turbo -> mode 1) |
 | on | 2 clicks | turbo on; again: back to the previous level |
 | on | 3 clicks | battery check: volts per cell as blinks (3.8 V = 3 blinks, pause, 8 blinks), repeats |
+| on | 4 clicks | switch between the white beam and the colour beam at the same brightness (boards with a colour beam) |
+| colour beam | 2 clicks | next colour: the colours chosen in COLOR_SET (red, green, blue, ..., the custom colour COL_R / COL_G / COL_B); the indicator shows the new colour for 1 s |
 | lockout | 4 clicks | lockout off |
 | lockout | any click(s) | short indicator flash, nothing else |
 | lockout | hold | moon while held (if LOCK_MOON = 1) |
@@ -64,10 +72,13 @@
 | off | 3 clicks | battery check: volts per cell as blinks (3.8 V = 3 blinks, pause, 8 blinks), repeats |
 | off | 4 clicks | lockout on (3 blinks) |
 | off | 5 clicks | side light on (boards with red and UV side LEDs): the colour used last, red at first (SIDE_RED, SIDE_UV) |
+| off | 5 clicks | colour beam on (boards with a colour beam and no side lights): the colour and brightness used last |
 | off | 9 clicks | factory reset: all parameters back to their defaults except the calibration (5 blinks) |
 | on | 1 click | switch off |
 | on | hold | next mode, repeating every MODE_MS while held (moon/turbo -> mode 1) |
 | on | 3 clicks | battery check: volts per cell as blinks (3.8 V = 3 blinks, pause, 8 blinks), repeats |
+| on | 4 clicks | switch between the white beam and the colour beam at the same brightness (boards with a colour beam) |
+| colour beam | 2 clicks | next colour: the colours chosen in COLOR_SET (red, green, blue, ..., the custom colour COL_R / COL_G / COL_B); the indicator shows the new colour for 1 s |
 | lockout | 4 clicks | lockout off |
 | lockout | any click(s) | short indicator flash, nothing else |
 | lockout | hold | moon while held (if LOCK_MOON = 1) |

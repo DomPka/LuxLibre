@@ -13,7 +13,10 @@
 namespace lx {
 namespace ui {
 
-enum State : uint8_t { S_OFF, S_ON, S_LOCK, S_BLINKY, S_LASER, S_MOMENT, S_SIDE, S_COUNT };
+// S_COLOR is not a state of its own: its lines in the binding table apply while the light is on
+// with the colour beam (boards with LX_HAS_COLOR), before the S_ON lines; anything they do not
+// cover falls through to S_ON (hold = brightness, 3 clicks = battery check, ...).
+enum State : uint8_t { S_OFF, S_ON, S_LOCK, S_BLINKY, S_LASER, S_MOMENT, S_SIDE, S_COLOR, S_COUNT };
 enum Blinky : uint8_t { B_BATT, B_TEMP, B_BEACON, B_SOS, B_STROBE, B_COUNT };
 
 // Layout masks used in the binding table.
@@ -49,6 +52,9 @@ enum Action : uint8_t {
     A_FACTORY_RESET,   // all parameters back to their defaults (9 clicks from off)
     A_SIDE_ON,         // side light on (boards with side LEDs), in the colour used last
     A_SIDE_NEXT,       // side light: red <-> UV
+    A_COLOR_ON,        // colour beam on (boards with LX_HAS_COLOR), in the colour and level used last
+    A_COLOR_NEXT,      // colour beam: next colour of COLOR_SET
+    A_CHANNEL,         // light on: white beam <-> colour beam, same level
     A_COUNT
 };
 
@@ -64,6 +70,7 @@ struct Binding {
 struct Memory {
     uint8_t level;
     uint8_t locked;
+    uint8_t color;     // colour beam: the colour used last (lx_color.h)
 };
 
 void init(const Memory& m);
@@ -72,6 +79,8 @@ void tick(uint16_t dt_ms);                // timers: blinky sequences, turbo, la
 void force_off();                         // protection switched the light off
 void lock_now();                          // automatic lockout (AUTOLOCK), silent
 bool remote_level(uint8_t level);         // console: set a level (false if not allowed)
+bool remote_color(uint8_t level, int colour = -1);   // console: colour beam at a level, optionally in a given colour
+                                          // (any colour, also one outside COLOR_SET); false if not allowed
 void remote_off();
 
 State state();
@@ -81,6 +90,10 @@ bool instant();                           // true while a blink pattern runs (no
 bool laser();                             // laser requested now
 uint8_t side_red();                       // red side light requested now (0-255)
 uint8_t side_uv();                        // UV side light requested now (0-255)
+bool color_active();                      // the colour beam is on (the main level drives the colour LEDs)
+uint8_t color_index();                    // colour of the colour beam (used last if it is off)
+void color_ma(uint8_t level, uint16_t ma[3]);   // colour LED currents for an output level
+bool action_available(uint8_t action);    // this board has the hardware for the action
 bool busy();                              // something time-based runs: do not sleep
 bool turbo_active();
 bool momentary_from_lock();               // momentary moon started from lockout

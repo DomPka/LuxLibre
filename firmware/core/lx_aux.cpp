@@ -28,6 +28,7 @@ Blink blink_of(Pattern pat) {
     case PAT_TICK: return {1, 30, 30};
     case PAT_BATTERY: return {1, 2000, 0};
     case PAT_RESET: return {5, 100, 100};
+    case PAT_COLOR: return {1, 1000, 0};
     default: return {0, 0, 0};
     }
 }
@@ -62,6 +63,21 @@ void event(Pattern pat, uint8_t battery_percent) {
 #else
     (void)pat;
     (void)battery_percent;
+#endif
+}
+
+void show_color(uint8_t r, uint8_t g, uint8_t b) {
+#if LX_HAS_AUX_RGB
+    if (p(P_AUX_MODE) == 0) return;
+    g_pat = PAT_COLOR;
+    g_t = 0;
+    g_r = r;
+    g_g = g;
+    g_b = b;
+#else
+    (void)r;
+    (void)g;
+    (void)b;
 #endif
 }
 

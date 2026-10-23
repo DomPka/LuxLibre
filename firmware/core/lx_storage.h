@@ -19,7 +19,7 @@ namespace storage {
 struct State {
     uint8_t locked;     // 0/1
     uint8_t mem_level;  // ramp memory, 1 ... 150
-    uint8_t mem_mode;   // modes memory, 0 ... 4
+    uint8_t color;      // colour beam: the colour used last, 0 ... 7 (lx_color.h)
 };
 
 // Load parameters; returns false (and uses defaults) if the block is missing, corrupt or

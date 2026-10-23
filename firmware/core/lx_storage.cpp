@@ -136,14 +136,14 @@ bool load_state(State& s) {
             best_seq = d[0];
             g_slot = i;
             s.locked = d[1] & 1u;
-            s.mem_mode = (uint8_t)(d[1] >> 1);
+            s.color = (uint8_t)(d[1] >> 1);
             s.mem_level = d[2];
         }
     }
     if (found) {
         g_seq = best_seq;
         if (s.mem_level < 1 || s.mem_level > LEVEL_MAX) s.mem_level = (uint8_t)p(P_MEM_LEVEL);
-        if (s.mem_mode > 4) s.mem_mode = 0;
+        if (s.color > 7) s.color = 0;
     }
     return found;
 }
@@ -151,7 +151,7 @@ bool load_state(State& s) {
 bool save_state(const State& s) {
     g_slot = (uint8_t)((g_slot + 1) % SLOTS);
     g_seq++;
-    uint8_t d[SLOT_LEN] = {g_seq, (uint8_t)((s.locked & 1u) | (uint8_t)(s.mem_mode << 1)), s.mem_level, 0};
+    uint8_t d[SLOT_LEN] = {g_seq, (uint8_t)((s.locked & 1u) | (uint8_t)(s.color << 1)), s.mem_level, 0};
     d[3] = crc8(d, 3);
     return hal::storage_write((uint16_t)(RING_ADDR + g_slot * SLOT_LEN), d, SLOT_LEN);
 }

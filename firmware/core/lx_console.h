@@ -11,6 +11,9 @@
 //   save                 store all parameters
 //   defaults             all parameters back to their defaults (RAM; "save" stores)
 //   level N | off        switch the main LED (the button always has priority; never the laser)
+//   color N [NAME]       colour beam at level N (boards with LX_HAS_COLOR; 0 = off), in the colour
+//                        used last or NAME: red green blue yellow cyan magenta white custom;
+//                        "status" then also shows beam=white|colour and color=<name>
 //   reboot
 #pragma once
 

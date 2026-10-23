@@ -33,6 +33,9 @@
 #ifndef LX_HAS_SIDE
 #define LX_HAS_SIDE 0            // side lights: a red and a UV LED shining out of the side
 #endif
+#ifndef LX_HAS_COLOR
+#define LX_HAS_COLOR 0           // colour beam: red, green and blue LEDs next to the white LED(s), same optic
+#endif
 #ifndef LX_HAS_CHARGER
 #define LX_HAS_CHARGER 0         // on-board charger with status signals
 #endif
@@ -65,6 +68,19 @@
 #endif
 #ifndef LX_DRIVER_EFF_PCT
 #define LX_DRIVER_EFF_PCT 90
+#endif
+
+// --- colour beam (LX_HAS_COLOR) ----------------------------------------------------------
+// Three channels (red, green, blue), each a current sink set by the port. The core asks for a
+// current in mA per channel; the port scales it to LX_COLOR_FULL_MA, the current at its full set
+// point. LX_COLOR_MAX_MA is the most any one colour LED may get (its rating, or less for heat).
+// The sinks are linear: the cell supplies the LED current itself, so the cell current is the
+// sum of the three channels (used for BAT_MAX_MA and the charge estimate).
+#ifndef LX_COLOR_FULL_MA
+#define LX_COLOR_FULL_MA 1000
+#endif
+#ifndef LX_COLOR_MAX_MA
+#define LX_COLOR_MAX_MA LX_COLOR_FULL_MA
 #endif
 
 // --- defaults of user parameters (a board may override any of them) -------------------
@@ -165,8 +181,23 @@
 #define LX_DEF_SIDE_UV 100       // % of the UV side light's full output (0 = no UV)
 #endif
 
+#ifndef LX_DEF_COLOR_SET
+#define LX_DEF_COLOR_SET 135     // colours in the two-click cycle: red, green, blue and the custom colour
+#endif
+#ifndef LX_DEF_COL_R
+#define LX_DEF_COL_R 100         // custom colour (COL_R / COL_G / COL_B): amber at first
+#endif
+#ifndef LX_DEF_COL_G
+#define LX_DEF_COL_G 35
+#endif
+#ifndef LX_DEF_COL_B
+#define LX_DEF_COL_B 0
+#endif
+
 static_assert(LX_TICK_MS >= 1 && LX_TICK_MS <= 50, "LX_TICK_MS out of range");
 static_assert(LX_OUT_MIN_Q16 >= 1 && LX_OUT_MIN_Q16 < 32768, "LX_OUT_MIN_Q16 out of range");
 static_assert(LX_STORAGE_SIZE >= 256, "need at least 256 bytes of storage");
 static_assert(LX_DRIVER_EFF_PCT > 0 && LX_DRIVER_EFF_PCT <= 100, "LX_DRIVER_EFF_PCT = LED power / input power x 100");
 static_assert(LX_MAIN_MAX_MA >= 0 && LX_MAIN_MAX_MA <= 60000, "LX_MAIN_MAX_MA out of range");
+static_assert(LX_COLOR_FULL_MA >= 1 && LX_COLOR_FULL_MA <= 10000, "LX_COLOR_FULL_MA out of range");
+static_assert(LX_COLOR_MAX_MA >= 1 && LX_COLOR_MAX_MA <= LX_COLOR_FULL_MA, "LX_COLOR_MAX_MA must not exceed LX_COLOR_FULL_MA");

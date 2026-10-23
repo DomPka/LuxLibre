@@ -26,7 +26,7 @@ jobs:
       - name: Generated docs are up to date
         run: |
           make -C firmware docs
-          git diff --exit-code docs/firmware
+          git diff --exit-code docs/firmware site/luxlibre/parameters.json
       - name: Calculator tests
         run: python3 -m unittest tools/test_lux_calc.py
 

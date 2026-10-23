@@ -123,3 +123,13 @@ LX_PARAM(SIDE_RED, "SIDE_RED", LX_DEF_SIDE_RED, 1, 100, "%",
          "Brightness of the red side light (5 clicks from off)")
 LX_PARAM(SIDE_UV, "SIDE_UV", LX_DEF_SIDE_UV, 0, 100, "%",
          "Brightness of the UV side light; 0 = no UV (two clicks in the side light then do nothing)")
+
+// --- colour beam (boards with LX_HAS_COLOR) ------------------------------------------------
+LX_PARAM(COLOR_SET, "COLOR_SET", LX_DEF_COLOR_SET, 1, 255, "bits",
+         "Colours that two clicks step through in the colour beam: 1 = red, 2 = green, 4 = blue, 8 = yellow, 16 = cyan, 32 = magenta, 64 = white from the three colours, 128 = the custom colour COL_R / COL_G / COL_B (add the numbers)")
+LX_PARAM(COL_R, "COL_R", LX_DEF_COL_R, 0, 100, "%",
+         "Custom colour: share of the red LED (the strongest of the three runs at the full colour brightness)")
+LX_PARAM(COL_G, "COL_G", LX_DEF_COL_G, 0, 100, "%",
+         "Custom colour: share of the green LED")
+LX_PARAM(COL_B, "COL_B", LX_DEF_COL_B, 0, 100, "%",
+         "Custom colour: share of the blue LED (red, green and blue all 0 = red)")

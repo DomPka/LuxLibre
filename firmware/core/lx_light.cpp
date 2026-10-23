@@ -34,8 +34,17 @@ bool g_usb = false;
 bool g_stuck = false;         // button held down while dark for STUCK_MS: input is ignored
 bool g_chg_window = true;     // last result of the charge temperature window
 
-// Estimated cell current for an output level (needs the board's LED model).
+// Estimated cell current for an output level (needs the board's LED model). With the colour
+// beam on, the colour LEDs' linear sinks draw their LED current straight from the cell.
 uint16_t estimate_cell_ma(uint8_t level, uint16_t cell_mv) {
+#if LX_HAS_COLOR
+    if (ui::color_active()) {
+        if (level == 0) return 0;
+        uint16_t ma[3];
+        ui::color_ma(level, ma);
+        return (uint16_t)min_of<uint32_t>((uint32_t)ma[0] + ma[1] + ma[2], 65535u);
+    }
+#endif
 #if LX_MAIN_MAX_MA > 0
     if (level == 0 || cell_mv < 500) return 0;
     uint32_t i_led = (uint32_t)ramp::power_of_level(level) * LX_MAIN_MAX_MA / 65535u;          // mA
@@ -103,6 +112,7 @@ void outputs_off() {
     hal::set_main(0);
     hal::set_laser(false);
     hal::set_side(0, 0);
+    hal::set_color(0, 0, 0);
     hal::set_aux(0, 0, 0);
     g_out = 0;
 }
@@ -113,7 +123,7 @@ void save_if_needed() {
         storage::State s;
         s.locked = m.locked;
         s.mem_level = m.level;
-        s.mem_mode = 0;
+        s.color = m.color;
         if (storage::save_state(s)) ui::memory_saved();
     }
 }
@@ -209,10 +219,12 @@ void init() {
     ui::Memory m;
     m.level = (uint8_t)p(P_MEM_LEVEL);
     m.locked = 0;
+    m.color = 0;
     storage::State s;
     if (storage::load_state(s)) {
         m.level = s.mem_level;
         m.locked = s.locked;
+        m.color = s.color;
     }
     thermal::init();
     battery::init();
@@ -286,7 +298,20 @@ void tick() {
         }
         if (g_out == target) g_smooth_acc = 0;
     }
+    // the white beam, or the same level on the colour LEDs
+#if LX_HAS_COLOR
+    if (ui::color_active()) {
+        uint16_t ma[3];
+        ui::color_ma(g_out, ma);
+        hal::set_main(0);
+        hal::set_color(ma[0], ma[1], ma[2]);
+    } else {
+        hal::set_color(0, 0, 0);
+        hal::set_main(ramp::power_of_level(g_out));
+    }
+#else
     hal::set_main(ramp::power_of_level(g_out));
+#endif
 
     // 4. laser and side lights: the UI decides, protection can still veto
     bool aux_ok = !thermal::shutdown() && !battery::empty();
