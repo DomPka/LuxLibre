@@ -187,8 +187,8 @@ def views(out, finish, only):
         m14 = Model("14", collar_angle=180.0)
         pa = m18c.parts("black", skip=closed_skip(m18c) + ("split_ring",), glow=True, shift=(0, -16.0, 0))
         pb = m14.parts("natural", skip=closed_skip(m14) + ("split_ring",), glow=True, shift=(0, 16.0, 0))
-        labels = [("EDCO-18: 18500, Ø24 x 99 mm", (m18c.p.L / 2, -16.0, 14.0), "T"),
-                  ("EDCO-14: 14500, Ø20 x 96 mm", (m14.p.L / 2, 16.0, 12.0), "T")]
+        labels = [("EDCO-18: 18500, Ø24 x %.1f mm" % m18c.p.L, (0.0, -16.0, 0.0), "T"),
+                  ("EDCO-14: 14500, Ø20 x %.1f mm" % m14.p.L, (0.0, 16.0, 0.0), "T")]
         shoot(pa + pb, "edco_v02_sizes.png", out, direction=(-0.15, 0.25, 1.0), up=(-1.0, 0.0, 0.0), ratio=0.95,
               fill=0.90, view_angle=16.0, glow_radius=2.2, labels=labels)
 

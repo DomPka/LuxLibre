@@ -16,7 +16,7 @@ Front to tail:
     insert      - LED holder: a cup for the optic, the LED board on a 2 mm shelf, a face O-ring on its rear face
                   against the band's front face, a key that stops it turning while the ring is tightened
     collar      - turns freely on the band between the ring and the body shoulder: window down over the port =
-                  open, turned away = closed. A moulded silicone gasket in a groove round the port window on the
+                  open, turned away = closed. A loop of silicone cord in a groove round the port window on the
                   band is wiped and pressed by the collar's bore, so the port is sealed whenever the window is
                   turned away; the space between collar and band may get wet
     body        - the band (thread + collar seat + port window) and the tube with six flats, the button pocket,
@@ -43,12 +43,15 @@ if not os.path.exists(FONT):
     FONT = "/usr/share/fonts/truetype/google-fonts/Poppins-Bold.ttf"
 
 SIZES = {
-    # body, head, bore (cell bay), band = thread major, cell, optic, LED board, flats, button, socket
-    "18": dict(name="EDCO-18", body_od=24.0, head_od=26.0, bore_d=19.4, band_d=22.0, cell_d=18.4, cell_len=50.5,
+    # body, head, bore (cell bay), band = thread major, cell, optic, LED board, flats, button, socket.
+    # Cells: Vapcell INR18500 K15 (18.2 x 50.0 mm, 1500 mAh, 15 A) and Vapcell INR14500 H10 (14.3 x 49.4 mm, 1000 mAh,
+    # 10 A). Optics: Carclo 10003 narrow spot (d20, height with holder 10-13.8 by holder; 11.5 drawn) and LEDiL
+    # FA10888 TINA-RS (d16.1 x 10.9)
+    "18": dict(name="EDCO-18", body_od=24.0, head_od=26.0, bore_d=19.4, band_d=22.0, cell_d=18.2, cell_len=50.0,
                cell_name="18500", opt_d=20.0, opt_h=11.5, mcpcb_d=20.0, flat_r=11.2, cap_d=7.5, btn_cb_d=9.4,
                pocket_floor_r=10.95, ring_wall=2.0),
-    "14": dict(name="EDCO-14", body_od=20.0, head_od=22.0, bore_d=15.2, band_d=18.0, cell_d=14.0, cell_len=49.5,
-               cell_name="14500", opt_d=17.0, opt_h=10.5, mcpcb_d=16.0, flat_r=9.3, cap_d=6.5, btn_cb_d=8.4,
+    "14": dict(name="EDCO-14", body_od=20.0, head_od=22.0, bore_d=15.2, band_d=18.0, cell_d=14.3, cell_len=49.4,
+               cell_name="14500", opt_d=16.1, opt_h=10.9, mcpcb_d=16.0, flat_r=9.3, cap_d=6.5, btn_cb_d=8.4,
                pocket_floor_r=9.05, ring_wall=1.6),
 }
 
@@ -93,11 +96,11 @@ class P:
     collar_wall: float = 1.95
     win_ax: float = 7.2          # port window, along the axis (plug overmould 6.5 + play)
     win_tan: float = 13.2        # port window, across (overmould 12.35 + play)
-    gasket_w: float = 1.3        # port gasket band round the window (groove 0.9 wide, 0.6 deep)
+    gasket_w: float = 1.3        # port gasket band round the window (groove 0.75 wide, 0.6 deep, d0.8 silicone cord)
     sw_h: float = 2.0            # Alps SKRK incl. actuator
     sw_body: tuple = (2.9, 3.9, 1.5)
     board_t: float = 0.8
-    usb_h: float = 6.5           # vertical USB-C socket height above the board (stand-in)
+    usb_h: float = 6.5           # vertical USB-C socket height above the board: SHOU HAN TYPE-C 16PLT-H6.5 (C3151748)
     usb_shell: tuple = (8.94, 3.26)
     usb_body: tuple = (9.6, 4.4)  # across (Y), along (X)
     usb_half_w: float = 4.6       # half width incl. shell for the bore clearance
@@ -265,7 +268,7 @@ def build_body(p, cosmetic=True):
     # port window at -Z: a stadium (long side across) cut from below up to the socket mouth
     body = body.cut(stadium_xy(p.x_win, p.win_ax, p.win_tan, -R - 2, p.z_mouth + 0.2))
     # gasket groove round the port window (follows the band surface: 0.6 deep, 0.9 wide)
-    body = body.cut(port_gasket_ring(p, depth=0.6, proud=1.0, inset=0.2, width=0.9))
+    body = body.cut(port_gasket_ring(p, depth=0.6, proud=1.0, inset=0.2, width=0.75))
     # six flats from the shoulder to the tail grooves
     xf0, xf1 = p.x_sh + 0.6, p.L - 3.0 - p.tail_grooves * 2.0 - 1.0
     for k in range(6):
@@ -423,8 +426,9 @@ def port_gasket_ring(p, depth, proud, inset, width):
 
 
 def build_port_gasket(p):
-    """moulded silicone gasket in the band groove, 0.15 mm proud of the band (pressed by the collar's bore)"""
-    return port_gasket_ring(p, depth=0.58, proud=0.04, inset=0.22, width=0.86)
+    """port gasket: a loop of d0.8 silicone cord bonded into the band groove (0.75 wide, 0.6 deep); it stands about
+    0.2 mm proud and the collar's bore presses it down (drawn pressed)"""
+    return port_gasket_ring(p, depth=0.58, proud=0.04, inset=0.22, width=0.71)
 
 
 def build_sled(p):
