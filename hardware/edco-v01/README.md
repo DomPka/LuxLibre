@@ -1,5 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](../../README.md) › [Lights](../README.md) › EDCO v0.1
+
 # EDCO v0.1
+
+**On this page:** [What EDCO is for](#what-edco-is-for) · [Specifications](#specifications) · [How it is built](#how-it-is-built) · [Light and runtime](#light-and-runtime-simulated) · [Using the light](#using-the-light) · [Electronics](#electronics-what-changes-from-the-v07-board) · [Cost](#cost-rough-estimate) · [Drawings and animations](#drawings-and-animations) · [What has been checked](#what-has-been-checked) · [Open points before the first order](#open-points-before-the-first-order) · [Files](#files)
 
 EDCO is LuxLibre reference design #2: a round, sealed everyday-carry light. The body is a
 Ø20 × 93.5 mm aluminium tube with a closed tail, and it runs on one 14500 Li-ion cell. There is no
@@ -280,3 +284,7 @@ All numbers are in [cad/edco_interface.json](cad/edco_interface.json), written b
 
 Licences as for the rest of LuxLibre: hardware CERN-OHL-W-2.0, firmware and tools
 GPL-3.0-or-later, this page CC-BY-SA-4.0 ([LICENSING.md](../../LICENSING.md)).
+
+---
+
+[← EDCO v0.2](../edco-v02/README.md) · [All lights](../README.md) · [LuxLibre home](../../README.md) · [FlashKa v0.6 →](../flashka-keychain-v06/README.md)

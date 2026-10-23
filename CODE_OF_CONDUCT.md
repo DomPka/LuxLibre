@@ -1,4 +1,6 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](README.md) › Code of conduct
+
 # Code of conduct
 
 LuxLibre is built by people with very different backgrounds: students and engineers,

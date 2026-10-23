@@ -1,4 +1,6 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](README.md) › Safety
+
 # Safety
 
 Flashlights look simple, but a modern one combines a lithium cell that can burn, a light source

@@ -1,5 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](../../README.md) › [Lights](../README.md) › EDCO v0.2
+
 # EDCO v0.2
+
+**On this page:** [What changed from v0.1](#what-changed-from-v01) · [Specifications](#specifications) · [Light and runtime](#light-and-runtime-simulated) · [How it is built](#how-it-is-built) · [Electronics](#electronics-what-changes-from-v01) · [Cost](#cost-rough-estimate) · [Drawings and animations](#drawings-and-animations) · [What has been checked](#what-has-been-checked) · [Open points before the first order](#open-points-before-the-first-order) · [Files](#files)
 
 EDCO v0.2 makes the EDCO light brighter and gives it a more rugged look, in **two sizes**:
 
@@ -233,3 +237,7 @@ All numbers are in [cad/edco_v02_interface.json](cad/edco_v02_interface.json), w
 
 Licences as for the rest of LuxLibre: hardware CERN-OHL-W-2.0, firmware and tools GPL-3.0-or-later, this page
 CC-BY-SA-4.0 ([LICENSING.md](../../LICENSING.md)).
+
+---
+
+[← EDCO Mini](../edco-mini/README.md) · [All lights](../README.md) · [LuxLibre home](../../README.md) · [EDCO v0.1 →](../edco-v01/README.md)

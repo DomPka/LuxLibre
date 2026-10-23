@@ -4,12 +4,16 @@
 The LuxLibre banner pictures and the GitHub social preview, made from the FlashKa v0.7 hero renders.
 
 usage (from hardware/flashka-keychain-v07):
-    python3 tools/make_banners.py [--out-dir ../../docs/img]
+    python3 tools/make_banners.py [--out-dir DIR]          (default: assets/v07/banners)
+
+Since LuxLibre 0.5.0 the README banner and the social preview show all seven designs and are made by
+hardware/tools/make_banners.py, which reuses the helpers below. This script still makes the FlashKa-only versions;
+by default it writes them into assets/v07/banners, so it no longer replaces the README banner.
 
 Inputs (written by tools/housing/render.py, same camera, same size):
     assets/v07/housing_closed_bottom.png   the closed light on white
     assets/v07/hero_dark.png               the same view on the dark background (13, 17, 23)
-Outputs (in <LuxLibre>/docs/img/):
+Outputs (in the --out-dir folder):
     luxlibre_banner_light.png   README banner for GitHub's light theme (1600 x 520, rounded card)
     luxlibre_banner_dark.png    README banner for GitHub's dark theme (1600 x 520, rounded card)
     social_preview.png          GitHub social preview (1280 x 640)
@@ -195,7 +199,7 @@ def compose(kind, theme_name, cut, size, out):
 
 def main():
     ap = argparse.ArgumentParser(description="LuxLibre banners and social preview from the v0.7 renders")
-    ap.add_argument("--out-dir", default=os.path.join(REPO, "docs", "img"))
+    ap.add_argument("--out-dir", default=os.path.join(PROJ, "assets", "v07", "banners"))
     a = ap.parse_args()
     cut = Cutout(IN_WHITE, IN_DARK, DARK_BG)
     compose("banner", "light", cut, (1600, 520), os.path.join(a.out_dir, "luxlibre_banner_light.png"))

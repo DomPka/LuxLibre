@@ -1,4 +1,6 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](README.md) › Security policy
+
 # Security policy
 
 Some LuxLibre lights talk to phones and computers. The FlashKa keychain light connects over

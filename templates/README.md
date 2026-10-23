@@ -1,4 +1,6 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](../README.md) › Templates
+
 # Templates
 
 Fill-in documents for designing a flashlight. Copy the ones you need into your own project

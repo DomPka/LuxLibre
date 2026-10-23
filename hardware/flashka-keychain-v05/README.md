@@ -1,5 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](../../README.md) › [Lights](../README.md) › FlashKa Keychain v0.5
+
 # FlashKa Keychain v0.5
+
+**On this page:** [Specifications](#specifications) · [Firmware](#firmware-two-options) · [Building one](#building-one) · [Cost](#cost) · [Known limitations](#known-limitations) · [What has been checked](#what-has-been-checked) · [What is in this folder](#what-is-in-this-folder) · [Licences](#licences)
 
 LuxLibre reference design #1: a 94.4 × 20 × 16 mm aluminium keychain light with a white LED
 from 3 mA moonlight to a 2.2 A turbo burst, a Class 2 green laser behind a hardware safety
@@ -173,3 +177,7 @@ The v0.5 Rust firmware, the web app and the web tools: MIT OR Apache-2.0. The Py
 scripts: GPL-3.0-or-later. The build guide, design chapter and other documents: CC-BY-SA-4.0.
 Details and what they mean for building and selling FlashKa lights:
 [LICENSING.md](../../LICENSING.md).
+
+---
+
+[← FlashKa v0.6](../flashka-keychain-v06/README.md) · [All lights](../README.md) · [LuxLibre home](../../README.md)

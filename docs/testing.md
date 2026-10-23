@@ -1,5 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](../README.md) › [Documentation](README.md) › Testing a flashlight
+
 # Testing a flashlight
+
+**On this page:** [Overview](#overview) · [Equipment](#equipment) · [Bring-up of a new board](#bring-up-of-a-new-board) · [Firmware tests](#firmware-tests) · [Output and runtime](#output-and-runtime) · [Intensity and beam distance](#intensity-and-beam-distance) · [Thermal and touch temperature](#thermal-and-touch-temperature) · [Battery and charging](#battery-and-charging) · [Flicker](#flicker) · [Durability](#durability) · [Optical safety](#optical-safety) · [Writing the report](#writing-the-report)
 
 This guide takes a LuxLibre light from the first power-up of a new board to the numbers you
 publish. Every procedure works with a small budget. Each section ends with a short note on

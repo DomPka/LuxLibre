@@ -1,5 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](../../README.md) › [Lights](../README.md) › FlashKa Keychain v0.6
+
 # FlashKa Keychain v0.6
+
+**On this page:** [What's new in v0.6](#whats-new-in-v06) · [Specifications](#specifications) · [Gallery](#gallery) · [Web app and firmware installer](#web-app-and-firmware-installer) · [Presenter mode](#presenter-mode) · [Building one](#building-one) · [Cost](#cost) · [What has been checked](#what-has-been-checked) · [Known limitations](#known-limitations) · [Firmware](#firmware-two-options) · [What is in this folder](#what-is-in-this-folder) · [Licences](#licences)
 
 > **Superseded by [FlashKa Keychain v0.7](../flashka-keychain-v07/README.md).** This folder stays as
 > published apart from the shared firmware, the web pages and their documents, which now also
@@ -316,3 +320,7 @@ Details and what they mean for building and selling FlashKa lights:
 
 **Previous design:** [FlashKa Keychain v0.5](../flashka-keychain-v05/README.md) (one side button,
 no presenter mode).
+
+---
+
+[← EDCO v0.1](../edco-v01/README.md) · [All lights](../README.md) · [LuxLibre home](../../README.md) · [FlashKa v0.5 →](../flashka-keychain-v05/README.md)

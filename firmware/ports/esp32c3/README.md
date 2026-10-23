@@ -1,4 +1,6 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](../../../README.md) › [Firmware](../../README.md) › [Ports](../README.md) › ESP32-C3 port
+
 # ESP32-C3 port (experimental)
 
 LuxLibre on the Espressif ESP32-C3, written for ESP-IDF 5.x and the FlashKa keychain boards:

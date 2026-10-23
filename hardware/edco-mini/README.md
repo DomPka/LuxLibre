@@ -1,5 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](../../README.md) › [Lights](../README.md) › EDCO Mini v0.1
+
 # EDCO Mini v0.1
+
+**On this page:** [Against the best 60 mm keychain lights](#against-the-best-60-mm-keychain-lights) · [Specifications](#specifications) · [Light and runtime](#light-and-runtime-simulated) · [Using the light](#using-the-light) · [How it is built](#how-it-is-built) · [Electronics](#electronics-what-changes-from-edco-v01) · [Cost](#cost-rough-estimate) · [Drawings and animations](#drawings-and-animations) · [What has been checked](#what-has-been-checked) · [Open points before the first order](#open-points-before-the-first-order) · [Files](#files)
 
 EDCO Mini is the small sister of [EDCO v0.2](../edco-v02/README.md): a sealed keychain light of about 70 mm,
 made to beat the best 60 mm keychain lights on light, throw, battery and water. It comes in **two sizes**:
@@ -340,3 +344,7 @@ All numbers are in [cad/edco_mini_interface.json](cad/edco_mini_interface.json),
 
 Licences as for the rest of LuxLibre: hardware CERN-OHL-W-2.0, firmware and tools GPL-3.0-or-later, this page
 CC-BY-SA-4.0 ([LICENSING.md](../../LICENSING.md)).
+
+---
+
+[← EDCO Prism](../edco-prism/README.md) · [All lights](../README.md) · [LuxLibre home](../../README.md) · [EDCO v0.2 →](../edco-v02/README.md)

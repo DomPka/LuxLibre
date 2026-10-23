@@ -1,5 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](../../README.md) › [Lights](../README.md) › FlashKa Keychain v0.7
+
 # FlashKa Keychain v0.7
+
+**On this page:** [What's new in v0.7](#whats-new-in-v07) · [Specifications](#specifications) · [Gallery](#gallery) · [Web app and firmware installer](#web-app-and-firmware-installer) · [Presenter mode](#presenter-mode) · [Building one](#building-one) · [Cost](#cost) · [What has been checked](#what-has-been-checked) · [Known limitations](#known-limitations) · [Firmware](#firmware-two-options) · [What is in this folder](#what-is-in-this-folder) · [Licences](#licences)
 
 FlashKa is LuxLibre reference design #1: a 99.2 × 20 × 18 mm aluminium keychain light. Version
 0.7 is the **1000 lm FlashKa**: a Luminus SST-20 Gen 2 LED behind a LEDiL TIR optic, driven by a
@@ -492,3 +496,7 @@ Apache-2.0. Details and what they mean for building and selling FlashKa lights:
 **Previous design:** [FlashKa Keychain v0.6](../flashka-keychain-v06/README.md) (stainless buttons
 off the centre line, resin print kit, laser-marked skin, about 445 lm at the LED; its folder holds
 the firmware and web pages of both versions).
+
+---
+
+[All lights](../README.md) · [LuxLibre home](../../README.md) · [EDCO Prism →](../edco-prism/README.md)

@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/img/luxlibre_banner_dark.png">
-  <img alt="LuxLibre: open-source firmware, design rules and reference designs for flashlights. On the right, a render of the FlashKa Keychain v0.7 with its lit main key." src="docs/img/luxlibre_banner_light.png">
+  <img alt="LuxLibre: open-source firmware, design rules and seven flashlights you can build. On the right, a render of FlashKa v0.7 and the six EDCO lights standing together, their optics lit; the EDCO Prism's in colour." src="docs/img/luxlibre_banner_light.png">
 </picture>
 
 # LuxLibre
@@ -14,18 +14,24 @@
 [![hardware licence](https://img.shields.io/badge/hardware-CERN--OHL--W--2.0-blue)](LICENSING.md)
 [![docs licence](https://img.shields.io/badge/docs-CC--BY--SA--4.0-blue)](LICENSING.md)
 
-**Open-source flashlights, from the first requirement to the finished light.** LuxLibre has four parts:
+<p align="center"><b>
+<a href="#pick-a-light">Pick a light</a> &nbsp;·&nbsp;
+<a href="docs/comparison.md">Compare</a> &nbsp;·&nbsp;
+<a href="#in-your-browser">Web apps</a> &nbsp;·&nbsp;
+<a href="docs/firmware/README.md">Firmware</a> &nbsp;·&nbsp;
+<a href="docs/README.md">Design your own</a> &nbsp;·&nbsp;
+<a href="hardware/flashka-keychain-v07/FlashKa_v0.7_Build_Guide.pdf">Build a FlashKa</a> &nbsp;·&nbsp;
+<a href="#repository-map">Repository map</a> &nbsp;·&nbsp;
+<a href="CONTRIBUTING.md">Help</a>
+</b></p>
 
-* one firmware for many lights;
-* a set of design rules;
-* a guide to choosing parts, and test procedures;
-* reference designs: the FlashKa keychain light with a laser, and the EDCO family of sealed everyday-carry
-  lights, from 69 mm to 98 mm long and up to about 1,760 lm.
+**Open-source flashlights, from the first requirement to the finished light.** LuxLibre is one firmware for many
+lights, a set of design rules, a guide to choosing parts and testing them, and seven reference designs: the FlashKa
+keychain light and the EDCO family of sealed everyday-carry lights. Every design comes with CAD, dimensioned
+drawings, renders, a firmware board header and simulated light output. Anyone may build, change and sell lights
+made with it, companies included ([LICENSING.md](LICENSING.md)).
 
-Every design comes with its CAD, dimensioned drawings, renders, a firmware board header and simulated light
-output. Anyone may build, change and sell lights made with it, companies included ([LICENSING.md](LICENSING.md)).
-
-## Choose a light
+## Pick a light
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/img/lineup_dark.png">
@@ -97,8 +103,8 @@ which.*
 | I want to | Go to |
 |---|---|
 | see how the designs compare with lights I can buy | [docs/comparison.md](docs/comparison.md) |
-| look at a design in detail: specifications, renders, how it is built, cost, open points | the design pages above, or [hardware/](hardware/README.md) for all of them |
-| get drawings and CAD to make parts | each design's `cad/` folder: STEP files and A3 drawings (DXF, PDF, PNG) |
+| look at a design in detail: specifications, renders, how it is built, cost, open points | the design pages above, or [all the lights](hardware/README.md) |
+| get drawings and CAD to make parts | each design's `cad/` folder: STEP files and A3 drawings (DXF, PDF, PNG), e.g. [EDCO Prism](hardware/edco-prism/cad/README.md), [FlashKa v0.7](hardware/flashka-keychain-v07/cad/README.md) |
 | try the FlashKa control app without a light | the [FlashKa web app](https://dompka.github.io/LuxLibre/flashka/flashka-app.html), *Try demo mode* |
 | change the settings of a LuxLibre light from the browser | the [LuxLibre settings page](https://dompka.github.io/LuxLibre/luxlibre/) (Web Serial over USB-C; demo mode without a light) |
 | run the firmware without hardware | [Quick start](#quick-start) and [docs/firmware/simulator.md](docs/firmware/simulator.md) |
@@ -141,112 +147,6 @@ Every number, its source and what was left out: [docs/comparison.md](docs/compar
 measured by independent reviewers; the LuxLibre lights are simulated, and their measured numbers will replace these
 once they are built.
 
-## FlashKa Keychain v0.7
-
-![FlashKa Keychain v0.7 turning on a turntable: the bottom face with the clear main key and its lit ring between the two rubber keys, the sides, the textured lid (render)](hardware/flashka-keychain-v07/assets/v07/flashka_v07_turntable.gif)
-
-The first reference design is a 99.2 × 20 × 18 mm aluminium keychain light with a laser pointer and a **presenter
-mode**: the light is a Bluetooth keyboard meant for PowerPoint, Keynote, Google Slides, Impress and PDF viewers
-(not yet tried with a real light), and the laser stays the pointer. Version 0.7 is the **1000 lm FlashKa**:
-
-* An SST-20 Gen 2 LED behind a TIR optic and a 4 A driver.
-* About 1,045 lm (G1 bin) and a 162.5 m throw at switch-on.
-* About 600 lm on High for about three and a half minutes, then about 280 lm.
-* More than two hours from one 14500 Li-ion cell.
-
-All of these are simulated. The three keys sit on the centre line of the bottom face. No part is 3D-printed, there
-is no writing on it, and the body is a faceted octagon with textured panels.
-
-| | |
-|---|---|
-| **Light** | Luminus SST-20 Gen 2 white LED under a LEDiL TIR optic, from a 3 mA moonlight to a 2,850 mA turbo: about 1,045 lm out of the front at switch-on (966 lm with the LED at 85 °C), 6,605 cd, 162.5 m of throw; then a temperature regulator holds about 280 lm (simulated, not yet measured) |
-| **Laser** | 520 nm, Class 2 (≤ 1 mW), switched off in hardware by a slide switch |
-| **Presenter mode** | Bluetooth LE keyboard (HID over GATT): Page Down / Page Up or the arrow keys, F5, Esc, B for a black screen; up to 4 paired computers, no dongle, no driver |
-| **Power** | one 14500 Li-ion cell (Vapcell INR14500 F15, 1,500 mAh), protected on the main board; about 137 min from turbo (simulated); USB-C charging at about 500 mA |
-| **Electronics** | ESP32-C3 module and a 4 A LED driver on a 24 × 16.5 mm four-layer board, and a key board joined to it by six pogo pins; both boards in one JLCPCB panel |
-| **Body** | CNC-machined 6061-T6, black anodised, a faceted octagon (20 × 18 mm), recessed textured panels; clear PMMA and black POM-C parts; rubber keys cast in a printed resin mould |
-| **Cost** | about 859 USD for one light and 299 USD per light when five are made, with every fee, shipping and VAT ([workbook](hardware/flashka-keychain-v07/FlashKa_Parts_List_v0.7.xlsx)) |
-
-| ![Bottom face with the three keys and the lit ring (render)](hardware/flashka-keychain-v07/assets/v07/housing_closed_bottom.png) | ![Exploded view, animated (render)](hardware/flashka-keychain-v07/assets/v07/flashka_v07_exploded.gif) | [![Tray drawing FK-H-01 (A3)](hardware/flashka-keychain-v07/cad/FlashKa_tray_drawing.png)](hardware/flashka-keychain-v07/cad/FlashKa_tray_drawing.pdf) |
-|---|---|---|
-| Bottom face: v ● ^ and the lit ring | Exploded: TIR optic, key board, pogo pins, every part | Drawings FK-H-01 to FK-H-08 for every machined and cast part |
-
-Everything needed to make one is in [hardware/flashka-keychain-v07/](hardware/flashka-keychain-v07/README.md):
-
-* upload-ready files for the shops;
-* the casting files of the rubber keys;
-* the parts and cost workbook;
-* a 41-page [build guide](hardware/flashka-keychain-v07/FlashKa_v0.7_Build_Guide.pdf) for people without
-  electronics experience;
-* the 57-page [hardware package](hardware/flashka-keychain-v07/FlashKa_v0.7_Hardware_Package.pdf), which explains
-  every design decision and check.
-
-The FlashKa page also compares it beam to beam with the RovyVon A2.
-
-## The EDCO family
-
-EDCO lights are round, sealed everyday-carry lights with **no laser and no radio**. Charging, firmware updates and
-settings all go through one waterproof USB-C socket. The battery and the electronics slide in from the front, and
-a bezel screws on over the LED holder. Every EDCO runs the LuxLibre firmware on an ESP32-C3. All of them are
-concepts:
-
-* the housing is modelled in CadQuery and checked for fits, walls and interference;
-* each design has dimensioned drawings, renders and a firmware board header;
-* the light output is simulated;
-* the circuit boards are not drawn yet, and nothing has been built.
-
-### EDCO Prism: white or any colour
-
-| ![EDCO Prism: the beam stepping through the colours of the firmware's list (render)](hardware/edco-prism/assets/prism_colours.gif) | ![EDCO PrismM coming apart into its parts (render)](hardware/edco-prism/assets/prism_exploded.gif) |
-|---|---|
-| The colour list: white turbo, red, green, blue, yellow, cyan, magenta, white from the three colours, a custom colour | Bezel, quad optic, the four LEDs, head insert, button, main board, 18350 cell, body |
-
-Four LEDs share one 24 mm quad TIR optic: a white Luminus SST-20 and red, green and blue LEDs. Turbo runs all four
-for about 1,250 lm (simulated). Five clicks turn on the colour beam, two step through the colours, and holding sets
-the brightness. The button glows in the beam's colour. The colours, the custom colour and every other setting can
-be changed on the [settings page](site/luxlibre/index.html) over USB-C. It is 83 mm long with a keyring tab, and
-the M version has two magnets in the tab.
-[More, with the drawing](hardware/edco-prism/README.md).
-
-### EDCO Mini: a sealed keychain light
-
-| ![EDCO Mini-16M coming apart into its parts (render)](hardware/edco-mini/assets/mini16_exploded.gif) | [![EDCO Mini-16 body drawing (A3)](hardware/edco-mini/cad/EDCO_Mini-16_body_drawing.png)](hardware/edco-mini/cad/EDCO_Mini-16_body_drawing.pdf) |
-|---|---|
-| Bezel, optic, LED board, head insert, button and light rods, main board, 16340 cell, body with magnets | The body drawing: top view, section, bottom view, end views, feature table |
-
-The Mini comes in two sizes:
-
-* **Mini-16:** a 16340 cell in a Ø20 tube with a Ø22 head, 73.5 mm long.
-* **Mini-14:** Ø17 with a Ø19 head and 69.4 mm long. It needs a cell made to order.
-
-Both have an SST-20 behind a TIR optic, about 950 lm (simulated), red and UV side lights, a waterproof USB-C socket
-in the side of the head, and a keyring tab with an obround hole. The M versions add two magnets in the end of the
-tab. [More](hardware/edco-mini/README.md).
-
-### EDCO v0.2: about 1,760 lm
-
-| ![EDCO-18 coming apart into its parts (render)](hardware/edco-v02/assets/edco18_exploded.gif) | [![EDCO-18 body drawing (A3)](hardware/edco-v02/cad/EDCO-18_body_drawing.png)](hardware/edco-v02/cad/EDCO-18_body_drawing.pdf) |
-|---|---|
-| Bezel, optic, SST-40 board, head insert, twist collar, button, main board, 18500 cell, body | The EDCO-18 body drawing |
-
-A Luminus SST-40 at up to 5.7 A comes in two sizes:
-
-* **EDCO-18:** an 18500 cell, 97.8 mm, 1,759 lm out of the front (simulated).
-* **EDCO-14:** a 14500 cell, 95.6 mm, 1,561 lm.
-
-The USB-C port sits on the side of the head under a fluted twist collar. The bezel is crenellated and finned,
-the body has six flats, and the stainless button glows. [More](hardware/edco-v02/README.md).
-
-### EDCO v0.1: the first one
-
-| ![EDCO v0.1 coming apart into its parts (render)](hardware/edco-v01/assets/edco_exploded.gif) | [![EDCO v0.1 body drawing (A3)](hardware/edco-v01/cad/EDCO_body_drawing.png)](hardware/edco-v01/cad/EDCO_body_drawing.pdf) |
-|---|---|
-| Bezel ring, optic, LED board, head, button parts, main board, 14500 cell, tail board, body | The body drawing |
-
-A Ø20 × 93.5 mm tube with a closed tail and one 14500 cell. A sealed USB-C socket sits in the centre of the tail.
-It uses the FlashKa v0.7 light engine: about 966 lm and 162.5 m of throw, then about 290 lm for more than two hours
-(simulated). [More](hardware/edco-v01/README.md).
-
 ## In your browser
 
 | Page | What it does | Needs |
@@ -261,16 +161,27 @@ All three run entirely in the browser: nothing is uploaded and there is no accou
 
 ![Three phone screens: the FlashKa control app with the light on, its presenter card in the dark theme, and the firmware installer](hardware/flashka-keychain-v06/assets/v06/webapp_showcase.png)
 
-## What is inside
+## Repository map
 
-| Folder | What it gives you |
-|---|---|
-| [firmware/](docs/firmware/README.md) | One firmware for many lights in C++17. **Ports:** ATtiny1616, CH32V003 and ESP32-C3 (not yet run on hardware). **Features:** 150 levels, three button layouts, thermal regulation that never flickers, battery protection, lockout, laser support, side lights and a colour beam, 57 ArduPilot-style parameters and a text console. All of it is tested in a PC simulator. |
-| [hardware/](hardware/README.md) | Reference designs with complete sources: FlashKa [v0.7](hardware/flashka-keychain-v07/README.md), [v0.6](hardware/flashka-keychain-v06/README.md) and [v0.5](hardware/flashka-keychain-v05/README.md), and EDCO [Prism](hardware/edco-prism/README.md), [Mini](hardware/edco-mini/README.md), [v0.2](hardware/edco-v02/README.md) and [v0.1](hardware/edco-v01/README.md). The [tools](hardware/tools/) make the EDCO drawings and animations. |
-| [docs/](docs/README.md) | [Design rules](docs/design-rules.md) (69 rules with reasons and checks), [choosing parts](docs/choosing-parts.md) with a worked 1200 lm example, [flashlight types](docs/flashlight-types.md), [testing](docs/testing.md), and the [comparison](docs/comparison.md) with popular lights |
-| [tools/](tools/README.md) | `lux_calc.py`: standby budget, runtime, cell current, throw, heat, trace width, voltage divider, NTC; `comparison_charts.py` |
-| [templates/](templates/README.md) | Requirement sheet, design log, decision matrix, BOM, design-review checklist, test report |
-| [site/](site/) | The project's web site: the start page and the LuxLibre settings page |
+| Folder | What is in it | Start with |
+|---|---|---|
+| [hardware/](hardware/README.md) | the lights: design pages, CAD and drawings, renders, circuit boards, order files | [the lights](hardware/README.md) |
+| &nbsp;&nbsp;[flashka-keychain-v07/](hardware/flashka-keychain-v07/README.md) | FlashKa v0.7, the keychain light with a laser and a presenter mode | [build guide](hardware/flashka-keychain-v07/FlashKa_v0.7_Build_Guide.pdf), [drawings](hardware/flashka-keychain-v07/cad/README.md) |
+| &nbsp;&nbsp;[edco-prism/](hardware/edco-prism/README.md) | EDCO Prism, white or any-colour beam | [drawing](hardware/edco-prism/cad/README.md), [pictures](hardware/edco-prism/assets/README.md) |
+| &nbsp;&nbsp;[edco-mini/](hardware/edco-mini/README.md) | EDCO Mini-16 and Mini-14, sealed keychain lights | [drawings](hardware/edco-mini/cad/README.md), [pictures](hardware/edco-mini/assets/README.md) |
+| &nbsp;&nbsp;[edco-v02/](hardware/edco-v02/README.md) | EDCO-18 and EDCO-14, about 1,760 lm | [drawings](hardware/edco-v02/cad/README.md), [pictures](hardware/edco-v02/assets/README.md) |
+| &nbsp;&nbsp;[edco-v01/](hardware/edco-v01/README.md) | EDCO v0.1, the first EDCO | [drawing](hardware/edco-v01/cad/README.md), [pictures](hardware/edco-v01/assets/README.md) |
+| &nbsp;&nbsp;[flashka-keychain-v06/](hardware/flashka-keychain-v06/README.md), [v05/](hardware/flashka-keychain-v05/README.md) | older FlashKa designs; v0.6 also holds the FlashKa firmware and web pages | |
+| &nbsp;&nbsp;[tools/](hardware/tools/README.md) | scripts for the drawings, animations, lineup and banner | |
+| [firmware/](firmware/README.md) | the LuxLibre firmware source: core, ports, board headers, tests, simulator | [firmware guide](docs/firmware/README.md), [board headers](firmware/boards/README.md) |
+| [docs/](docs/README.md) | design rules, choosing parts, flashlight types, testing, the comparison, the firmware guide | [reading paths](docs/README.md) |
+| [tools/](tools/README.md) | `lux_calc.py` (runtime, throw, heat, trace width, NTC...) and the comparison charts | |
+| [templates/](templates/README.md) | requirement sheet, design log, decision matrix, BOM, review checklist, test report | [requirement sheet](templates/requirements.md) |
+| [site/](site/README.md) | the web site: start page and LuxLibre settings page | [live site](https://dompka.github.io/LuxLibre/) |
+
+At the top level: [CHANGELOG](CHANGELOG.md), [CONTRIBUTING](CONTRIBUTING.md), [SAFETY](SAFETY.md),
+[SECURITY](SECURITY.md), [LICENSING](LICENSING.md) (what the licences mean), [TRADEMARKS](TRADEMARKS.md) and the
+[licence texts](LICENSES/). Every page has a path at the top (LuxLibre › Lights › EDCO Prism) to find your way back.
 
 ## Quick start
 

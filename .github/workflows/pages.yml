@@ -47,7 +47,7 @@ jobs:
           cp "$app/index.html" "$app/flashka-app.html" "$app/flashka-flasher.html" _site/flashka/
           # pictures and data of the landing page (kept in docs/, where the README uses them too)
           mkdir -p _site/img/cards _site/img/drawings _site/data
-          cp docs/img/lineup.png docs/img/compare_light_light.png docs/img/compare_light_dark.png _site/img/
+          cp docs/img/lineup.png docs/img/compare_light_light.png docs/img/compare_light_dark.png docs/img/social_preview.png _site/img/
           cp docs/img/cards/*.gif _site/img/cards/
           cp docs/img/drawings/*.png _site/img/drawings/
           cp docs/data/flashlights.json _site/data/

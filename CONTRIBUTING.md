@@ -1,5 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](README.md) › Contributing
+
 # Contributing
+
+**On this page:** [Ways to help](#ways-to-help) · [Workflow](#workflow) · [Firmware code rules](#firmware-code-rules) · [Hardware contributions](#hardware-contributions) · [Documentation rules](#documentation-rules) · [Licence and sign-off](#licence-and-sign-off)
 
 Thank you for helping. LuxLibre grows through new boards, ports, measurements, fixes and better
 explanations; all of them are welcome. Please read [SAFETY.md](SAFETY.md) and the

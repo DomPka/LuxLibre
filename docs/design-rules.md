@@ -1,5 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](../README.md) › [Documentation](README.md) › Design rules
+
 # Design rules
+
+**On this page:** [Requirements and documentation](#req--requirements-and-documentation) · [Battery and power path](#bat--battery-and-power-path) · [Charging and USB](#chg--charging-and-usb) · [Emitters and optics](#led--emitters-and-optics) · [Driver and electronics](#drv--driver-and-electronics) · [Thermal](#thm--thermal) · [Mechanical](#mec--mechanical) · [Firmware](#fw--firmware) · [Lasers](#las--lasers) · [Manufacturing and cost](#dfm--manufacturing-and-cost)
 
 These rules apply to any flashlight built with LuxLibre, from a keychain light to a
 multi-cell searchlight. Each rule has a stable ID (for example `THM-1`) so that design logs,

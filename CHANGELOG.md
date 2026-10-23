@@ -1,4 +1,6 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](README.md) › Changelog
+
 # Changelog
 
 All notable changes to LuxLibre. Versions follow [semantic versioning](https://semver.org/):
@@ -67,6 +69,14 @@ change the firmware keeps its version.
   details, and take it apart. It adds an interactive comparison chart (light, runtime or throw, with details on
   each light), the drawings, and links to the settings page and the FlashKa pages.
 - The design pages show their drawings and animations.
+- A new README banner and social preview with all seven lights
+  ([hardware/tools/make_banners.py](hardware/tools/make_banners.py)).
+- Easier to find your way on GitHub: a menu at the top of the README and a repository map; every page starts
+  with a path back (LuxLibre › Lights › EDCO Prism) and long pages list their sections; the design pages end
+  with links to the previous and next light. [hardware/README.md](hardware/README.md) shows every light as a
+  card. The `cad/` and `assets/` folders have a README that shows every drawing, 3D model and picture
+  ([hardware/tools/folder_readmes.py](hardware/tools/folder_readmes.py)), and `firmware/`,
+  `firmware/boards/`, `site/` and `hardware/tools/` have one that explains what is in them.
 
 ## 0.4.0 - 2026-10-23
 

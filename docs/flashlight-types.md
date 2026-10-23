@@ -1,5 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](../README.md) › [Documentation](README.md) › Flashlight types
+
 # Flashlight types
+
+**On this page:** [Keychain and mini lights](#keychain-and-mini-lights) · [Compact EDC](#compact-edc-14500-18350) · [EDC 18650 and 21700](#edc-18650-and-21700) · [Headlamps and right-angle lights](#headlamps-and-right-angle-lights) · [Throwers](#throwers) · [Flood, lantern and area lights](#flood-lantern-and-area-lights) · [Multi-cell high-power lights](#multi-cell-high-power-lights) · [Bicycle lights](#bicycle-lights) · [Dive lights](#dive-lights) · [UV and IR lights](#uv-and-ir-lights) · [Tactical-style handheld lights](#tactical-style-handheld-lights) · [Work lights](#work-lights) · [What LuxLibre does not cover yet](#what-luxlibre-does-not-cover-yet)
 
 LuxLibre is meant for any kind of flashlight. The physics, the design rules and the firmware
 are the same for all of them; what changes is which rules dominate and which settings fit.

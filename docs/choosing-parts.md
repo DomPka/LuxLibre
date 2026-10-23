@@ -1,5 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](../README.md) › [Documentation](README.md) › Choosing parts
+
 # Choosing parts
+
+**On this page:** [The method in six steps](#the-method-in-six-steps) · [Cells](#cells) · [LEDs](#leds) · [Optics](#optics) · [Drivers](#drivers) · [Microcontrollers](#microcontrollers) · [Chargers and protection](#chargers-and-protection) · [Sensors, switches and small parts](#sensors-switches-and-small-parts) · [Housing and materials](#housing-and-materials) · [Worked example](#worked-example-a-1200-lm-18650-light) · [Cost](#cost-the-bom-is-not-the-price) · [Search tools and AI assistants](#search-tools-and-ai-assistants)
 
 This guide shows how to choose the parts of a flashlight so that every choice can be
 explained and checked: first a method that works for any part, then what matters for each

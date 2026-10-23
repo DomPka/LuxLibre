@@ -1,4 +1,6 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](../../README.md) › [Firmware](../README.md) › Ports
+
 # Ports
 
 A port implements the hardware abstraction layer ([../hal/lx_hal.h](../hal/lx_hal.h)) for one

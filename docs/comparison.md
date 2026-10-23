@@ -1,5 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](../README.md) › [Documentation](README.md) › LuxLibre lights against popular flashlights
+
 # LuxLibre lights against popular flashlights
+
+**On this page:** [Light](#light-at-30-s-and-after-10-minutes) · [Runtime from the brightest mode](#runtime-from-the-brightest-mode) · [Small lights](#small-lights-16340-and-smaller-cells) · [Mid-size lights](#mid-size-lights-14500-18350-and-18500-cells) · [Large lights](#large-lights-18650-and-21700-cells-large-built-in-packs) · [What is not in the tables](#what-is-not-in-the-tables) · [Sources](#sources)
 
 This page compares the LuxLibre reference designs with popular everyday-carry lights of the same cell size. It
 shows how much light each one gives, how long it lasts, how far it throws, and what it costs.

@@ -1,5 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](README.md) › Licensing
+
 # Licensing
+
+**On this page:** [Which licence covers what](#which-licence-covers-what) · [What you may do](#what-you-may-do) · [What you must do when you give a light or the files to others](#what-you-must-do-when-you-give-a-light-or-the-files-to-others) · [Additional permission for vendor radio libraries](#additional-permission-for-vendor-radio-libraries) · [Frequently asked questions](#frequently-asked-questions) · [Third-party material](#third-party-material) · [Contributions](#contributions)
 
 LuxLibre is free and open for everyone: hobbyists, schools and companies may use, study,
 change, build and **sell** lights based on it. In return, improvements to the shared parts flow

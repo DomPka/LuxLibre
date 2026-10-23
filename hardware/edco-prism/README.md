@@ -1,5 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](../../README.md) › [Lights](../README.md) › EDCO Prism v0.1
+
 # EDCO Prism v0.1
+
+**On this page:** [Against the best multi-colour light of its size](#against-the-best-multi-colour-light-of-its-size) · [Specifications](#specifications) · [Light and runtime](#light-and-runtime-simulated) · [Using the light](#using-the-light) · [The settings page](#the-settings-page-usb-c) · [How it is built](#how-it-is-built) · [Electronics](#electronics-what-changes-from-edco-mini) · [Cost](#cost-rough-estimate) · [Drawings and animations](#drawings-and-animations) · [What has been checked](#what-has-been-checked) · [Open points before the first order](#open-points-before-the-first-order) · [Files](#files)
 
 EDCO Prism is the EDCO light whose beam can be **white or any colour**. It is a sealed 18350 light of 83 mm
 with a bigger battery than [EDCO Mini](../edco-mini/README.md), a white turbo, and red, green and blue LEDs
@@ -350,3 +354,7 @@ All numbers are in [cad/edco_prism_interface.json](cad/edco_prism_interface.json
 
 Licences as for the rest of LuxLibre: hardware CERN-OHL-W-2.0, firmware and tools GPL-3.0-or-later, this page
 CC-BY-SA-4.0 ([LICENSING.md](../../LICENSING.md)).
+
+---
+
+[← FlashKa v0.7](../flashka-keychain-v07/README.md) · [All lights](../README.md) · [LuxLibre home](../../README.md) · [EDCO Mini →](../edco-mini/README.md)

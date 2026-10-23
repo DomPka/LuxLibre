@@ -1,5 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](../../README.md) › [Documentation](../README.md) › [Firmware](README.md) › The simulator
+
 # The simulator
+
+**On this page:** [Running luxsim](#running-luxsim) · [Simulating your own board](#simulating-your-own-board) · [The log and plots](#the-log-and-plots) · [The models](#the-models) · [Writing behaviour tests](#writing-behaviour-tests)
 
 The LuxLibre firmware runs unchanged on a PC against a simulated flashlight: a cell, an LED
 with its driver, a body that heats up and cools down, a temperature sensor with lag and noise,

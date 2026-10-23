@@ -1,4 +1,6 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](../README.md) › LuxLibre tools
+
 # LuxLibre tools
 
 `lux_calc.py` is a small command-line calculator for choosing flashlight parts. Each

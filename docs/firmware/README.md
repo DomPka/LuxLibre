@@ -1,5 +1,9 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](../../README.md) › [Documentation](../README.md) › LuxLibre firmware
+
 # LuxLibre firmware
+
+**On this page:** [Features](#features) · [Why C++17](#why-c17) · [Architecture](#architecture) · [Building](#building) · [Flashing](#flashing) · [The console](#the-console) · [Parameters](#parameters) · [Tests](#tests) · [More](#more)
 
 One firmware for many flashlights. The same core code runs on an 8-bit ATtiny1616, a
 RISC-V CH32V003 that costs about $0.13 in quantity, an ESP32-C3, and on a PC, where a

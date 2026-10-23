@@ -1,4 +1,6 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+[LuxLibre](README.md) › Using the names LuxLibre and FlashKa
+
 # Using the names LuxLibre and FlashKa
 
 The licences ([LICENSING.md](LICENSING.md)) let anyone use, change and sell LuxLibre. The
