@@ -24,6 +24,7 @@ Either way, the result is only finished when the board has been measured and tes
 | `boards/flashka-keychain-v05/` | ESP32-C3 with charger, RGB indicator, laser and console |
 | `boards/flashka-keychain-v06/` | the same with several buttons on one pin ([resistor ladder](#resistor-ladder-buttons-esp32-c3)) |
 | `boards/flashka-keychain-v07/` | the v0.6 pins and ladder with a stronger LED driver and high-drain cells; its header also describes the body, cells, LED flux and optic for the simulator ([simulator.md](simulator.md#simulating-your-own-board)) |
+| `boards/edco-v01/` | the v0.7 power stage on a bare ESP32-C3FH4 chip with one digital button, an RGB indicator, no laser and no radio, in a round sealed tube; with its thermal model |
 
 ```sh
 cd firmware/boards

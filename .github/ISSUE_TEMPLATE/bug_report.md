@@ -9,7 +9,7 @@ labels: bug
 
 **Light and firmware**
 - Board / light: <!-- e.g. FlashKa Keychain v0.5, or your board header name -->
-- Firmware version (`ver`): <!-- e.g. LuxLibre 0.3.0 -->
+- Firmware version (`ver`): <!-- e.g. LuxLibre 0.4.0 -->
 - Changed parameters (`list`, only the ones you changed):
 
 **How to reproduce**

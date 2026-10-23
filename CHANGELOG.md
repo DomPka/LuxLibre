@@ -5,6 +5,53 @@ All notable changes to LuxLibre. Versions follow [semantic versioning](https://s
 the firmware version is `LX_FW_VERSION` in `firmware/core/lx_version.h`. A release that does not
 change the firmware keeps its version.
 
+## 0.4.0 - 2026-10-23
+
+### Hardware
+
+- EDCO v0.1, reference design #2 ([hardware/edco-v01/](hardware/edco-v01/README.md)), a
+  concept. EDCO is a round, sealed everyday-carry light without a laser and without a radio:
+  - a Ø20 × 93.5 mm 6061 tube with a closed tail. The battery and the electronics slide in from
+    the front as one cartridge (LED holder, main board in a POM sled, the cell, a tail board). A
+    bezel ring screws onto the tube's M18 × 0.75 thread, clamps the LED holder and is locked with
+    thread-locker. The holder does not turn while the ring is tightened, so the LED wires never
+    twist;
+  - five seals, with IPX8 as the target (not tested): an O-ring on the LED holder, the glued TIR
+    optic, a stainless button cap on a clamped silicone membrane, a waterproof vertical USB-C
+    socket whose own seal ring seals in the tail wall, and a glued PMMA light pipe for the charge
+    indicator;
+  - USB-C in the centre of the tail face is the only way in: charging, firmware updates and
+    settings. A lanyard hole runs through each tail corner. One stainless button sits in a
+    scalloped pocket near the head, and "EDCO" is laser-marked on a label flat;
+  - the FlashKa v0.7 light engine and cell: an SST-20 Gen 2 LED under the LEDiL LISA3-RS-PIN
+    optic, the TPS62095 4 A driver, DW01A cell protection, the TP4057 charger and one Vapcell
+    INR14500 F15. The ESP32-C3 module becomes the bare ESP32-C3FH4 chip with no antenna (the radio
+    is never started). The laser, the key board and the pogo pins are gone;
+  - simulated with the LuxLibre simulator (LED at 85 °C): 966 lm turbo and 162.5 m of throw.
+    Full turbo lasts 74 s with the timer off, and High (592 lm) lasts 237 s (FlashKa v0.7 in the
+    same simulator: 56 s and 184 s). It then settles at about 290 lm with the body at 47.4 °C and
+    runs about 141 min from turbo;
+  - CadQuery model with fit, wall and interference checks, STEP files of the three aluminium
+    parts and of the assembly, and renders in black and clear anodising. A rough cost is given,
+    about 710 USD for one light and 235 USD each for five. The open points before ordering are
+    listed: USB-C samples, the deep bore, the thread, standby current, the boards, and the EU
+    battery-removability rule (design rule BAT-2).
+- FlashKa: unchanged (v0.7 current, v0.6 and v0.5 kept).
+
+### Firmware (LuxLibre 0.4.0)
+
+- New board `firmware/boards/edco-v01`: the FlashKa v0.7 power stage on an ESP32-C3FH4 with one
+  digital button on GPIO3, an RGB indicator and no laser. It uses the modes layout, a temperature
+  limit of 49 °C (the round body would otherwise pass the 48 °C of THM-1) and a thermal model of
+  the EDCO body for the simulator.
+- ESP32-C3 port: boards without a laser (`LX_HAS_LASER` 0) now build, because the laser pin is
+  only used on boards that have one. The CI job builds the EDCO board too.
+
+### Documentation
+
+- The README, the hardware and documentation indexes, the flashlight types, the licensing table,
+  the porting guide and the start page list EDCO.
+
 ## 0.3.0 - 2026-10-23
 
 ### Hardware

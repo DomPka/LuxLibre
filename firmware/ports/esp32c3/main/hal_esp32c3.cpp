@@ -207,7 +207,9 @@ namespace hal {
 void init() {
     // 1. light and laser off before anything else (they also have 100 k pull-downs)
     out_pin(LX_ESP_GPIO_LED_EN, 0);
+#if LX_HAS_LASER
     out_pin(LX_ESP_GPIO_LASER, 0);
+#endif
     // 2. inputs
 #if LX_ESP_LADDER
     // Resistor ladder: its levels assume the board's pull-up alone, so neither pin may add the
@@ -445,7 +447,11 @@ void set_aux(uint8_t r, uint8_t g, uint8_t b) {
     ledc_duty(CH_B, (uint32_t)b * PWM_FULL / 255u);
 }
 
+#if LX_HAS_LASER
 void set_laser(bool on) { gpio_set_level((gpio_num_t)LX_ESP_GPIO_LASER, on ? 1 : 0); }
+#else
+void set_laser(bool) {}   // boards without a laser (EDCO)
+#endif
 
 void set_charge(bool enable, bool allowed) {
     // called every 100 ms by the core

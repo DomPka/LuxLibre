@@ -9,7 +9,7 @@
 [![firmware](https://github.com/DomPka/LuxLibre/actions/workflows/firmware.yml/badge.svg)](https://github.com/DomPka/LuxLibre/actions/workflows/firmware.yml)
 [![flashka](https://github.com/DomPka/LuxLibre/actions/workflows/flashka.yml/badge.svg)](https://github.com/DomPka/LuxLibre/actions/workflows/flashka.yml)
 [![pages](https://github.com/DomPka/LuxLibre/actions/workflows/pages.yml/badge.svg)](https://github.com/DomPka/LuxLibre/actions/workflows/pages.yml)
-[![version](https://img.shields.io/badge/version-0.3.0-0b7a83)](CHANGELOG.md)
+[![version](https://img.shields.io/badge/version-0.4.0-0b7a83)](CHANGELOG.md)
 [![firmware licence](https://img.shields.io/badge/firmware-GPL--3.0--or--later-blue)](LICENSING.md)
 [![hardware licence](https://img.shields.io/badge/hardware-CERN--OHL--W--2.0-blue)](LICENSING.md)
 [![docs licence](https://img.shields.io/badge/docs-CC--BY--SA--4.0-blue)](LICENSING.md)
@@ -17,11 +17,13 @@
 **Open-source flashlights, from the first requirement to the finished light.** LuxLibre is a
 firmware, a set of design rules, a guide to choosing parts and test procedures for any kind of
 flashlight (keychain lights, everyday-carry lights, headlamps, throwers, bicycle and dive lights),
-and complete reference designs, so far the FlashKa keychain light. Anyone may build, change and
+and complete reference designs: the FlashKa keychain light and, new in 0.4.0, the EDCO
+everyday-carry light. Anyone may build, change and
 sell lights made with it, companies included ([LICENSING.md](LICENSING.md)).
 
 **[Try the FlashKa web app](https://dompka.github.io/LuxLibre/flashka/flashka-app.html)** (demo
 mode, no light needed) · **[FlashKa v0.7](hardware/flashka-keychain-v07/README.md)** ·
+**[EDCO v0.1](hardware/edco-v01/README.md)** (new, concept) ·
 **[Build guide (PDF)](hardware/flashka-keychain-v07/FlashKa_v0.7_Build_Guide.pdf)** ·
 **[Design rules](docs/design-rules.md)** · **[Firmware](docs/firmware/README.md)**
 
@@ -121,13 +123,43 @@ app recognises the board by itself. They are published from
 
 *Recording of the control app in its demo mode; the light is simulated inside the page.*
 
+## EDCO v0.1: a round, sealed everyday-carry light (concept)
+
+![EDCO v0.1, black anodised: the stainless button in its scalloped pocket, the green charge indicator and the EDCO label flat (render)](hardware/edco-v01/assets/edco_hero.png)
+
+*Render made from the design files. EDCO is a concept: the housing and the firmware board header
+are done; the circuit boards are not drawn yet and nothing has been built.*
+
+Reference design #2 is **EDCO**. It is a Ø20 × 93.5 mm aluminium tube with a closed tail and one
+14500 cell, and it has **no laser and no radio**: charging, firmware updates and settings all go
+through one sealed USB-C socket in the centre of the tail. The battery and the electronics slide in
+from the front as one cartridge. A bezel ring screws on over the LED holder and stays on for good,
+and O-rings and seals close every opening (target IPX8, not tested). One stainless button sits in
+a scalloped pocket near the head, with a charge indicator below it and a laser-marked label flat.
+
+The light engine is FlashKa v0.7's: an SST-20 Gen 2 LED under the LEDiL TIR optic and a 4 A
+driver, about 966 lm and 162.5 m of throw. The round tube spreads the heat better than the
+octagon. In the same simulator it holds full turbo for 74 s (FlashKa v0.7: 56 s) and High (592 lm)
+for 237 s (184 s), then about 290 lm, and it runs about 141 min from turbo. All of these figures
+are simulated.
+
+| ![Half section: head with O-ring, main board in a POM sled with the button, the 14500 cell, the tail board with the sealed USB-C (render)](hardware/edco-v01/assets/edco_section.png) | ![Tail: the sealed USB-C socket and the two lanyard holes (render)](hardware/edco-v01/assets/edco_tail_usb.png) |
+|---|---|
+| Inside: head, main board, cell, tail board | Tail: sealed USB-C, lanyard holes |
+
+Everything so far is in [hardware/edco-v01/](hardware/edco-v01/README.md): the CadQuery model with
+its fit and wall checks, the STEP files, the renders, the simulated light output, the electronics
+changes from FlashKa v0.7, a rough cost and the open points before the first order. The firmware
+is the LuxLibre firmware with the board header
+[firmware/boards/edco-v01](firmware/boards/edco-v01/board.h).
+
 ## What is inside
 
 | Folder | What it gives you |
 |---|---|
 | [firmware/](docs/firmware/README.md) | One firmware for many lights: C++17, ported to ATtiny1616, CH32V003 and ESP32-C3 (not yet run on hardware), with 150 levels, three button layouts, thermal regulation that never flickers, battery protection, lockout, laser support, 50 ArduPilot-style parameters and a text console, all tested in a PC simulator |
 | [docs/](docs/README.md) | [Design rules](docs/design-rules.md) (69 rules with reasons and checks), [choosing parts](docs/choosing-parts.md) with a worked 1200 lm example, [flashlight types](docs/flashlight-types.md), [testing](docs/testing.md) |
-| [hardware/](hardware/README.md) | Reference designs with complete sources: [FlashKa Keychain v0.7](hardware/flashka-keychain-v07/README.md) (current), [v0.6](hardware/flashka-keychain-v06/README.md) (previous; it holds the FlashKa firmware of both versions and the web pages) and [v0.5](hardware/flashka-keychain-v05/README.md) |
+| [hardware/](hardware/README.md) | Reference designs with complete sources: [FlashKa Keychain v0.7](hardware/flashka-keychain-v07/README.md) (current), [v0.6](hardware/flashka-keychain-v06/README.md) (previous; it holds the FlashKa firmware of both versions and the web pages) and [v0.5](hardware/flashka-keychain-v05/README.md); [EDCO v0.1](hardware/edco-v01/README.md) (concept) |
 | [tools/](tools/README.md) | `lux_calc.py`: standby budget, runtime, cell current, throw, heat, trace width, voltage divider, NTC |
 | [templates/](templates/README.md) | Requirement sheet, design log, decision matrix, BOM, design-review checklist, test report |
 | [site/](site/) | The start page of the project's GitHub Pages site |
@@ -146,6 +178,8 @@ make sim
 build/luxsim --set TURBO_S=0 "2C W600000"    # double click for turbo, then 10 minutes
 make sim BOARD=flashka-keychain-v07          # the simulator with the FlashKa v0.7 board header
 build/luxsim-flashka-keychain-v07 --set TURBO_S=0 "2C W600000"
+make sim BOARD=edco-v01                      # the same for EDCO v0.1
+build/luxsim-edco-v01 --preset board --set TURBO_S=0 "2C W600000"
 ```
 
 <picture>
@@ -170,7 +204,7 @@ then use the files in [order_files/](hardware/flashka-keychain-v07/order_files/R
 
 ## Status
 
-LuxLibre 0.3.0 is new. What has been tested so far:
+LuxLibre 0.4.0 is new. What has been tested so far:
 
 | Part | State |
 |---|---|
@@ -179,6 +213,7 @@ LuxLibre 0.3.0 is new. What has been tested so far:
 | ESP32-C3 port | experimental, including the resistor-ladder buttons of FlashKa; checked against the ESP-IDF API and with stub headers, CI build configured; not yet compiled with ESP-IDF or run on hardware |
 | Design rules, guides, tools | complete for version 0.3; numbers from standards and datasheets carry sources |
 | FlashKa v0.7 | designed and checked by software: netlist across both boards with the new power stage, KiCad DRC with 0 errors, both boards' 3D models inside the housing, the optic seat and the cell bay, pogo-pin heights and the hold-down, key travel, drawings against the CAD, both casting moulds, cost; light output, temperatures and runtime simulated with the firmware's own controller; not yet built |
+| EDCO v0.1 | concept: the housing modelled in CadQuery and checked for fits, walls and interference; renders; firmware board header; light output, temperatures and runtime simulated with the LuxLibre simulator; circuit boards not drawn yet, not built |
 | FlashKa firmware and web pages (0.7.0 for v0.7, 0.6.0 for v0.6) | 166 unit and 9 thermal simulation tests (v0.7 build), 153 host tests (v0.6 build); 165 unit tests, and 71 control-app and 33 installer and start-page checks in a browser against simulated hardware; not yet run on a real light |
 
 The first hardware results will be added as test reports. Measurements from your builds are the

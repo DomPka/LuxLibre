@@ -19,6 +19,7 @@ companies build and sell products with it, and publish the changes they ship.
 | FlashKa v0.5 Rust firmware, web app and web tools | `hardware/flashka-keychain-v05/firmware/`, `app/`, `tools/web/` | MIT or Apache 2.0, at your choice | `MIT OR Apache-2.0` |
 | FlashKa Rust firmware (0.6.0 for v0.6 and 0.7.0 for v0.7, one code base), web app and web tools | `hardware/flashka-keychain-v06/firmware/`, `app/`, `tools/web/` | MIT or Apache 2.0, at your choice | `MIT OR Apache-2.0` |
 | FlashKa v0.7 design files, scripts and documents | `hardware/flashka-keychain-v07/` (it has no firmware or web pages of its own: its firmware 0.7.0 and the web pages come from the v0.6 folder, row above) | as for v0.6: design and production files CERN-OHL-W-2.0, the Python generators (`tools/`, `docs/build_pdf.py`) GPL-3.0-or-later, the documents and their PDFs CC-BY-SA-4.0 | `CERN-OHL-W-2.0`, `GPL-3.0-or-later`, `CC-BY-SA-4.0` |
+| EDCO v0.1 design files, scripts and documents | `hardware/edco-v01/` (its firmware is the LuxLibre firmware, board `firmware/boards/edco-v01/`) | design files (CAD, STEP) CERN-OHL-W-2.0, the Python generators (`tools/`) GPL-3.0-or-later, the documents and pictures CC-BY-SA-4.0 | `CERN-OHL-W-2.0`, `GPL-3.0-or-later`, `CC-BY-SA-4.0` |
 | Project web site (GitHub Pages) | `site/` | MIT or Apache 2.0, at your choice | `MIT OR Apache-2.0` |
 | Generated AVR register header | `firmware/ports/attiny1616/tiny1x_io.h` | Apache License 2.0 (Microchip's device description) | `Apache-2.0` |
 

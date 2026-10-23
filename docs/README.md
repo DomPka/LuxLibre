@@ -34,6 +34,12 @@ the previous design, or
 [../hardware/flashka-keychain-v05/README.md](../hardware/flashka-keychain-v05/README.md) for v0.5,
 each with the build guide PDF in its folder.
 
+**I want to follow EDCO**
+
+[../hardware/edco-v01/README.md](../hardware/edco-v01/README.md): the round, sealed
+everyday-carry light without laser or radio (a concept: housing and firmware header, no boards
+yet).
+
 ## All documents
 
 | Document | Contents |

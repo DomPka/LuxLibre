@@ -30,7 +30,7 @@ Install ESP-IDF 5.x ([Espressif's guide](https://docs.espressif.com/projects/esp
 ```sh
 cd firmware/ports/esp32c3
 idf.py set-target esp32c3
-idf.py -DLX_BOARD=flashka-keychain-v05 build     # or flashka-keychain-v06, flashka-keychain-v07
+idf.py -DLX_BOARD=flashka-keychain-v05 build     # or flashka-keychain-v06, flashka-keychain-v07, edco-v01
 idf.py -p <serial port> flash monitor
 ```
 

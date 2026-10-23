@@ -53,7 +53,9 @@ the previous one).
 
 ## Compact EDC (14500, 18350)
 
-**Use:** pocket lights with real output in a small size.
+**Use:** pocket lights with real output in a small size. **Reference design:** EDCO
+([hardware/edco-v01/](../hardware/edco-v01/README.md), a concept): one 14500 cell in a sealed
+Ø20 × 93.5 mm tube, USB-C in the tail, the FlashKa v0.7 light engine.
 
 - **Cells:** 14500 (for example Vapcell H10, 1000 mAh, 10 A) or 18350 (Vapcell M11 V2, 1100 mAh,
   10 A) ([choosing-parts.md](choosing-parts.md#cells)).

@@ -1,0 +1,220 @@
+{
+ "params": {
+  "OD": 20.0,
+  "ring_len": 6.0,
+  "ring_lip_t": 0.8,
+  "ring_lip_id": 16.6,
+  "ring_chamfer": 0.6,
+  "thread_major": 18.0,
+  "thread_pitch": 0.75,
+  "thread_minor_ext": 17.08,
+  "thread_minor_int": 17.19,
+  "head_face_x": 0.25,
+  "head_boss_d": 16.4,
+  "head_flange_d": 17.1,
+  "head_flange_x": [
+   0.8,
+   2.0
+  ],
+  "head_end_x": 11.5,
+  "head_lip_d": 9.2,
+  "head_lip_t": 0.3,
+  "oring_groove_x": [
+   9.6,
+   10.9
+  ],
+  "oring_groove_d": 13.6,
+  "oring_cs": 1.0,
+  "oring_id": 13.0,
+  "spanner_r": 6.6,
+  "opt_od": 10.0,
+  "opt_h": 6.93,
+  "opt_exit_d": 8.6,
+  "opt_bore": 10.1,
+  "mcpcb_d": 10.0,
+  "mcpcb_t": 1.6,
+  "sst": 3.45,
+  "sst_h": 0.7,
+  "led_wire_r": 5.7,
+  "led_wire_d": 1.4,
+  "body_front_x": 2.0,
+  "bore_d": 15.2,
+  "undercut": [
+   5.4,
+   6.0,
+   16.9
+  ],
+  "shoulder_chamfer": 0.3,
+  "tail_chamfer": 0.5,
+  "tail_wall": 2.4,
+  "tail_cav_d": 12.6,
+  "usb_hole": [
+   10.0,
+   4.4
+  ],
+  "pocket_x": [
+   16.0,
+   29.0
+  ],
+  "pocket_w": 7.0,
+  "pocket_floor_z": 9.2,
+  "btn_x": 21.5,
+  "btn_cb_d": 6.0,
+  "btn_cb_floor_z": 8.4,
+  "btn_hole_d": 2.4,
+  "ind_x": 26.5,
+  "ind_d": 1.5,
+  "flat_x": [
+   32.0,
+   62.0
+  ],
+  "flat_z": 9.0,
+  "flat_w": 9.6,
+  "label_text": "EDCO",
+  "label_size": 2.3,
+  "lan_d": 1.6,
+  "lan_entry_r": 6.8,
+  "lan_exit_dx": 3.2,
+  "sled_od": 15.0,
+  "sled_id": 13.6,
+  "board_x": [
+   12.0,
+   34.0
+  ],
+  "board_w": 12.0,
+  "board_t": 0.8,
+  "board_top_z": 4.2,
+  "sw_body": [
+   2.9,
+   3.9,
+   1.5
+  ],
+  "sw_h": 2.0,
+  "cell_d": 14.0,
+  "cell_len": 49.0,
+  "strip_t": 0.15,
+  "tail_insul_t": 0.1,
+  "tail_parts_h": 1.0,
+  "tail_board_d": 12.2,
+  "tail_board_t": 0.8,
+  "usb_h": 7.45,
+  "usb_recess": 0.1,
+  "usb_shell": [
+   8.94,
+   3.26
+  ],
+  "usb_body": [
+   10.4,
+   5.2
+  ]
+ },
+ "derived": {
+  "L": 93.5
+ },
+ "length_mm": 93.5,
+ "diameter_mm": 20.0,
+ "mass_g": {
+  "body": 33.07,
+  "ring": 1.19,
+  "head": 3.61,
+  "collar": 0.09,
+  "cap": 0.15,
+  "sled": 0.97,
+  "pin": 0.01,
+  "membrane": 0.01,
+  "optic_holder": 0.32,
+  "optic_lens": 0.25,
+  "mcpcb": 1.13,
+  "lightpipe": 0.01,
+  "oring": 0.03
+ },
+ "aluminium_g": 37.87,
+ "walls_mm": {
+  "tube over the cell (bore d15.2)": 2.4,
+  "label flat over the cell": 1.4,
+  "pocket floor over the bore": 1.6,
+  "under the button counterbore": 0.8,
+  "external thread root to bore": 0.94,
+  "thread undercut to bore": 0.85,
+  "bezel ring at the thread": 1.0,
+  "head spigot at the O-ring groove (solid shelf behind the LED)": "solid",
+  "tail end wall": 2.4,
+  "tail cavity to lanyard hole": 1.25,
+  "lanyard bridge (hole to outer corner)": 1.11,
+  "USB hole to lanyard hole (tail face)": 3.47
+ },
+ "fits_mm": {
+  "cell radial play in the bore (bare can)": 0.6,
+  "flex + strip room each side (bore - can)": 0.6,
+  "board corner to bore": 0.28,
+  "switch top (z)": 6.25,
+  "pin length": 1.95,
+  "O-ring squeeze %": 20.0,
+  "O-ring stretch %": 4.6,
+  "head flange in ring thread (radial)": 0.045,
+  "head boss in ring lip (radial)": 0.1,
+  "thread engagement length": 2.8,
+  "tail cavity: socket body diagonal vs cavity d": [
+   11.63,
+   12.6
+  ]
+ },
+ "stack_x_mm": {
+  "bezel ring": [
+   0.0,
+   6.0
+  ],
+  "head": [
+   0.25,
+   11.5
+  ],
+  "optic front": 0.55,
+  "LED board": [
+   7.48,
+   9.08
+  ],
+  "tube front face": 2.0,
+  "main board": [
+   12.0,
+   34.0
+  ],
+  "button": 21.5,
+  "indicator": 26.5,
+  "cell": [
+   34.9,
+   83.9
+  ],
+  "tail board": [
+   85.15,
+   85.95
+  ],
+  "end wall": [
+   91.1,
+   93.5
+  ]
+ },
+ "aluminium_outer_area_mm2": 6393.0,
+ "interference_mm3": {
+  "body / head": 0.0,
+  "body / ring": 0.0,
+  "ring / head": 0.0,
+  "body / sled": 0.0,
+  "body / cell": 0.0,
+  "sled / board": 0.0,
+  "body / board": 0.0,
+  "body / usb_body": 0.0,
+  "body / usb_housing": 0.0,
+  "body / tail_board": 0.0,
+  "head / optic_holder": 0.0,
+  "head / mcpcb": 0.0,
+  "body / pin": 0.0,
+  "body / lightpipe": 0.0,
+  "body / collar": 0.0,
+  "sled / pin": 0.0,
+  "sled / cell": 0.0,
+  "body / flex": 0.0,
+  "body / strip_minus": 0.0,
+  "cell / flex": 0.0,
+  "cell / strip_minus": 0.0
+ }
+}

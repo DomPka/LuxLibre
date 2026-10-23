@@ -138,7 +138,7 @@ The ESP32-C3 port builds with ESP-IDF 5.x:
 ```sh
 cd firmware/ports/esp32c3
 idf.py set-target esp32c3
-idf.py -DLX_BOARD=flashka-keychain-v05 build     # or flashka-keychain-v06, flashka-keychain-v07
+idf.py -DLX_BOARD=flashka-keychain-v05 build     # or flashka-keychain-v06, flashka-keychain-v07, edco-v01
 ```
 
 Details and the current limitations of that port: [ports/esp32c3/README.md](../../firmware/ports/esp32c3/README.md).
@@ -179,7 +179,7 @@ An example session:
 
 ```text
 > ver
-LuxLibre 0.3.0 / FlashKa Keychain v0.6
+LuxLibre 0.4.0 / FlashKa Keychain v0.6
 ok
 > get THM_LIMIT
 THM_LIMIT=50
