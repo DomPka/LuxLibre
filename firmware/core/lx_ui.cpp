@@ -26,6 +26,7 @@ const Binding k_bindings[] LX_FLASH = {
     {L_ALL,            S_OFF,    EVB(EV_HOLD, 2),      A_LASER_OR_MOMENT, 0},
     {L_ALL,            S_OFF,    EVB(EV_CLICK, 3),     A_BATTCHECK, 0},
     {L_ALL,            S_OFF,    EVB(EV_CLICK, 4),     A_LOCK, 0},
+    {L_ALL,            S_OFF,    EVB(EV_CLICK, 5),     A_SIDE_ON, 0},
     {L_ALL,            S_OFF,    EVB(EV_CLICK, 9),     A_FACTORY_RESET, 0},
     // ---- light on ----
     {L_ALL,            S_ON,     EVB(EV_CLICK, 1),     A_OFF, 0},
@@ -45,6 +46,9 @@ const Binding k_bindings[] LX_FLASH = {
     // ---- blinky group (battery check, temperature, beacon, SOS, strobe) ----
     {L_ALL,            S_BLINKY, EVB(EV_CLICK, 1),     A_OFF, 0},
     {L_RAMP | L_MODES, S_BLINKY, EVB(EV_CLICK, 2),     A_BLINKY_NEXT, 0},
+    // ---- side light (boards with side LEDs) ----
+    {L_ALL,            S_SIDE,   EVB(EV_CLICK, 1),     A_OFF, 0},
+    {L_ALL,            S_SIDE,   EVB(EV_CLICK, 2),     A_SIDE_NEXT, 0},
     // ---- held states ----
     {L_ALL,            S_LASER,  EVB(EV_HOLD_END, 0),  A_LASER_END, 0},
     {L_ALL,            S_MOMENT, EVB(EV_HOLD_END, 0),  A_MOMENT_END, 0},
@@ -81,6 +85,8 @@ uint8_t g_seq_value = 0;      // value being read out
 
 uint32_t g_laser_ms = 0;
 bool g_laser_cut = false;
+
+bool g_side_uv = false;       // side light colour: false = red, true = UV (kept while powered)
 
 uint8_t g_fb_count = 0;       // feedback blinks on the main LED (boards without aux LED)
 uint16_t g_fb_t = 0;
@@ -404,6 +410,17 @@ void run_action(uint8_t action, uint8_t arg, const Event& e) {
     case A_LASER_END:
         go_off();
         break;
+    case A_SIDE_ON:
+        if (!LX_HAS_SIDE) break;
+        if (!switch_on_allowed()) break;
+        g_state = S_SIDE;
+        battery::user_action();
+        aux::event(aux::PAT_BATTERY, battery::percent());
+        break;
+    case A_SIDE_NEXT:
+        g_side_uv = p(P_SIDE_UV) > 0 ? !g_side_uv : false;
+        battery::user_action();
+        break;
     case A_FACTORY_RESET:
         params::reset_defaults(true);              // keeps BAT_CAL and THM_OFFSET
         storage::save_params();
@@ -496,7 +513,7 @@ bool remote_level(uint8_t lvl) {
 }
 
 void remote_off() {
-    if (g_state == S_ON || g_state == S_BLINKY) go_off();
+    if (g_state == S_ON || g_state == S_BLINKY || g_state == S_SIDE) go_off();
 }
 
 State state() { return g_state; }
@@ -556,9 +573,24 @@ bool instant() { return g_out_on; }
 
 bool laser() { return LX_HAS_LASER && g_state == S_LASER && !g_laser_cut; }
 
+namespace {
+uint8_t pct_to_duty(int16_t pct) { return (uint8_t)((clamp<int16_t>(pct, 0, 100) * 255 + 50) / 100); }
+bool side_is_uv() { return g_side_uv && p(P_SIDE_UV) > 0; }
+}  // namespace
+
+uint8_t side_red() {
+    if (!LX_HAS_SIDE || g_state != S_SIDE || side_is_uv()) return 0;
+    return pct_to_duty(p(P_SIDE_RED));
+}
+
+uint8_t side_uv() {
+    if (!LX_HAS_SIDE || g_state != S_SIDE || !side_is_uv()) return 0;
+    return pct_to_duty(p(P_SIDE_UV));
+}
+
 bool busy() {
     return g_state == S_ON || g_state == S_BLINKY || g_state == S_LASER || g_state == S_MOMENT ||
-           g_fb_count != 0 || g_flash_ms != 0;
+           g_state == S_SIDE || g_fb_count != 0 || g_flash_ms != 0;
 }
 
 Memory memory() {
@@ -583,6 +615,7 @@ const char* state_name(uint8_t st) {
     case S_BLINKY: return "blinky";
     case S_LASER: return "laser";
     case S_MOMENT: return "momentary";
+    case S_SIDE: return "side light";
     default: return "?";
     }
 }
@@ -613,6 +646,8 @@ const char* action_text(uint8_t action, uint8_t arg) {
     case A_LASER_OR_MOMENT: return "laser while held on laser boards (limits: LASER_S, LASER_TMAX, LASER_VMIN); otherwise turbo while held";
     case A_LASER_END: return "laser off";
     case A_FACTORY_RESET: return "factory reset: all parameters back to their defaults except the calibration (5 blinks)";
+    case A_SIDE_ON: return "side light on (boards with red and UV side LEDs): the colour used last, red at first (SIDE_RED, SIDE_UV)";
+    case A_SIDE_NEXT: return "switch the side light between red and UV (UV only if SIDE_UV > 0)";
     default: return "";
     }
 }

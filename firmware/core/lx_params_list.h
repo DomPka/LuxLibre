@@ -117,3 +117,9 @@ LX_PARAM(LASER_TMAX, "LASER_TMAX", 60, 30, 80, "degC",
          "No laser above this temperature")
 LX_PARAM(LASER_VMIN, "LASER_VMIN", 3200, 900, 3800, "mV/cell",
          "No laser below this cell voltage (cheap laser modules drift when the supply sags)")
+
+// --- side lights (boards with LX_HAS_SIDE) --------------------------------------------------
+LX_PARAM(SIDE_RED, "SIDE_RED", LX_DEF_SIDE_RED, 1, 100, "%",
+         "Brightness of the red side light (5 clicks from off)")
+LX_PARAM(SIDE_UV, "SIDE_UV", LX_DEF_SIDE_UV, 0, 100, "%",
+         "Brightness of the UV side light; 0 = no UV (two clicks in the side light then do nothing)")

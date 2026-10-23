@@ -7,7 +7,7 @@
 //
 // Rules for every port:
 //  * hal::init() must drive every output that can make light or heat (LED driver enable,
-//    PWM, laser) to its safe "off" level before anything else.
+//    PWM, laser, side lights) to its safe "off" level before anything else.
 //  * Functions are called from the main loop only (no re-entrancy needed).
 //  * Units: millivolts, deci-degrees Celsius, milliseconds, Q16 power (0 ... 65535).
 #pragma once
@@ -48,6 +48,7 @@ void set_main(lx::power_t power);
 
 void set_aux(uint8_t r, uint8_t g, uint8_t b);   // indicator LED (0-255 each); no-op if absent
 void set_laser(bool on);                         // laser module; no-op if absent
+void set_side(uint8_t red, uint8_t uv);          // side lights (0-255 each, at most one on); no-op if absent
 // Charger control, called every 100 ms (no-op if not controllable). enable = charge now.
 // allowed = the cell temperature is inside the charge window: when false, the port must not
 // let any current into the cell, not even to detect USB power (design rule CHG-3).

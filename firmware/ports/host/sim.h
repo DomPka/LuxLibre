@@ -53,6 +53,9 @@ struct Config {
     bool sensor_open = false;       // simulate a broken NTC
     // USB / charger
     double charge_a = 0.3;
+    // side lights (boards with LX_HAS_SIDE): electrical power at full duty, W
+    double side_red_w = 0.05;
+    double side_uv_w = 0.5;
     bool keep_storage = false;      // keep the emulated EEPROM from the previous run
 };
 
@@ -91,6 +94,8 @@ double t_sensor();
 double v_pack();
 double soc();
 bool laser();
+uint8_t side_red();                 // side light duty written by the firmware (0-255)
+uint8_t side_uv();
 uint8_t aux_r();
 uint8_t aux_g();
 uint8_t aux_b();

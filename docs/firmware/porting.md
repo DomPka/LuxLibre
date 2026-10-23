@@ -45,6 +45,7 @@ cp -r example-ch32v003-buck my-light
 | `LX_HAS_CONSOLE` | text console (USB or UART) | 0 |
 | `LX_HAS_AUX_RGB` | indicator LED (RGB or single colour) | 0 |
 | `LX_HAS_LASER` | laser with hardware interlock | 0 |
+| `LX_HAS_SIDE` | side lights: a red and a UV LED (5 clicks from off; parameters `SIDE_RED`, `SIDE_UV`) | 0 |
 | `LX_HAS_CHARGER` | charger with status signals | 0 |
 | `LX_HAS_TEMP` | temperature sensor (NTC or the MCU's own) | 1 |
 | `LX_BAT_CELLS` | cells in series | 1 |
@@ -79,7 +80,7 @@ Each port reads its own macros; the defaults are those of the port's example boa
 |---|---|
 | ATtiny1616 | `LX_TINY_PWM_WO` (TCA0 output: 0 = PB0 ...), `LX_TINY_BTN_PIN` (PORTA pin, fully asynchronous pins wake from power-down), `LX_TINY_TEMP_OFFSET_DC` (internal sensor offset) |
 | CH32V003 | `LX_CH32_BTN_PORT`, `LX_CH32_BTN_PORTSEL` (EXTI code: 0 = PA, 2 = PC, 3 = PD), `LX_CH32_BTN_PIN`, `LX_CH32_EN_PORT`, `LX_CH32_EN_PIN` (driver enable), `LX_CH32_NTC_ADC_CH` (-1 = no NTC), `LX_CH32_NTC_PORT`, `LX_CH32_NTC_PIN`, `LX_CH32_NTC_RFIX`, `LX_CH32_NTC_R25`, `LX_CH32_NTC_BETA`, `LX_CH32_VREFINT_MV` |
-| ESP32-C3 | `LX_ESP_GPIO_BTN` (one button, low = pressed) or a resistor ladder (`LX_ESP_BTN_LADDER_ADC_GPIO`, `LX_ESP_BTN_WAKE_GPIO`, `LX_ESP_BTN_MAIN_BELOW_MV`, [below](#resistor-ladder-buttons-esp32-c3)), `LX_ESP_GPIO_LED_PWM`, `LX_ESP_GPIO_LED_EN`, `LX_ESP_GPIO_LASER`, `LX_ESP_GPIO_RGB_R/G/B`, `LX_ESP_GPIO_CHG_STAT`, `LX_ESP_GPIO_CHG_DONE`, `LX_ESP_GPIO_CHG_SET`, `LX_ESP_LED_FULL_MA`, `LX_ESP_VBAT_DIV`, `LX_ESP_NTC_RFIX`, `LX_ESP_NTC_R25`, `LX_ESP_NTC_BETA` |
+| ESP32-C3 | `LX_ESP_GPIO_BTN` (one button, low = pressed) or a resistor ladder (`LX_ESP_BTN_LADDER_ADC_GPIO`, `LX_ESP_BTN_WAKE_GPIO`, `LX_ESP_BTN_MAIN_BELOW_MV`, [below](#resistor-ladder-buttons-esp32-c3)), `LX_ESP_GPIO_LED_PWM`, `LX_ESP_GPIO_LED_EN`, `LX_ESP_GPIO_LASER`, `LX_ESP_GPIO_RGB_R/G/B`, `LX_ESP_GPIO_SIDE_RED` and `LX_ESP_GPIO_SIDE_UV` (with `LX_HAS_SIDE`; `LX_ESP_SIDE_RED_ACTIVE_LOW` / `LX_ESP_SIDE_UV_ACTIVE_LOW` = 1 for a switch that is on when the pin is low, e.g. a P-MOSFET on a strap pin), `LX_ESP_GPIO_CHG_STAT`, `LX_ESP_GPIO_CHG_DONE`, `LX_ESP_GPIO_CHG_SET`, `LX_ESP_LED_FULL_MA`, `LX_ESP_VBAT_DIV`, `LX_ESP_NTC_RFIX`, `LX_ESP_NTC_R25`, `LX_ESP_NTC_BETA` |
 
 The CH32V003 main PWM is fixed on PD2 (TIM1 channel 1); the ATtiny1616 MCU measures its own
 supply as the cell voltage, so it must run directly from a single Li-ion cell.
@@ -177,7 +178,7 @@ ms, and Q16 output power (0-65535).
 | `temperature()` | deci-°C; `-32768` if the board has no sensor; return values outside -40...150 °C for an open or shorted sensor so that the core detects the fault |
 | `usb_present()`, `charger_status()` | USB power and charger state (`CHG_NONE` if not supported) |
 | `set_main(power)` | 0 = driver disabled (enable pin off); 1-65535 = fraction of full scale, as PWM at 3 kHz or more, a current set point, or both ([LED-6](../design-rules.md#led-6)) |
-| `set_aux(r, g, b)`, `set_laser(on)` | optional outputs; no-ops if absent |
+| `set_aux(r, g, b)`, `set_laser(on)`, `set_side(red, uv)` | optional outputs; no-ops if absent. `set_side` gets a duty of 0-255 per colour, never both at once; it must also be off after `init()` |
 | `set_charge(enable, allowed)` | called every 100 ms; `enable` = charge now; `allowed` = the cell temperature is inside the charge window. While `allowed` is false, no current may reach the cell, not even to detect USB power ([CHG-3](../design-rules.md#chg-3)) |
 | `storage_read()`, `storage_write()` | `LX_STORAGE_SIZE` bytes; skip unchanged bytes to save wear; return false if the write failed. A reset in the middle of a write is detected by the core's checksums (it falls back to an older state slot or to defaults); flash emulation with pages should keep the core's blocks in separate pages (the core places the calibration 64 bytes below the state ring for that reason) |
 | `console_getc()`, `console_write()` | optional text console; may drop output when no host is connected |

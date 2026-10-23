@@ -232,6 +232,68 @@ TEST(laser_refused_in_lockout_and_when_hot) {
     CHECK(!sim::laser());
 }
 
+// ---- side lights ----------------------------------------------------------------------------
+TEST(side_light_gestures) {
+    fresh();
+    sim::click(5);                               // 5 clicks from off: side light, red first
+    sim::run_script();
+    CHECK(ui::state() == ui::S_SIDE);
+    CHECK_MSG(sim::side_red() == (p(P_SIDE_RED) * 255 + 50) / 100 && sim::side_uv() == 0, "red %u uv %u",
+              sim::side_red(), sim::side_uv());
+    CHECK(sim::level() == 0);                    // the main LED stays off
+    sim::click(2);                               // red -> UV
+    sim::run_script();
+    CHECK_MSG(sim::side_red() == 0 && sim::side_uv() == 255, "red %u uv %u", sim::side_red(), sim::side_uv());
+    sim::run_for(5000);
+    CHECK(!sim::sleeping() && sim::side_uv() == 255);
+    sim::click(1);                               // off
+    sim::run_script();
+    CHECK(ui::state() == ui::S_OFF && sim::side_red() == 0 && sim::side_uv() == 0);
+    sim::click(5);                               // the colour used last comes back
+    sim::run_script();
+    CHECK(sim::side_uv() == 255);
+    sim::click(1);
+    sim::run_script();
+    set(P_SIDE_UV, 0);                           // no UV: two clicks keep the red light
+    sim::click(5);
+    sim::run_script();
+    CHECK(sim::side_red() > 0 && sim::side_uv() == 0);
+    sim::click(2);
+    sim::run_script();
+    CHECK(sim::side_red() > 0 && sim::side_uv() == 0);
+    sim::click(1);
+    sim::run_script();
+    CHECK(sim::side_red() == 0);
+}
+
+TEST(side_light_refused_in_lockout_and_by_protection) {
+    fresh();
+    sim::click(4);                               // lockout
+    sim::run_script();
+    sim::click(5);
+    sim::run_script();
+    CHECK(ui::state() == ui::S_LOCK && sim::side_red() == 0 && sim::side_uv() == 0);
+    sim::click(4);
+    sim::run_script();
+    // pocket protection: a button held for POCKET_S while a side light is on locks the light
+    set(P_POCKET_S, 5);
+    sim::click(5);
+    sim::run_script();
+    CHECK(sim::side_red() > 0);
+    uint32_t t = sim::cursor();
+    sim::hold(0, 8000);
+    sim::run_to(t + 7000);
+    CHECK_MSG(sim::side_red() == 0 && ui::state() == ui::S_LOCK, "red %u state %u", sim::side_red(), ui::state());
+    sim::run_script();
+    // an empty cell refuses the side light
+    sim::Config c = sim::keychain_preset();
+    c.soc = 0.0;
+    fresh(c);
+    sim::click(5);
+    sim::run_script();
+    CHECK(sim::side_red() == 0 && sim::side_uv() == 0 && ui::state() != ui::S_SIDE);
+}
+
 // ---- thermal regulation -------------------------------------------------------------------
 TEST(thermal_regulation_keychain) {
     sim::Config c = sim::keychain_preset();

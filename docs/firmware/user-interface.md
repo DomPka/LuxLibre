@@ -14,6 +14,7 @@
 | off | 1 click, then hold | laser while held on laser boards (limits: LASER_S, LASER_TMAX, LASER_VMIN); otherwise turbo while held |
 | off | 3 clicks | battery check: volts per cell as blinks (3.8 V = 3 blinks, pause, 8 blinks), repeats |
 | off | 4 clicks | lockout on (3 blinks) |
+| off | 5 clicks | side light on (boards with red and UV side LEDs): the colour used last, red at first (SIDE_RED, SIDE_UV) |
 | off | 9 clicks | factory reset: all parameters back to their defaults except the calibration (5 blinks) |
 | on | 1 click | switch off |
 | on | hold | ramp up while held (down if already at the ceiling) |
@@ -25,6 +26,8 @@
 | lockout | hold | moon while held (if LOCK_MOON = 1) |
 | blinky | 1 click | switch off |
 | blinky | 2 clicks | next blinky mode: temperature read-out, beacon, SOS, strobe (as enabled by BLINKY) |
+| side light | 1 click | switch off |
+| side light | 2 clicks | switch the side light between red and UV (UV only if SIDE_UV > 0) |
 
 ## Modes layout (UI_STYLE = 1)
 
@@ -36,6 +39,7 @@
 | off | 1 click, then hold | laser while held on laser boards (limits: LASER_S, LASER_TMAX, LASER_VMIN); otherwise turbo while held |
 | off | 3 clicks | battery check: volts per cell as blinks (3.8 V = 3 blinks, pause, 8 blinks), repeats |
 | off | 4 clicks | lockout on (3 blinks) |
+| off | 5 clicks | side light on (boards with red and UV side LEDs): the colour used last, red at first (SIDE_RED, SIDE_UV) |
 | off | 9 clicks | factory reset: all parameters back to their defaults except the calibration (5 blinks) |
 | on | 1 click | switch off |
 | on | hold | next mode, repeating every MODE_MS while held (moon/turbo -> mode 1) |
@@ -46,6 +50,8 @@
 | lockout | hold | moon while held (if LOCK_MOON = 1) |
 | blinky | 1 click | switch off |
 | blinky | 2 clicks | next blinky mode: temperature read-out, beacon, SOS, strobe (as enabled by BLINKY) |
+| side light | 1 click | switch off |
+| side light | 2 clicks | switch the side light between red and UV (UV only if SIDE_UV > 0) |
 
 ## Simple layout (UI_STYLE = 2)
 
@@ -57,6 +63,7 @@
 | off | 1 click, then hold | laser while held on laser boards (limits: LASER_S, LASER_TMAX, LASER_VMIN); otherwise turbo while held |
 | off | 3 clicks | battery check: volts per cell as blinks (3.8 V = 3 blinks, pause, 8 blinks), repeats |
 | off | 4 clicks | lockout on (3 blinks) |
+| off | 5 clicks | side light on (boards with red and UV side LEDs): the colour used last, red at first (SIDE_RED, SIDE_UV) |
 | off | 9 clicks | factory reset: all parameters back to their defaults except the calibration (5 blinks) |
 | on | 1 click | switch off |
 | on | hold | next mode, repeating every MODE_MS while held (moon/turbo -> mode 1) |
@@ -65,12 +72,14 @@
 | lockout | any click(s) | short indicator flash, nothing else |
 | lockout | hold | moon while held (if LOCK_MOON = 1) |
 | blinky | 1 click | switch off |
+| side light | 1 click | switch off |
+| side light | 2 clicks | switch the side light between red and UV (UV only if SIDE_UV > 0) |
 
 ## Always active
 
 - **Thermal regulation** holds `THM_LIMIT`; above `THM_SHUTDN` the light switches off.
 - **Low voltage**: below `LVP_WARN` the light steps down 10 levels every 5 s; below `LVP_CUT` it switches off and refuses until the cell rests above `LVP_RESUME` or USB is connected.
-- **Pocket protection**: a button held for 10 s while the light is dark (off or locked) is ignored until it is released; a button held for `POCKET_S` seconds (default 30) while the main LED is on switches the light off and locks it.
+- **Pocket protection**: a button held for 10 s while the light is dark (off or locked) is ignored until it is released; a button held for `POCKET_S` seconds (default 30) while the main LED or a side light is on switches the light off and locks it.
 - **Auto-lock**: after `AUTOLOCK` minutes off the light locks itself (0 = never).
 - **Charging** (boards with a charger): while USB power is connected the level is capped at `CHG_MAXLVL`; the cell is charged only between `CHG_TMIN` and `CHG_TMAX`.
 - **Factory reset**: 9 clicks from off; the calibration (`BAT_CAL`, `THM_OFFSET`) is kept.

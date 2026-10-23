@@ -102,6 +102,7 @@ void slow_tasks() {
 void outputs_off() {
     hal::set_main(0);
     hal::set_laser(false);
+    hal::set_side(0, 0);
     hal::set_aux(0, 0, 0);
     g_out = 0;
 }
@@ -287,8 +288,10 @@ void tick() {
     }
     hal::set_main(ramp::power_of_level(g_out));
 
-    // 4. laser: the UI decides, protection can still veto
-    hal::set_laser(ui::laser() && !thermal::shutdown() && !battery::empty());
+    // 4. laser and side lights: the UI decides, protection can still veto
+    bool aux_ok = !thermal::shutdown() && !battery::empty();
+    hal::set_laser(ui::laser() && aux_ok);
+    hal::set_side(aux_ok ? ui::side_red() : 0, aux_ok ? ui::side_uv() : 0);
 
     // 5. indicator, console, watchdog
     aux::tick(dt);

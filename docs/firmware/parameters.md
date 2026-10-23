@@ -58,3 +58,5 @@ Defaults written as `LX_DEF_...` come from the board header; the value shown is 
 | `LASER_S` | 60 | 1 ... 300 | s | Longest laser emission per press |
 | `LASER_TMAX` | 60 | 30 ... 80 | °C | No laser above this temperature |
 | `LASER_VMIN` | 3200 | 900 ... 3800 | mV/cell | No laser below this cell voltage (cheap laser modules drift when the supply sags) |
+| `SIDE_RED` | 40 (`LX_DEF_SIDE_RED`) | 1 ... 100 | % | Brightness of the red side light (5 clicks from off) |
+| `SIDE_UV` | 100 (`LX_DEF_SIDE_UV`) | 0 ... 100 | % | Brightness of the UV side light; 0 = no UV (two clicks in the side light then do nothing) |

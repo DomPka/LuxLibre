@@ -45,6 +45,7 @@ std::vector<Sample> g_log;
 // outputs written by the firmware
 uint16_t g_power = 0;
 bool g_laser = false;
+uint8_t g_side_red = 0, g_side_uv = 0;
 bool g_charge_en = false;
 uint8_t g_r = 0, g_g = 0, g_b = 0;
 
@@ -90,6 +91,8 @@ void physics(double dt) {
     double p_led = v_led * g_i_led;
     double p_in = g_cfg.efficiency > 0 ? p_led / g_cfg.efficiency : 0.0;
     double p_laser = g_laser ? 0.25 : 0.0;   // small laser module incl. its driver
+    // side lights share the laser's path: straight from the cell, nearly all of it heat
+    p_laser += g_side_red / 255.0 * g_cfg.side_red_w + g_side_uv / 255.0 * g_cfg.side_uv_w;
     // battery
     double ocv = ocv_cell(g_soc) * g_cfg.cells;
     double v = ocv;
@@ -208,6 +211,12 @@ Config board_preset() {
 #ifdef LX_SIM_DROP_MOHM
     c.drop_ohm = LX_SIM_DROP_MOHM / 1000.0;
 #endif
+#ifdef LX_SIM_SIDE_RED_MW
+    c.side_red_w = LX_SIM_SIDE_RED_MW / 1000.0;
+#endif
+#ifdef LX_SIM_SIDE_UV_MW
+    c.side_uv_w = LX_SIM_SIDE_UV_MW / 1000.0;
+#endif
 #ifdef LX_SIM_OCV_V
     {
         static const double v[] = {LX_SIM_OCV_V};
@@ -249,6 +258,7 @@ void reset(const Config& c) {
     g_th = g_tb = g_ts = c.ambient_c;
     g_power = 0;
     g_laser = false;
+    g_side_red = g_side_uv = 0;
     g_charge_en = false;
     g_r = g_g = g_b = 0;
     g_log.clear();
@@ -328,6 +338,8 @@ double t_sensor() { return g_ts; }
 double v_pack() { return g_v_pack; }
 double soc() { return g_soc; }
 bool laser() { return g_laser; }
+uint8_t side_red() { return g_side_red; }
+uint8_t side_uv() { return g_side_uv; }
 uint8_t aux_r() { return g_r; }
 uint8_t aux_g() { return g_g; }
 uint8_t aux_b() { return g_b; }
@@ -363,6 +375,7 @@ namespace hal {
 void init() {
     sim::g_power = 0;
     sim::g_laser = false;
+    sim::g_side_red = sim::g_side_uv = 0;
     sim::g_r = sim::g_g = sim::g_b = 0;
 }
 void watchdog_kick() {}
@@ -407,6 +420,15 @@ uint8_t charger_status() {
 void set_main(lx::power_t power) { sim::g_power = power; }
 void set_aux(uint8_t r, uint8_t g, uint8_t b) { sim::g_r = r; sim::g_g = g; sim::g_b = b; }
 void set_laser(bool on) { sim::g_laser = on; }
+void set_side(uint8_t red, uint8_t uv) {
+#if LX_HAS_SIDE
+    sim::g_side_red = red;
+    sim::g_side_uv = uv;
+#else
+    (void)red;
+    (void)uv;
+#endif
+}
 void set_charge(bool enable, bool allowed) { (void)allowed; sim::g_charge_en = enable; }
 
 void storage_read(uint16_t addr, void* dst, uint16_t len) {

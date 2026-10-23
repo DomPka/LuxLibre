@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Board: simulated light for the PC build (tests and the simulator).
-// A current-regulated driver with an RGB indicator, a laser, a charger and an NTC, so
+// A current-regulated driver with an RGB indicator, a laser, side lights, a charger and an NTC, so
 // every feature of the core is exercised. The physics live in ports/host/sim.cpp.
 #pragma once
 
@@ -9,6 +9,7 @@
 #define LX_HAS_CONSOLE 1
 #define LX_HAS_AUX_RGB 1
 #define LX_HAS_LASER 1
+#define LX_HAS_SIDE 1              // red and UV side lights
 #define LX_HAS_CHARGER 1
 #define LX_HAS_TEMP 1
 #define LX_BAT_CELLS 1

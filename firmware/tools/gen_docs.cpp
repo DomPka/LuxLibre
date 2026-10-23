@@ -122,7 +122,7 @@ void write_ui(const std::string& dir) {
                     "switches off and refuses until the cell rests above `LVP_RESUME` or USB is connected.\n");
     std::fprintf(f, "- **Pocket protection**: a button held for 10 s while the light is dark (off or locked) is "
                     "ignored until it is released; a button held for `POCKET_S` seconds (default 30) while the main "
-                    "LED is on switches the light off and locks it.\n");
+                    "LED or a side light is on switches the light off and locks it.\n");
     std::fprintf(f, "- **Auto-lock**: after `AUTOLOCK` minutes off the light locks itself (0 = never).\n");
     std::fprintf(f, "- **Charging** (boards with a charger): while USB power is connected the level is capped at "
                     "`CHG_MAXLVL`; the cell is charged only between `CHG_TMIN` and `CHG_TMAX`.\n");

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // LuxLibre firmware - HAL for the ESP32-C3 with ESP-IDF 5.x (boards: FlashKa Keychain v0.5, v0.6).
 //
-// Resources: LEDC 13-bit 9.77 kHz (LED current set point + 3 RGB channels, active low),
+// Resources: LEDC 13-bit 9.77 kHz (LED current set point + 3 RGB channels, active low, + 2 side-light
+// channels on boards with LX_HAS_SIDE),
 // ADC1 oneshot with curve-fitting calibration (VBAT / 2 on GPIO0, NTC on GPIO1), light sleep
 // with GPIO wake-up (button) and timer wake-up, NVS blob for the settings, USB-Serial-JTAG
 // for the text console, task watchdog 3 s.
@@ -66,6 +67,18 @@ static_assert(LX_ESP_BTN_MAIN_BELOW_MV > 0 && LX_ESP_BTN_MAIN_BELOW_MV < 1050,
 #define LX_ESP_LADDER 0
 #endif
 
+#if LX_HAS_SIDE
+#if !defined(LX_ESP_GPIO_SIDE_RED) || !defined(LX_ESP_GPIO_SIDE_UV)
+#error "board.h: side lights need LX_ESP_GPIO_SIDE_RED and LX_ESP_GPIO_SIDE_UV"
+#endif
+#ifndef LX_ESP_SIDE_RED_ACTIVE_LOW
+#define LX_ESP_SIDE_RED_ACTIVE_LOW 0
+#endif
+#ifndef LX_ESP_SIDE_UV_ACTIVE_LOW
+#define LX_ESP_SIDE_UV_ACTIVE_LOW 0
+#endif
+#endif
+
 namespace {
 
 constexpr uint32_t PWM_FULL = 8191;                       // 13 bit
@@ -73,6 +86,10 @@ constexpr ledc_channel_t CH_LED = LEDC_CHANNEL_0;
 constexpr ledc_channel_t CH_R = LEDC_CHANNEL_1;
 constexpr ledc_channel_t CH_G = LEDC_CHANNEL_2;
 constexpr ledc_channel_t CH_B = LEDC_CHANNEL_3;
+#if LX_HAS_SIDE
+constexpr ledc_channel_t CH_SIDE_RED = LEDC_CHANNEL_4;
+constexpr ledc_channel_t CH_SIDE_UV = LEDC_CHANNEL_5;
+#endif
 constexpr lx::ntc::Table<LX_ESP_NTC_RFIX, LX_ESP_NTC_R25, LX_ESP_NTC_BETA> k_ntc{};
 
 adc_oneshot_unit_handle_t g_adc = nullptr;
@@ -210,6 +227,11 @@ void init() {
 #if LX_HAS_LASER
     out_pin(LX_ESP_GPIO_LASER, 0);
 #endif
+#if LX_HAS_SIDE
+    // side lights off; an active-low switch on a strap pin stays off through reset (pull-up)
+    out_pin(LX_ESP_GPIO_SIDE_RED, LX_ESP_SIDE_RED_ACTIVE_LOW ? 1 : 0);
+    out_pin(LX_ESP_GPIO_SIDE_UV, LX_ESP_SIDE_UV_ACTIVE_LOW ? 1 : 0);
+#endif
     // 2. inputs
 #if LX_ESP_LADDER
     // Resistor ladder: its levels assume the board's pull-up alone, so neither pin may add the
@@ -236,6 +258,10 @@ void init() {
     ledc_ch(CH_R, LX_ESP_GPIO_RGB_R, true);       // common anode: invert, duty = brightness
     ledc_ch(CH_G, LX_ESP_GPIO_RGB_G, true);
     ledc_ch(CH_B, LX_ESP_GPIO_RGB_B, true);
+#if LX_HAS_SIDE
+    ledc_ch(CH_SIDE_RED, LX_ESP_GPIO_SIDE_RED, LX_ESP_SIDE_RED_ACTIVE_LOW);
+    ledc_ch(CH_SIDE_UV, LX_ESP_GPIO_SIDE_UV, LX_ESP_SIDE_UV_ACTIVE_LOW);
+#endif
     // 4. ADC
     adc_oneshot_unit_init_cfg_t u;
     memset(&u, 0, sizeof u);
@@ -451,6 +477,16 @@ void set_aux(uint8_t r, uint8_t g, uint8_t b) {
 void set_laser(bool on) { gpio_set_level((gpio_num_t)LX_ESP_GPIO_LASER, on ? 1 : 0); }
 #else
 void set_laser(bool) {}   // boards without a laser (EDCO)
+#endif
+
+#if LX_HAS_SIDE
+void set_side(uint8_t red, uint8_t uv) {
+    if (red && uv) uv = 0;                        // one colour at a time
+    ledc_duty(CH_SIDE_RED, (uint32_t)red * PWM_FULL / 255u);
+    ledc_duty(CH_SIDE_UV, (uint32_t)uv * PWM_FULL / 255u);
+}
+#else
+void set_side(uint8_t, uint8_t) {}
 #endif
 
 void set_charge(bool enable, bool allowed) {

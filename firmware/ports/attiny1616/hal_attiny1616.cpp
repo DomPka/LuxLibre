@@ -197,6 +197,7 @@ void set_main(lx::power_t power) {
 
 void set_aux(uint8_t, uint8_t, uint8_t) {}
 void set_laser(bool) {}
+void set_side(uint8_t, uint8_t) {}
 void set_charge(bool, bool) {}
 
 void storage_read(uint16_t addr, void* dst, uint16_t len) {

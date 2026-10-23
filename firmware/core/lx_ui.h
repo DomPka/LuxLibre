@@ -13,7 +13,7 @@
 namespace lx {
 namespace ui {
 
-enum State : uint8_t { S_OFF, S_ON, S_LOCK, S_BLINKY, S_LASER, S_MOMENT, S_COUNT };
+enum State : uint8_t { S_OFF, S_ON, S_LOCK, S_BLINKY, S_LASER, S_MOMENT, S_SIDE, S_COUNT };
 enum Blinky : uint8_t { B_BATT, B_TEMP, B_BEACON, B_SOS, B_STROBE, B_COUNT };
 
 // Layout masks used in the binding table.
@@ -47,6 +47,8 @@ enum Action : uint8_t {
     A_LASER_OR_MOMENT, // laser while held (boards with a laser), otherwise momentary turbo
     A_LASER_END,
     A_FACTORY_RESET,   // all parameters back to their defaults (9 clicks from off)
+    A_SIDE_ON,         // side light on (boards with side LEDs), in the colour used last
+    A_SIDE_NEXT,       // side light: red <-> UV
     A_COUNT
 };
 
@@ -77,6 +79,8 @@ uint8_t layout();                         // current L_ mask (from UI_STYLE)
 uint8_t level();                          // requested main level before protection caps (0 = off)
 bool instant();                           // true while a blink pattern runs (no smoothing)
 bool laser();                             // laser requested now
+uint8_t side_red();                       // red side light requested now (0-255)
+uint8_t side_uv();                        // UV side light requested now (0-255)
 bool busy();                              // something time-based runs: do not sleep
 bool turbo_active();
 bool momentary_from_lock();               // momentary moon started from lockout

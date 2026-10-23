@@ -30,6 +30,9 @@
 #ifndef LX_HAS_LASER
 #define LX_HAS_LASER 0           // laser module with hardware interlock
 #endif
+#ifndef LX_HAS_SIDE
+#define LX_HAS_SIDE 0            // side lights: a red and a UV LED shining out of the side
+#endif
 #ifndef LX_HAS_CHARGER
 #define LX_HAS_CHARGER 0         // on-board charger with status signals
 #endif
@@ -154,6 +157,12 @@
 #endif
 #ifndef LX_DEF_BLINK_LVL
 #define LX_DEF_BLINK_LVL 60
+#endif
+#ifndef LX_DEF_SIDE_RED
+#define LX_DEF_SIDE_RED 40       // % of the red side light's full output
+#endif
+#ifndef LX_DEF_SIDE_UV
+#define LX_DEF_SIDE_UV 100       // % of the UV side light's full output (0 = no UV)
 #endif
 
 static_assert(LX_TICK_MS >= 1 && LX_TICK_MS <= 50, "LX_TICK_MS out of range");
