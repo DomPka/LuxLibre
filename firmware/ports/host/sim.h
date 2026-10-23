@@ -56,6 +56,8 @@ struct Config {
     // side lights (boards with LX_HAS_SIDE): electrical power at full duty, W
     double side_red_w = 0.05;
     double side_uv_w = 0.5;
+    // electronics (MCU, regulator, op-amp) while awake, A; asleep it is 0.3 mA (board header LX_SIM_MCU_UA)
+    double mcu_awake_a = 0.0003;
     bool keep_storage = false;      // keep the emulated EEPROM from the previous run
 };
 

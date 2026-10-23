@@ -69,3 +69,4 @@ jobs:
           idf.py -B build-v06 -DLX_BOARD=flashka-keychain-v06 build
           idf.py -B build-v07 -DLX_BOARD=flashka-keychain-v07 build
           idf.py -B build-edco -DLX_BOARD=edco-v01 build
+          idf.py -B build-mini -DLX_BOARD=edco-mini-16 build

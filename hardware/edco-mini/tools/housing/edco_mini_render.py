@@ -154,92 +154,89 @@ def shoot(parts, name, out, **kw):
 
 def views(out, finish, only):
     want = (lambda n: only is None or n in only)
-    sfx = "" if finish == "black" else "_" + finish
-    m14 = Model("14")
-    if want("hero" + sfx):
-        parts = m14.parts(finish, skip=closed_skip(m14), glow=HALO)
-        shoot(parts, "mini14_hero%s.png" % sfx, out, direction=(-0.42, 0.55, 1.0), up=(-0.55, -0.45, 0.6),
-              ratio=0.62, fill=0.90, view_angle=18.0, glow_radius=2.4, glow_strength=0.9)
-    if finish != "black":
+    m16 = Model("16")
+    p = m16.p
+    if finish == "natural":
+        m14 = Model("14")
+        if want("hero_natural"):
+            parts = m14.parts(finish, skip=closed_skip(m14), glow=HALO)
+            shoot(parts, "mini14_hero_natural.png", out, direction=(-0.42, 0.55, 1.0), up=(-0.55, -0.45, 0.6),
+                  ratio=0.62, fill=0.90, view_angle=18.0, glow_radius=2.4, glow_strength=0.9)
         return
+    if want("hero"):
+        parts = m16.parts(finish, skip=closed_skip(m16), glow=HALO)
+        shoot(parts, "mini16_hero.png", out, direction=(-0.42, 0.55, 1.0), up=(-0.55, -0.45, 0.6),
+              ratio=0.62, fill=0.90, view_angle=18.0, glow_radius=2.4, glow_strength=0.9)
     if want("front"):
-        parts = m14.parts(finish, skip=closed_skip(m14) + ("split_ring",))
-        shoot(parts, "mini14_front.png", out, direction=(-1.0, -0.45, 0.42), up=(0, 0, 1), ratio=0.62, fill=0.88,
+        parts = m16.parts(finish, skip=closed_skip(m16) + ("split_ring",))
+        shoot(parts, "mini16_front.png", out, direction=(-1.0, -0.45, 0.42), up=(0, 0, 1), ratio=0.62, fill=0.88,
               view_angle=18.0)
     if want("port"):
-        parts = m14.parts(finish, skip=closed_skip(m14) + ("split_ring",))
-        shoot(parts, "mini14_port.png", out, direction=(-0.30, -0.50, -1.0), up=(-1.0, 0.0, 0.0), ratio=0.62,
+        parts = m16.parts(finish, skip=closed_skip(m16) + ("split_ring",))
+        shoot(parts, "mini16_port.png", out, direction=(-0.30, -0.50, -1.0), up=(-1.0, 0.0, 0.0), ratio=0.62,
               fill=0.88, view_angle=16.0)
-    if want("uv"):
-        g = dict(HALO)
-        g["uv_rod"] = UV
-        parts = m14.parts(finish, skip=closed_skip(m14) + ("split_ring",), glow=g)
-        shoot(parts, "mini14_side_uv.png", out, direction=(-0.55, 0.35, 1.0), up=(-1.0, 0.0, 0.3), ratio=0.62,
-              fill=0.88, view_angle=16.0, glow_radius=3.0, glow_strength=1.0)
-    if want("red"):
-        g = dict(HALO)
-        g["red_rod"] = RED
-        parts = m14.parts(finish, skip=closed_skip(m14) + ("split_ring",), glow=g)
-        shoot(parts, "mini14_side_red.png", out, direction=(-0.55, 0.35, 1.0), up=(-1.0, 0.0, 0.3), ratio=0.62,
-              fill=0.88, view_angle=16.0, glow_radius=3.0, glow_strength=1.0)
+    for col, nm, rod in (("uv", "mini16_side_uv.png", "uv_rod"), ("red", "mini16_side_red.png", "red_rod")):
+        if want(col):
+            g = dict(HALO)
+            g[rod] = UV if col == "uv" else RED
+            parts = m16.parts(finish, skip=closed_skip(m16) + ("split_ring",), glow=g)
+            shoot(parts, nm, out, direction=(-0.55, 0.35, 1.0), up=(-1.0, 0.0, 0.3), ratio=0.62, fill=0.88,
+                  view_angle=16.0, glow_radius=3.0, glow_strength=1.0)
     if want("tail"):
-        parts = m14.parts(finish, skip=closed_skip(m14))
-        shoot(parts, "mini14_tail.png", out, direction=(1.0, -0.5, 0.45), up=(0, 0, 1), ratio=0.62, fill=0.88,
+        parts = m16.parts(finish, skip=closed_skip(m16))
+        shoot(parts, "mini16_tail.png", out, direction=(1.0, -0.5, 0.45), up=(0, 0, 1), ratio=0.62, fill=0.88,
               view_angle=18.0)
     if want("section"):
-        p = m14.p
-        parts = m14.parts(finish, skip=("split_ring",), cut=True, glow=HALO)
-        labels = [("Crenellated bezel, M17 x 0.5", (1.0, 0.0, p.RH + 2.5), "T"),
-                  ("SST-20 under a TIR optic", (p.x_opt0 + 3.0, 0.0, -3.0), "B"),
+        parts = m16.parts(finish, skip=("split_ring",), cut=True, glow=HALO)
+        labels = [("Crenellated bezel, M20 x 0.5", (1.0, 0.0, p.RH + 2.5), "T"),
+                  ("SST-20 under a TIR optic", (p.x_opt0 + 4.0, 0.0, -3.0), "B"),
                   ("Red + UV side lights", (p.x_win, 0.0, p.RH + 2.5), "T"),
                   ("Stainless button, glowing membrane", (p.x_btn + 1.0, 0.0, p.RH + 2.5), "T"),
                   ("Waterproof USB-C", (p.x_btn, 0.0, -p.RH - 1.0), "B"),
-                  ("%s cell" % p.cell_name, (p.x_cell0 + 18, 0.0, -2.0), "B"),
+                  ("16340 cell", (p.x_cell0 + 18, 0.0, -2.0), "B"),
                   ("Magnet in the tail", (p.L - 1.0, 0.0, -p.R - 1.0), "B")]
-        shoot(parts, "mini14_section.png", out, direction=(0.0, -1.0, 0.16), up=(0, 0, 1), ratio=0.42, fill=0.92,
+        shoot(parts, "mini16_section.png", out, direction=(0.0, -1.0, 0.16), up=(0, 0, 1), ratio=0.42, fill=0.92,
               view_angle=12.0, labels=labels)
     if want("exploded"):
-        p = m14.p
-        grp = {"ring": (-48.0, 0.0), "gasket": (-34.0, 0.0), "optic_holder": (-33.0, 0.0), "optic_lens": (-33.0, 0.0),
-               "mcpcb": (-22.0, 0.0), "led": (-22.0, 0.0), "phosphor": (-22.0, 0.0),
-               "insert": (-11.0, 0.0), "face_oring": (-11.0, 0.0),
-               "sled": (0.0, -13.0), "membrane": (0.0, 11.0), "btn_collar": (0.0, 13.5), "cap": (0.0, 16.0),
-               "pin": (0.0, 8.0), "uv_rod": (0.0, 9.0), "red_rod": (0.0, 9.0),
-               "body": (0.0, -32.0), "label": (0.0, -32.0), "split_ring": (0.0, -32.0),
-               "magnet": (8.0, -32.0)}
+        grp = {"ring": (-52.0, 0.0), "gasket": (-37.0, 0.0), "optic_holder": (-36.0, 0.0), "optic_lens": (-36.0, 0.0),
+               "mcpcb": (-24.0, 0.0), "led": (-24.0, 0.0), "phosphor": (-24.0, 0.0),
+               "insert": (-12.0, 0.0), "face_oring": (-12.0, 0.0),
+               "sled": (0.0, -15.0), "membrane": (0.0, 12.0), "btn_collar": (0.0, 15.0), "cap": (0.0, 18.0),
+               "pin": (0.0, 9.0), "uv_rod": (0.0, 10.0), "red_rod": (0.0, 10.0),
+               "body": (0.0, -36.0), "label": (0.0, -36.0), "split_ring": (0.0, -36.0),
+               "magnet": (9.0, -36.0)}
         cart = ("cell", "cell_plus", "strip_plus", "strip_minus", "insulator")
         offs = {}
-        for nm in m14.d:
+        for nm in m16.d:
             x, z = grp.get(nm, (0.0, 0.0))
             if nm in cart:
                 x = 5.0
             offs[nm] = (x, 0.0, z)
-        parts = m14.parts(finish, offsets=offs)
-        labels = [("Crenellated bezel", (-48.0 + 2.0, 0.0, 10.5), "T"),
-                  ("Optic + gasket", (-33.0 + 6.0, 0.0, 9.0), "T"),
-                  ("SST-20 on its copper board", (-22.0 + p.x_opt1, 0.0, 8.0), "T"),
-                  ("Head insert + face O-ring", (-11.0 + 12.0, 0.0, 9.0), "T"),
-                  ("Button parts, light rods", (p.x_btn, 0.0, 16.0 + 9.5), "T"),
+        parts = m16.parts(finish, offsets=offs)
+        labels = [("Crenellated bezel", (-52.0 + 2.0, 0.0, 12.0), "T"),
+                  ("Optic + gasket", (-36.0 + 7.0, 0.0, 10.0), "T"),
+                  ("SST-20 on its copper board", (-24.0 + p.x_opt1, 0.0, 9.5), "T"),
+                  ("Head insert + face O-ring", (-12.0 + 14.0, 0.0, 10.5), "T"),
+                  ("Button parts, light rods", (p.x_btn, 0.0, 18.0 + 10.5), "T"),
                   ("Main board + waterproof USB-C", (p.board_x1 - 3, 0.0, -2.0), "B"),
-                  ("%s cell" % p.cell_name, (5.0 + p.x_cell0 + 18, 0.0, 8.0), "T"),
-                  ("POM sled", (22.0, 0.0, -13.0 - 8.0), "B"),
-                  ("Body, magnet", (45.0, 0.0, -32.0 - 10.0), "B")]
-        shoot(parts, "mini14_exploded.png", out, direction=(-0.10, -1.0, 0.30), up=(0, 0, 1), ratio=0.58,
+                  ("16340 cell", (5.0 + p.x_cell0 + 18, 0.0, 9.0), "T"),
+                  ("POM sled", (24.0, 0.0, -15.0 - 9.0), "B"),
+                  ("Body, magnet", (48.0, 0.0, -36.0 - 11.0), "B")]
+        shoot(parts, "mini16_exploded.png", out, direction=(-0.10, -1.0, 0.30), up=(0, 0, 1), ratio=0.58,
               fill=0.94, view_angle=14.0, labels=labels)
     if want("sizes"):
-        m16 = Model("16")
-        pa = m14.parts("black", skip=closed_skip(m14) + ("split_ring",), glow=HALO, shift=(0, -14.0, 0))
-        pb = m16.parts("natural", skip=closed_skip(m16) + ("split_ring",), glow=HALO, shift=(0, 14.0, 0))
-        labels = [("Mini-14: 14350, Ø%g x %.1f mm" % (m14.p.body_od, m14.p.L), (0.0, -14.0, 0.0), "T"),
-                  ("Mini-16: 16340, Ø%g x %.1f mm" % (m16.p.body_od, m16.p.L), (0.0, 14.0, 0.0), "T")]
+        m14 = Model("14")
+        pa = m16.parts("black", skip=closed_skip(m16) + ("split_ring",), glow=HALO, shift=(0, -14.0, 0))
+        pb = m14.parts("natural", skip=closed_skip(m14) + ("split_ring",), glow=HALO, shift=(0, 14.0, 0))
+        labels = [("Mini-16: 16340, Ø%g x %.1f mm" % (m16.p.body_od, m16.p.L + 1e-6), (0.0, -14.0, 0.0), "T"),
+                  ("Mini-14: 14350, Ø%g x %.1f mm" % (m14.p.body_od, m14.p.L + 1e-6), (0.0, 14.0, 0.0), "T")]
         shoot(pa + pb, "mini_sizes.png", out, direction=(-0.15, 0.25, 1.0), up=(-1.0, 0.0, 0.0), ratio=0.95,
               fill=0.90, view_angle=16.0, glow_radius=2.2, labels=labels)
     if want("family"):
         import edco_v02 as V
-        m16 = Model("16")
+        m14 = Model("14")
         v18 = V.P(size="18")
         dv = V.build_all(v18, 180.0)
-        vm = R.MATS
         skip_v = ("sled", "board", "pin", "cell", "cell_plus", "strip_plus", "strip_minus", "insulator", "membrane",
                   "face_oring", "mcpcb", "split_ring")
         pv = []
@@ -249,13 +246,12 @@ def views(out, finish, only):
             mat = {"label": "engrave_black", "optic_lens": "lens", "optic_holder": "pc_black", "led": "led",
                    "phosphor": "phosphor", "cap": "steel_pol", "btn_collar": "steel_pol",
                    "port_gasket": "silicone", "gasket": "silicone"}.get(nm, "anod_black")
-            pv.append(R.Part(R.polydata_from_shape(V.solid(s), tol=0.01, ang=0.12), mat, (0, -38.0, 0), nm))
-        pa = m14.parts("black", skip=closed_skip(m14) + ("split_ring",), shift=(0, 0.0, 0))
-        pb = m16.parts("black", skip=closed_skip(m16) + ("split_ring",), shift=(0, 30.0, 0))
-        labels = [("EDCO-18 v0.2, %.1f mm" % v18.L, (0.0, -38.0, 0.0), "T"),
-                  ("Mini-14, %.1f mm" % m14.p.L, (0.0, 0.0, 0.0), "T"),
-                  ("Mini-16, %.1f mm" % m16.p.L, (0.0, 30.0, 0.0), "T")]
-        del vm
+            pv.append(R.Part(R.polydata_from_shape(V.solid(s), tol=0.01, ang=0.12), mat, (0, -36.0, 0), nm))
+        pa = m16.parts("black", skip=closed_skip(m16) + ("split_ring",))
+        pb = m14.parts("black", skip=closed_skip(m14) + ("split_ring",), shift=(0, 28.0, 0))
+        labels = [("EDCO-18 v0.2, %.1f mm" % v18.L, (0.0, -36.0, 0.0), "T"),
+                  ("Mini-16, %.1f mm" % (m16.p.L + 1e-6), (0.0, 0.0, 0.0), "T"),
+                  ("Mini-14, %.1f mm" % (m14.p.L + 1e-6), (0.0, 28.0, 0.0), "T")]
         shoot(pv + pa + pb, "mini_family.png", out, direction=(-0.15, 0.25, 1.0), up=(-1.0, 0.0, 0.0), ratio=1.1,
               fill=0.90, view_angle=16.0, labels=labels)
 

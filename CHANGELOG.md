@@ -5,6 +5,27 @@ All notable changes to LuxLibre. Versions follow [semantic versioning](https://s
 the firmware version is `LX_FW_VERSION` in `firmware/core/lx_version.h`. A release that does not
 change the firmware keeps its version.
 
+## Unreleased (work in progress)
+
+### Hardware
+
+- EDCO Mini v0.1, reference design #3 ([hardware/edco-mini/](hardware/edco-mini/README.md)), a concept:
+  a sealed keychain light of at most 70 mm in two sizes, Mini-16 (one 16340, Ø20 × 69.9 mm) and Mini-14
+  (Ø17 × 66.0 mm, needs a made-to-order cell). An SST-20 behind a TIR optic (944-978 lm out of the front,
+  simulated), red and UV side lights, a waterproof USB-C socket in the side of the head, a magnet in the tail.
+  CadQuery model with checks, STEP files, renders, and a comparison with the best 60 mm keychain lights.
+- EDCO v0.2 ([hardware/edco-v02/](hardware/edco-v02/README.md)), a concept in two sizes (18500 and
+  14500): an SST-40 at up to 5.7 A, USB-C on the side under a twist collar, a crenellated finned bezel.
+
+### Firmware
+
+- Side lights for boards with `LX_HAS_SIDE`: 5 clicks from off, 2 clicks switch red and UV, parameters
+  `SIDE_RED` and `SIDE_UV`; `hal::set_side()` in every port (two LEDC channels on the ESP32-C3). Adding the
+  two parameters resets stored settings to their defaults once (the calibration is kept).
+- Simulator: side-light power, the electronics' current while awake (`LX_SIM_MCU_UA`), the charge current
+  (`LX_SIM_CHARGE_MA`), and a wake-up on USB power.
+- Board headers: `edco-mini-16`, `edco-mini-14`, `edco-v02-18`, `edco-v02-14`.
+
 ## 0.4.0 - 2026-10-23
 
 ### Hardware

@@ -40,13 +40,19 @@ if not os.path.exists(FONT):
     FONT = "/usr/share/fonts/truetype/google-fonts/Poppins-Bold.ttf"
 
 SIZES = {
-    # body, head (= bezel = head section), bore, band (thread major), cell, optic, LED board, flats, button,
-    # magnet. Placeholders until the parts research is in: marked in the README.
+    # body, head (= bezel = head section), bore, band (thread major), cell, optic, LED board, flats, button, magnet.
+    # Mini-14: a made-to-order high-rate LiPo cell Ø14 x 35 (no off-the-shelf high-drain 14350 found), Carclo 12079
+    #          10 mm IP66 spot optic (flange Ø12.5, about 6 mm tall: inferred from the drawing), magnet supermagnete
+    #          S-08-02-N (Ø8 x 2, N45, about 1.1 kg)
+    # Mini-16: Vapcell INR16340 T6 (650 mAh, 6 A; Ø16.5 x 34.0) or T9 (950 mAh, 3 A); the bay takes 16.6 x 34.5.
+    #          LEDiL FA10887 TINA-RS for XP-E (Ø16.1 x 9.7, 13 deg; its fit over the SST-20 dome is to be checked),
+    #          magnet supermagnete S-10-1.5-N52N (Ø10 x 1.5, N52, about 1.2 kg)
+    # Both: Luminus SST-20-W Gen 2 (3.45 mm, 3.0 A maximum)
     "14": dict(name="EDCO Mini-14", body_od=17.0, head_od=19.0, bore_d=15.0, band_d=17.0, cell_d=14.0,
-               cell_len=35.0, cell_name="14350", opt_d=13.0, opt_h=8.0, mcpcb_d=12.0, mcpcb_t=1.2, led_w=3.45,
+               cell_len=35.0, cell_name="14350", opt_d=12.5, opt_h=6.0, mcpcb_d=12.0, mcpcb_t=1.2, led_w=3.45,
                flat_r=8.3, cap_d=5.8, btn_cb_d=7.4, mag_d=8.0, mag_t=2.0, lan_r=5.6, tail_wall=3.6),
     "16": dict(name="EDCO Mini-16", body_od=20.0, head_od=22.0, bore_d=17.4, band_d=20.0, cell_d=16.6,
-               cell_len=34.5, cell_name="16340", opt_d=16.1, opt_h=9.0, mcpcb_d=16.0, mcpcb_t=1.5, led_w=3.45,
+               cell_len=34.5, cell_name="16340", opt_d=16.1, opt_h=9.7, mcpcb_d=16.0, mcpcb_t=1.5, led_w=3.45,
                flat_r=9.6, cap_d=6.5, btn_cb_d=8.2, mag_d=10.0, mag_t=1.5, lan_r=6.8, tail_wall=3.6),
 }
 
@@ -85,8 +91,8 @@ class P:
     lip_t: float = 0.6           # bezel lip over the optic
     gasket_t: float = 0.4        # optic gasket (silicone)
     opt_in_ring: float = 1.2     # front part of the optic inside the bezel's small bore
-    shelf_t: float = 1.3         # solid insert floor behind the LED board
-    thread_len: float = 3.2
+    shelf_t: float = 1.2         # solid insert floor behind the LED board
+    thread_len: float = 3.0
     spigot_len: float = 1.0      # insert spigot in the bore (centring + key)
     face_or_cs: float = 0.6      # face O-ring between insert and band
     head_gap: float = 0.15       # bezel rear face to the head-section shoulder (the bezel must clamp the insert)
@@ -99,11 +105,11 @@ class P:
     sw_h: float = 2.0            # Alps SKRK incl. actuator
     sw_body: tuple = (2.9, 3.9, 1.5)
     board_t: float = 0.8
-    uv_led: tuple = (3.5, 3.5, 1.4)    # 365 nm UV LED (3535 placeholder)
-    red_led: tuple = (1.6, 0.8, 0.6)   # red LED (0603)
+    uv_led: tuple = (3.5, 3.5, 1.23)   # 365 nm UV LED: Nichia NVSU233B-U365 (3.5 x 3.5 x 1.23)
+    red_led: tuple = (2.04, 1.64, 0.7) # red LED, 2.0 x 1.6 mm power LED (e.g. LUXEON C Color Red, to be confirmed)
     uv_rod_d: float = 3.0        # UV-transmitting light rod
-    red_rod_d: float = 2.2
-    win_y: tuple = (-1.75, 1.6)  # rod positions across: UV, red
+    red_rod_d: float = 2.4
+    win_y: tuple = (-1.75, 1.75) # rod positions across: UV, red
     strip_t: float = 0.15
     insul_t: float = 0.15
     tail_wall: float = 3.6       # solid tail behind the cell bay (magnet pocket + lanyard hole)
@@ -163,11 +169,11 @@ class P:
         return max(a, b, c)
     @property
     def board_x1(self):
-        return self.x_btn + max(self.usb_body[0] / 2, self.sw_body[0] / 2 + 1.0) + 0.5
+        return self.x_btn + max(self.usb_body[0] / 2, self.sw_body[0] / 2 + 1.0) + 0.4
     @property
     def x_step(self): return max(self.board_x1, self.x_btn + self.pocket_r + 0.6) + 0.3   # head section -> tube
     @property
-    def x_cell0(self): return self.board_x1 + 0.9
+    def x_cell0(self): return self.board_x1 + 0.75
     @property
     def x_cell1(self): return self.x_cell0 + self.cell_len
     @property

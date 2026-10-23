@@ -91,6 +91,7 @@ void physics(double dt) {
     double p_led = v_led * g_i_led;
     double p_in = g_cfg.efficiency > 0 ? p_led / g_cfg.efficiency : 0.0;
     double p_laser = g_laser ? 0.25 : 0.0;   // small laser module incl. its driver
+    double i_mcu = g_sleeping ? 0.0003 : g_cfg.mcu_awake_a;
     // side lights share the laser's path: straight from the cell, nearly all of it heat
     p_laser += g_side_red / 255.0 * g_cfg.side_red_w + g_side_uv / 255.0 * g_cfg.side_uv_w;
     // battery
@@ -99,7 +100,7 @@ void physics(double dt) {
     double i_bat = 0.0;
     if (g_cfg.drop_ohm <= 0.0) {
         for (int k = 0; k < 3; k++) {   // terminal voltage depends on the current
-            i_bat = (p_in + p_laser) / std::max(v, 1.0) + 0.0003;
+            i_bat = (p_in + p_laser) / std::max(v, 1.0) + i_mcu;
             v = ocv - i_bat * g_cfg.r_int_ohm;
         }
     } else {
@@ -112,7 +113,7 @@ void physics(double dt) {
             p_led = v_led * g_i_led;
             double i_led_in = g_cfg.efficiency > 0 ? std::min(p_led / g_cfg.efficiency / std::max(v, 1.0), g_i_led) : 0.0;
             p_in = i_led_in * std::max(v, 1.0);
-            i_bat = i_led_in + p_laser / std::max(v, 1.0) + 0.0003;
+            i_bat = i_led_in + p_laser / std::max(v, 1.0) + i_mcu;
             v = ocv - i_bat * g_cfg.r_int_ohm;
         }
     }
@@ -210,6 +211,12 @@ Config board_preset() {
 #endif
 #ifdef LX_SIM_DROP_MOHM
     c.drop_ohm = LX_SIM_DROP_MOHM / 1000.0;
+#endif
+#ifdef LX_SIM_CHARGE_MA
+    c.charge_a = LX_SIM_CHARGE_MA / 1000.0;
+#endif
+#ifdef LX_SIM_MCU_UA
+    c.mcu_awake_a = LX_SIM_MCU_UA / 1e6;
 #endif
 #ifdef LX_SIM_SIDE_RED_MW
     c.side_red_w = LX_SIM_SIDE_RED_MW / 1000.0;
@@ -388,10 +395,12 @@ bool sleep(uint32_t max_ms, bool wake_on_button) {
     uint32_t t0 = sim::g_now;
     sim::g_sleeping = true;
     bool by_button = false;
+    const bool usb0 = sim::g_usb;
     for (;;) {
         if (sim::g_now >= sim::g_target) break;
         sim::step_world();
         if (wake_on_button && sim::g_button) { by_button = true; break; }
+        if (sim::g_usb != usb0) break;   // the ports wake on USB power (charger status pins), as on the ESP32-C3
         if (max_ms && sim::g_now - t0 >= max_ms) break;
     }
     sim::g_sleeping = false;

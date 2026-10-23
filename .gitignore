@@ -5,6 +5,7 @@ firmware/ports/esp32c3/build/
 firmware/ports/esp32c3/build-v06/
 firmware/ports/esp32c3/build-v07/
 firmware/ports/esp32c3/build-edco/
+firmware/ports/esp32c3/build-mini/
 firmware/ports/esp32c3/sdkconfig
 firmware/ports/esp32c3/sdkconfig.old
 firmware/ports/esp32c3/managed_components/
