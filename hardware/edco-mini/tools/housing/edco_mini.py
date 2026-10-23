@@ -50,10 +50,10 @@ SIZES = {
     # Both: Luminus SST-20-W Gen 2 (3.45 mm, 3.0 A maximum)
     "14": dict(name="EDCO Mini-14", body_od=17.0, head_od=19.0, bore_d=15.0, band_d=17.0, cell_d=14.0,
                cell_len=35.0, cell_name="14350", opt_d=12.5, opt_h=6.0, mcpcb_d=12.0, mcpcb_t=1.2, led_w=3.45,
-               flat_r=8.3, cap_d=5.8, btn_cb_d=7.4, mag_d=8.0, mag_t=2.0, lan_r=5.6, tail_wall=3.6),
+               flat_r=8.3, cap_d=5.8, btn_cb_d=7.4, mag_d=8.0, mag_t=2.0, lan_r=6.3, tail_wall=3.6),
     "16": dict(name="EDCO Mini-16", body_od=20.0, head_od=22.0, bore_d=17.4, band_d=20.0, cell_d=16.6,
                cell_len=34.5, cell_name="16340", opt_d=16.1, opt_h=9.7, mcpcb_d=16.0, mcpcb_t=1.5, led_w=3.45,
-               flat_r=9.6, cap_d=6.5, btn_cb_d=8.2, mag_d=10.0, mag_t=1.5, lan_r=6.8, tail_wall=3.6),
+               flat_r=9.6, cap_d=6.5, btn_cb_d=8.2, mag_d=10.0, mag_t=1.5, lan_r=7.5, tail_wall=3.6),
 }
 
 
@@ -78,7 +78,7 @@ class P:
     btn_cb_d: float = 0.0        # counterbore for the membrane + collar
     mag_d: float = 8.0           # NdFeB disc in the tail face
     mag_t: float = 1.5
-    lan_r: float = 4.9           # lanyard hole: enters the tail face at this radius (-Z), leaves the side at 45 deg
+    lan_r: float = 6.0           # keyring / lanyard holes: enter the tail face at this radius (+Z and -Z), leave the side at 45 deg
     # common
     pitch: float = 0.5           # M17 x 0.5 / M20 x 0.5
     fin_n: int = 3               # cooling fins round the bezel
@@ -113,7 +113,7 @@ class P:
     strip_t: float = 0.15
     insul_t: float = 0.15
     tail_wall: float = 3.6       # solid tail behind the cell bay (magnet pocket + lanyard hole)
-    lan_d: float = 1.3
+    lan_d: float = 2.2           # takes a small split ring (both turns, wire up to 1.0 mm) or a 2 mm lanyard cord
     tail_grooves: int = 3
     groove_w: float = 0.7
     groove_d: float = 0.4
@@ -302,17 +302,31 @@ def build_body(p, cosmetic=True):
         xg = p.L - 2.0 - i * 1.6
         body = body.cut(revolve_x([(xg - p.groove_w / 2, R - p.groove_d), (xg + p.groove_w / 2, R - p.groove_d),
                                    (xg + p.groove_w / 2, R + 1), (xg - p.groove_w / 2, R + 1)]))
-    # magnet pocket in the tail face, lanyard hole through the tail corner (-Z, 45 deg)
+    # magnet pocket in the tail face; a keyring / lanyard hole through each tail corner (+Z and -Z, 45 deg),
+    # with its edges broken so a split ring or a cord threads easily
     body = body.cut(cyl_x(p.mag_d + 0.1, p.L - p.mag_t - 0.1, p.L + 1))
-    body = body.cut(lanyard_hole(p))
+    for s in (1, -1):
+        body = body.cut(lanyard_hole(p, s))
+        body = body.cut(lanyard_hole(p, s, extra=0.0, d=p.lan_d + 0.5, length_only=0.35))
+        body = body.cut(lanyard_hole(p, s, extra=0.0, d=p.lan_d + 0.5, length_only=0.35, from_side=True))
     return body
 
 
-def lanyard_hole(p, extra=1.5):
+def lanyard_hole(p, s=-1, extra=1.5, d=None, length_only=None, from_side=False):
+    """hole from the tail face (radius lan_r, side s = +1 top / -1 bottom) out of the side at 45 deg; with
+    length_only: a short, wider counterbore at the face end (or at the side end, from_side) that breaks the edge"""
     n = 1 / math.sqrt(2)
-    length = (p.R - p.lan_r + 2 * extra) * math.sqrt(2)
-    start = (p.L + extra, 0.0, -(p.lan_r - extra))
-    return cyl(p.lan_d, start, (-n, 0.0, -n), length)
+    d = d or p.lan_d
+    direction = (-n, 0.0, s * n)                       # from the face entry into the corner and out of the side
+    t = p.R - p.lan_r                                   # X (and radial) distance from the face entry to the side exit
+    if length_only is None:
+        start = (p.L + extra, 0.0, s * (p.lan_r - extra))
+        return cyl(d, start, direction, (t + 2 * extra) * math.sqrt(2))
+    if not from_side:
+        start = (p.L + 1.0, 0.0, s * (p.lan_r - 1.0))
+    else:
+        start = (p.L - t + length_only, 0.0, s * (p.R - length_only))
+    return cyl(d, start, direction, (1.0 + length_only) * math.sqrt(2))
 
 
 def lanyard_clearance(p):
@@ -519,13 +533,14 @@ def build_magnet(p):
     return cyl_x(p.mag_d, p.L - p.mag_t - 0.08, p.L - 0.08)
 
 
-def build_split_ring(p, r=6.0, wire=0.9):
+def build_split_ring(p, s=1, r=6.0, wire=0.8, turns=2):
+    """a split ring (two turns) or, with turns=1, a lanyard cord loop through the tail hole on side s"""
     n = 1 / math.sqrt(2)
     t = (p.R - p.lan_r) / 2                          # middle of the hole, along its axis
-    mx, mz = p.L - t, -(p.lan_r + t)
-    cx, cz = mx + r * n, mz - r * n                 # ring centre out from the tail corner, ring in the XZ plane
+    mx, mz = p.L - t, s * (p.lan_r + t)
+    cx, cz = mx + r * n, mz + s * r * n             # ring centre out from the tail corner, ring in the XZ plane
     rings = None
-    for dy in (-0.48, 0.48):
+    for dy in ((-0.42, 0.42) if turns == 2 else (0.0,)):
         tr = cq.Workplane("XY").add(cq.Solid.makeTorus(r, wire / 2, cq.Vector(cx, dy, cz), cq.Vector(0, 1, 0)))
         rings = tr if rings is None else rings.union(tr)
     return rings
@@ -557,7 +572,8 @@ def build_all(p):
     d["membrane"], d["btn_collar"], d["cap"], d["pin"] = build_button(p)
     d["cell"], d["cell_plus"], d["strip_plus"], d["strip_minus"], d["insulator"] = build_cell(p)
     d["magnet"] = build_magnet(p)
-    d["split_ring"] = build_split_ring(p)
+    d["split_ring"] = build_split_ring(p, 1)                          # keyring, top hole
+    d["lanyard"] = build_split_ring(p, -1, r=4.5, wire=1.5, turns=1)  # lanyard cord, bottom hole
     d["label"] = build_label(p)
     return d
 
@@ -619,7 +635,8 @@ def checks(p, d):
              ("body", "usb_seal"), ("insert", "sled"), ("ring", "optic_lens"), ("ring", "gasket"),
              ("body", "face_oring"), ("body", "uv_rod"), ("body", "red_rod"), ("sled", "uv_rod"),
              ("sled", "red_rod"), ("bp_uv_led", "uv_rod"), ("bp_red_led", "red_rod"), ("body", "magnet"),
-             ("cell", "insulator"), ("board", "usb_body"), ("bp_sw_body", "pin")]
+             ("cell", "insulator"), ("board", "usb_body"), ("bp_sw_body", "pin"), ("body", "split_ring"),
+             ("body", "lanyard")]
     no_thread = box(p.x_r1 + 0.05, p.L + 1, -30, 30, -30, 30).val()
     inter = {}
     for a, b in pairs:
@@ -653,7 +670,7 @@ def main():
             cq.exporters.export(shape, os.path.join(out_dir, "%s_%s.step" % (nm, part)))
         asm = cq.Assembly(name=nm + "_v0.1")
         for k, v in d.items():
-            if v is not None and k != "split_ring":
+            if v is not None and k not in ("split_ring", "lanyard"):
                 asm.add(v, name=k)
         asm.save(os.path.join(out_dir, "%s_v0.1_assembly.step" % nm))
         info = {"params": asdict(p)}

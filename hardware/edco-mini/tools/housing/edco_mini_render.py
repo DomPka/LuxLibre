@@ -44,6 +44,7 @@ R.MATS.update({
     "quartz": ((0.94, 0.95, 1.00), 0.00, 0.03, 0.45),
     "copper": ((0.80, 0.45, 0.30), 1.00, 0.30, 1.0),
     "magnet": ((0.62, 0.62, 0.64), 1.00, 0.28, 1.0),
+    "cord": ((0.16, 0.18, 0.12), 0.00, 0.85, 1.0),
 })
 GREEN = (0.20, 0.95, 0.45)
 RED = (1.00, 0.16, 0.10)
@@ -84,7 +85,7 @@ def mat_map(finish, size):
             "sled": "pom", "board": "fr4", "membrane": "pmma_pipe", "btn_collar": "steel_pol", "cap": "steel_pol",
             "pin": "pmma_pipe", "uv_rod": "quartz", "red_rod": "pmma_pipe", "cell": "wrap" + size,
             "cell_plus": "cell_top", "strip_plus": "nickel", "strip_minus": "nickel", "insulator": "polyimide",
-            "magnet": "magnet", "split_ring": "steel_sat"}
+            "magnet": "magnet", "split_ring": "steel_sat", "lanyard": "cord"}
 
 
 def mat_of(name, mm):
@@ -168,18 +169,18 @@ def views(out, finish, only):
         shoot(parts, "mini16_hero.png", out, direction=(-0.42, 0.55, 1.0), up=(-0.55, -0.45, 0.6),
               ratio=0.62, fill=0.90, view_angle=18.0, glow_radius=2.4, glow_strength=0.9)
     if want("front"):
-        parts = m16.parts(finish, skip=closed_skip(m16) + ("split_ring",))
+        parts = m16.parts(finish, skip=closed_skip(m16) + ("split_ring", "lanyard"))
         shoot(parts, "mini16_front.png", out, direction=(-1.0, -0.45, 0.42), up=(0, 0, 1), ratio=0.62, fill=0.88,
               view_angle=18.0)
     if want("port"):
-        parts = m16.parts(finish, skip=closed_skip(m16) + ("split_ring",))
+        parts = m16.parts(finish, skip=closed_skip(m16) + ("split_ring", "lanyard"))
         shoot(parts, "mini16_port.png", out, direction=(-0.30, -0.50, -1.0), up=(-1.0, 0.0, 0.0), ratio=0.62,
               fill=0.88, view_angle=16.0)
     for col, nm, rod in (("uv", "mini16_side_uv.png", "uv_rod"), ("red", "mini16_side_red.png", "red_rod")):
         if want(col):
             g = dict(HALO)
             g[rod] = UV if col == "uv" else RED
-            parts = m16.parts(finish, skip=closed_skip(m16) + ("split_ring",), glow=g)
+            parts = m16.parts(finish, skip=closed_skip(m16) + ("split_ring", "lanyard"), glow=g)
             shoot(parts, nm, out, direction=(-0.55, 0.35, 1.0), up=(-1.0, 0.0, 0.3), ratio=0.62, fill=0.88,
                   view_angle=16.0, glow_radius=3.0, glow_strength=1.0)
     if want("tail"):
@@ -187,7 +188,7 @@ def views(out, finish, only):
         shoot(parts, "mini16_tail.png", out, direction=(1.0, -0.5, 0.45), up=(0, 0, 1), ratio=0.62, fill=0.88,
               view_angle=18.0)
     if want("section"):
-        parts = m16.parts(finish, skip=("split_ring",), cut=True, glow=HALO)
+        parts = m16.parts(finish, skip=("split_ring", "lanyard"), cut=True, glow=HALO)
         labels = [("Crenellated bezel, M20 x 0.5", (1.0, 0.0, p.RH + 2.5), "T"),
                   ("SST-20 under a TIR optic", (p.x_opt0 + 4.0, 0.0, -3.0), "B"),
                   ("Red + UV side lights", (p.x_win, 0.0, p.RH + 2.5), "T"),
@@ -203,7 +204,7 @@ def views(out, finish, only):
                "insert": (-12.0, 0.0), "face_oring": (-12.0, 0.0),
                "sled": (0.0, -15.0), "membrane": (0.0, 12.0), "btn_collar": (0.0, 15.0), "cap": (0.0, 18.0),
                "pin": (0.0, 9.0), "uv_rod": (0.0, 10.0), "red_rod": (0.0, 10.0),
-               "body": (0.0, -36.0), "label": (0.0, -36.0), "split_ring": (0.0, -36.0),
+               "body": (0.0, -36.0), "label": (0.0, -36.0), "split_ring": (0.0, -36.0), "lanyard": (0.0, -36.0),
                "magnet": (9.0, -36.0)}
         cart = ("cell", "cell_plus", "strip_plus", "strip_minus", "insulator")
         offs = {}
@@ -226,8 +227,8 @@ def views(out, finish, only):
               fill=0.94, view_angle=14.0, labels=labels)
     if want("sizes"):
         m14 = Model("14")
-        pa = m16.parts("black", skip=closed_skip(m16) + ("split_ring",), glow=HALO, shift=(0, -14.0, 0))
-        pb = m14.parts("natural", skip=closed_skip(m14) + ("split_ring",), glow=HALO, shift=(0, 14.0, 0))
+        pa = m16.parts("black", skip=closed_skip(m16) + ("split_ring", "lanyard"), glow=HALO, shift=(0, -14.0, 0))
+        pb = m14.parts("natural", skip=closed_skip(m14) + ("split_ring", "lanyard"), glow=HALO, shift=(0, 14.0, 0))
         labels = [("Mini-16: 16340, Ø%g x %.1f mm" % (m16.p.body_od, m16.p.L + 1e-6), (0.0, -14.0, 0.0), "T"),
                   ("Mini-14: 14350, Ø%g x %.1f mm" % (m14.p.body_od, m14.p.L + 1e-6), (0.0, 14.0, 0.0), "T")]
         shoot(pa + pb, "mini_sizes.png", out, direction=(-0.15, 0.25, 1.0), up=(-1.0, 0.0, 0.0), ratio=0.95,
@@ -247,8 +248,8 @@ def views(out, finish, only):
                    "phosphor": "phosphor", "cap": "steel_pol", "btn_collar": "steel_pol",
                    "port_gasket": "silicone", "gasket": "silicone"}.get(nm, "anod_black")
             pv.append(R.Part(R.polydata_from_shape(V.solid(s), tol=0.01, ang=0.12), mat, (0, -36.0, 0), nm))
-        pa = m16.parts("black", skip=closed_skip(m16) + ("split_ring",))
-        pb = m14.parts("black", skip=closed_skip(m14) + ("split_ring",), shift=(0, 28.0, 0))
+        pa = m16.parts("black", skip=closed_skip(m16) + ("split_ring", "lanyard"))
+        pb = m14.parts("black", skip=closed_skip(m14) + ("split_ring", "lanyard"), shift=(0, 28.0, 0))
         labels = [("EDCO-18 v0.2, %.1f mm" % v18.L, (0.0, -36.0, 0.0), "T"),
                   ("Mini-16, %.1f mm" % (m16.p.L + 1e-6), (0.0, 0.0, 0.0), "T"),
                   ("Mini-14, %.1f mm" % (m14.p.L + 1e-6), (0.0, 28.0, 0.0), "T")]
