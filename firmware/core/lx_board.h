@@ -74,13 +74,25 @@
 // Three channels (red, green, blue), each a current sink set by the port. The core asks for a
 // current in mA per channel; the port scales it to LX_COLOR_FULL_MA, the current at its full set
 // point. LX_COLOR_MAX_MA is the most any one colour LED may get (its rating, or less for heat).
-// The sinks are linear: the cell supplies the LED current itself, so the cell current is the
-// sum of the three channels (used for BAT_MAX_MA and the charge estimate).
+// LX_COLOR_SUM_MA caps the three together (a mixed colour is scaled down to it), e.g. for the
+// converter that feeds the sinks. The sinks are linear; they hang either straight off the cell
+// (LX_COLOR_RAIL_MV 0: the cell current is the sum of the three) or off a regulated rail of
+// LX_COLOR_RAIL_MV made by a converter of LX_COLOR_RAIL_EFF_PCT (cell current = rail power / cell
+// voltage / efficiency). Both are used for BAT_MAX_MA and the charge estimate.
 #ifndef LX_COLOR_FULL_MA
 #define LX_COLOR_FULL_MA 1000
 #endif
 #ifndef LX_COLOR_MAX_MA
 #define LX_COLOR_MAX_MA LX_COLOR_FULL_MA
+#endif
+#ifndef LX_COLOR_SUM_MA
+#define LX_COLOR_SUM_MA (3 * LX_COLOR_MAX_MA)
+#endif
+#ifndef LX_COLOR_RAIL_MV
+#define LX_COLOR_RAIL_MV 0
+#endif
+#ifndef LX_COLOR_RAIL_EFF_PCT
+#define LX_COLOR_RAIL_EFF_PCT 90
 #endif
 
 // --- defaults of user parameters (a board may override any of them) -------------------
@@ -193,6 +205,9 @@
 #ifndef LX_DEF_COL_B
 #define LX_DEF_COL_B 0
 #endif
+#ifndef LX_DEF_TURBO_ALL
+#define LX_DEF_TURBO_ALL 0       // 1 = turbo of the white beam also lights the colour LEDs (more lumens)
+#endif
 
 static_assert(LX_TICK_MS >= 1 && LX_TICK_MS <= 50, "LX_TICK_MS out of range");
 static_assert(LX_OUT_MIN_Q16 >= 1 && LX_OUT_MIN_Q16 < 32768, "LX_OUT_MIN_Q16 out of range");
@@ -201,3 +216,5 @@ static_assert(LX_DRIVER_EFF_PCT > 0 && LX_DRIVER_EFF_PCT <= 100, "LX_DRIVER_EFF_
 static_assert(LX_MAIN_MAX_MA >= 0 && LX_MAIN_MAX_MA <= 60000, "LX_MAIN_MAX_MA out of range");
 static_assert(LX_COLOR_FULL_MA >= 1 && LX_COLOR_FULL_MA <= 10000, "LX_COLOR_FULL_MA out of range");
 static_assert(LX_COLOR_MAX_MA >= 1 && LX_COLOR_MAX_MA <= LX_COLOR_FULL_MA, "LX_COLOR_MAX_MA must not exceed LX_COLOR_FULL_MA");
+static_assert(LX_COLOR_SUM_MA >= LX_COLOR_MAX_MA && LX_COLOR_SUM_MA <= 3 * LX_COLOR_MAX_MA, "LX_COLOR_SUM_MA out of range");
+static_assert(LX_COLOR_RAIL_EFF_PCT > 0 && LX_COLOR_RAIL_EFF_PCT <= 100, "LX_COLOR_RAIL_EFF_PCT out of range");

@@ -3,6 +3,7 @@
 #include "lx_aux.h"
 #include "lx_battery.h"
 #include "lx_board.h"
+#include "lx_color.h"
 #include "lx_console.h"
 #include "lx_input.h"
 #include "lx_params.h"
@@ -35,14 +36,20 @@ bool g_stuck = false;         // button held down while dark for STUCK_MS: input
 bool g_chg_window = true;     // last result of the charge temperature window
 
 // Estimated cell current for an output level (needs the board's LED model). With the colour
-// beam on, the colour LEDs' linear sinks draw their LED current straight from the cell.
+// beam on (or in turbo with TURBO_ALL) the colour LEDs' current is counted too (lx_color.h).
 uint16_t estimate_cell_ma(uint8_t level, uint16_t cell_mv) {
+    uint16_t extra = 0;                       // colour LEDs in turbo (TURBO_ALL)
 #if LX_HAS_COLOR
     if (ui::color_active()) {
         if (level == 0) return 0;
         uint16_t ma[3];
         ui::color_ma(level, ma);
-        return (uint16_t)min_of<uint32_t>((uint32_t)ma[0] + ma[1] + ma[2], 65535u);
+        return color::cell_ma(ma, cell_mv);
+    }
+    if (ui::turbo_all() && level) {
+        uint16_t ma[3];
+        ui::turbo_all_ma(level, ma);
+        extra = color::cell_ma(ma, cell_mv);
     }
 #endif
 #if LX_MAIN_MAX_MA > 0
@@ -50,13 +57,13 @@ uint16_t estimate_cell_ma(uint8_t level, uint16_t cell_mv) {
     uint32_t i_led = (uint32_t)ramp::power_of_level(level) * LX_MAIN_MAX_MA / 65535u;          // mA
     uint32_t v_led = LX_LED_VF0_MV + (uint32_t)LX_LED_RS_MOHM * i_led / 1000u;                 // mV
     uint32_t p_mw = v_led * i_led / 1000u;                      // mW (v_led * i_led < 2^32 for 60 A)
-    uint32_t i_cell = (p_mw * 1000u / cell_mv) * 100u / (uint32_t)LX_DRIVER_EFF_PCT;          // mA
+    uint32_t i_cell = (p_mw * 1000u / cell_mv) * 100u / (uint32_t)LX_DRIVER_EFF_PCT + extra;  // mA
     if (i_cell > 65535u) i_cell = 65535u;
     return (uint16_t)i_cell;
 #else
     (void)level;
     (void)cell_mv;
-    return 0;
+    return extra;
 #endif
 }
 
@@ -304,6 +311,11 @@ void tick() {
         uint16_t ma[3];
         ui::color_ma(g_out, ma);
         hal::set_main(0);
+        hal::set_color(ma[0], ma[1], ma[2]);
+    } else if (ui::turbo_all() && g_out) {
+        uint16_t ma[3];
+        ui::turbo_all_ma(g_out, ma);
+        hal::set_main(ramp::power_of_level(g_out));
         hal::set_color(ma[0], ma[1], ma[2]);
     } else {
         hal::set_color(0, 0, 0);

@@ -64,3 +64,4 @@ Defaults written as `LX_DEF_...` come from the board header; the value shown is 
 | `COL_R` | 100 (`LX_DEF_COL_R`) | 0 ... 100 | % | Custom colour: share of the red LED (the strongest of the three runs at the full colour brightness) |
 | `COL_G` | 35 (`LX_DEF_COL_G`) | 0 ... 100 | % | Custom colour: share of the green LED |
 | `COL_B` | 0 (`LX_DEF_COL_B`) | 0 ... 100 | % | Custom colour: share of the blue LED (red, green and blue all 0 = red) |
+| `TURBO_ALL` | 0 (`LX_DEF_TURBO_ALL`) | 0 ... 1 |  | 1 = turbo of the white beam also lights the three colour LEDs above the top mode: more lumens, a slightly tinted beam |

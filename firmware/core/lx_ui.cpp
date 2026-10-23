@@ -681,6 +681,8 @@ uint8_t side_uv() {
 bool color_active() { return LX_HAS_COLOR && g_state == S_ON && g_color; }
 uint8_t color_index() { return g_color_idx < color::C_COUNT ? g_color_idx : 0; }
 void color_ma(uint8_t level, uint16_t ma[3]) { color::currents_ma(level, top_level(), color_index(), ma); }
+bool turbo_all() { return LX_HAS_COLOR && p(P_TURBO_ALL) && g_state == S_ON && !g_color && g_turbo; }
+void turbo_all_ma(uint8_t level, uint16_t ma[3]) { color::turbo_currents_ma(level, top_level(), ma); }
 
 bool busy() {
     return g_state == S_ON || g_state == S_BLINKY || g_state == S_LASER || g_state == S_MOMENT ||

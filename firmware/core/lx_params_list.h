@@ -133,3 +133,5 @@ LX_PARAM(COL_G, "COL_G", LX_DEF_COL_G, 0, 100, "%",
          "Custom colour: share of the green LED")
 LX_PARAM(COL_B, "COL_B", LX_DEF_COL_B, 0, 100, "%",
          "Custom colour: share of the blue LED (red, green and blue all 0 = red)")
+LX_PARAM(TURBO_ALL, "TURBO_ALL", LX_DEF_TURBO_ALL, 0, 1, "",
+         "1 = turbo of the white beam also lights the three colour LEDs above the top mode: more lumens, a slightly tinted beam")

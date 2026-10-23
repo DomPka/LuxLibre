@@ -9,6 +9,12 @@ change the firmware keeps its version.
 
 ### Hardware
 
+- EDCO Prism v0.1, reference design #4 ([hardware/edco-prism/](hardware/edco-prism/README.md)), a concept:
+  a sealed 18350 light of 83 mm (Keeppower UH1835P) whose beam is white or any colour. A white SST-20 and
+  red, green and blue LEDs under one 24 mm Carclo quad optic (about 1,250 lm in turbo with all four, simulated),
+  the colour LEDs on a buck-boost rail and three linear sinks, an RGB-lit button, waterproof USB-C, a finned
+  head, the EDCO Mini's keyring tab and an M version with magnets. CadQuery model with checks, STEP files,
+  renders, and a comparison with the Skilhunt MiX-7 Gen 2.
 - EDCO Mini v0.1, reference design #3 ([hardware/edco-mini/](hardware/edco-mini/README.md)), a concept:
   a sealed keychain light of about 70 mm in two sizes, Mini-16 (one 16340, Ø20 × 73.5 mm) and Mini-14
   (Ø17 × 69.4 mm, needs a made-to-order cell). An SST-20 behind a TIR optic (944-978 lm out of the front,
@@ -20,12 +26,22 @@ change the firmware keeps its version.
 
 ### Firmware
 
+- Colour beam for boards with `LX_HAS_COLOR` (red, green and blue LEDs next to the white ones): 5 clicks
+  from off (on boards without side lights), 2 clicks for the next colour, 4 clicks while on switch white and
+  colour at the same brightness, and the indicator shows the new colour for a second. Parameters `COLOR_SET`,
+  `COL_R`, `COL_G`, `COL_B` and `TURBO_ALL` (turbo also lights the colour LEDs); the colour used last is
+  stored. `hal::set_color()` in every port (ESP32-C3: an MCP4728 I2C DAC), a colour-LED model in the
+  simulator, the console command `color N [NAME]`, a colour test board and tests. Adding the parameters resets
+  stored settings to their defaults once (the calibration is kept).
+- Settings page ([site/luxlibre/](site/luxlibre/index.html)): changes the parameters of a light with the
+  LuxLibre firmware over USB-C (Web Serial) and picks the colours of a colour beam; `make docs` also writes its
+  parameters.json.
 - Side lights for boards with `LX_HAS_SIDE`: 5 clicks from off, 2 clicks switch red and UV, parameters
   `SIDE_RED` and `SIDE_UV`; `hal::set_side()` in every port (two LEDC channels on the ESP32-C3). Adding the
   two parameters resets stored settings to their defaults once (the calibration is kept).
 - Simulator: side-light power, the electronics' current while awake (`LX_SIM_MCU_UA`), the charge current
   (`LX_SIM_CHARGE_MA`), and a wake-up on USB power.
-- Board headers: `edco-mini-16`, `edco-mini-14`, `edco-v02-18`, `edco-v02-14`.
+- Board headers: `edco-prism`, `edco-mini-16`, `edco-mini-14`, `edco-v02-18`, `edco-v02-14`.
 
 ## 0.4.0 - 2026-10-23
 

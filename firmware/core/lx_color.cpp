@@ -63,13 +63,47 @@ void currents_ma(uint8_t level, uint8_t top, uint8_t idx, uint16_t ma[3]) {
     if (p_top == 0) p_top = 1;
     // fraction of the full colour current, Q16 (levels above the top give full current)
     uint32_t frac = p_lvl >= p_top ? 65535u : (uint32_t)(p_lvl * 65535u / p_top);
+    currents_of_fraction(frac, idx, ma);
+}
+
+void turbo_currents_ma(uint8_t level, uint8_t top, uint16_t ma[3]) {
+    ma[0] = ma[1] = ma[2] = 0;
+    if (level <= top || level == 0) return;
+    uint32_t p_top = ramp::power_of_level(top);
+    uint32_t p_max = ramp::power_of_level(LEVEL_MAX);
+    uint32_t p_lvl = ramp::power_of_level(level);
+    if (p_max <= p_top) return;
+    currents_of_fraction((p_lvl - p_top) * 65535u / (p_max - p_top), C_WHITE, ma);
+}
+
+void currents_of_fraction(uint32_t frac, uint8_t idx, uint16_t ma[3]) {
+    ma[0] = ma[1] = ma[2] = 0;
+    if (frac == 0) return;
+    if (frac > 65535u) frac = 65535u;
     uint8_t pct[3];
     mix(idx, pct);
+    uint32_t i[3] = {0, 0, 0}, sum = 0;
     for (uint8_t c = 0; c < 3; c++) {
         if (!pct[c]) continue;
-        uint32_t i = frac * (uint32_t)LX_COLOR_MAX_MA / 65535u * pct[c] / 100u;
-        ma[c] = (uint16_t)(i ? i : 1);       // at least 1 mA: the colour never vanishes at moon
+        i[c] = frac * (uint32_t)LX_COLOR_MAX_MA / 65535u * pct[c] / 100u;
+        sum += i[c];
     }
+    for (uint8_t c = 0; c < 3; c++) {
+        if (!pct[c]) continue;
+        if (sum > (uint32_t)LX_COLOR_SUM_MA) i[c] = i[c] * (uint32_t)LX_COLOR_SUM_MA / sum;   // keep the mix
+        ma[c] = (uint16_t)(i[c] ? i[c] : 1);  // at least 1 mA: the colour never vanishes at moon
+    }
+}
+
+uint16_t cell_ma(const uint16_t ma[3], uint16_t cell_mv) {
+    uint32_t sum = (uint32_t)ma[0] + ma[1] + ma[2];
+#if LX_COLOR_RAIL_MV > 0
+    if (cell_mv < 500) return 0;
+    sum = sum * LX_COLOR_RAIL_MV / cell_mv * 100u / LX_COLOR_RAIL_EFF_PCT;
+#else
+    (void)cell_mv;
+#endif
+    return (uint16_t)min_of<uint32_t>(sum, 65535u);
 }
 
 int find(const char* nm) {

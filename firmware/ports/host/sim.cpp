@@ -85,15 +85,18 @@ void apply_events() {
     }
 }
 
-// Colour LED currents at a cell voltage v (linear sinks: limited by the headroom); returns the sum.
+// Colour LED currents at a cell voltage v (linear sinks: limited by the headroom of the cell or of
+// the rail); returns the cell current they draw.
 double color_currents(double v) {
     double sum = 0.0;
+    double supply = g_cfg.color_rail_v > 0 ? g_cfg.color_rail_v : v;
     for (int c = 0; c < 3; c++) {
         double req = g_col_req[c] / 1000.0;
-        double room = (v - g_cfg.color_vf0[c]) / (g_cfg.color_rs[c] + g_cfg.color_drop_ohm);
+        double room = (supply - g_cfg.color_vf0[c]) / (g_cfg.color_rs[c] + g_cfg.color_drop_ohm);
         g_i_col[c] = req > 0 ? std::min(req, std::max(0.0, room)) : 0.0;
         sum += g_i_col[c];
     }
+    if (g_cfg.color_rail_v > 0) return sum * g_cfg.color_rail_v / g_cfg.color_rail_eff / std::max(v, 1.0);
     return sum;
 }
 
@@ -144,10 +147,10 @@ void physics(double dt) {
     g_soc -= g_i_bat * dt / (g_cfg.capacity_mah * 3.6);
     g_soc = std::min(1.0, std::max(0.0, g_soc));
     // thermal: heat in the head, conduction to the body, body to the air
-    // colour sinks: everything the cell gives them is heat in the head, less the light
+    // colour sinks (and their rail converter): everything the cell gives them is heat in the head, less the light
     double i_col = g_i_col[0] + g_i_col[1] + g_i_col[2];
-    double heat = p_in - g_cfg.light_fraction * p_led + p_laser * 0.8 +
-                  v * i_col - g_cfg.light_fraction * color_led_power();
+    double p_col = g_cfg.color_rail_v > 0 ? g_cfg.color_rail_v * i_col / g_cfg.color_rail_eff : v * i_col;
+    double heat = p_in - g_cfg.light_fraction * p_led + p_laser * 0.8 + p_col - g_cfg.light_fraction * color_led_power();
     double q_hb = (g_th - g_tb) / g_cfg.r_head_body;
     double q_ba = (g_tb - g_cfg.ambient_c) / g_cfg.r_body_amb;
     g_th += (heat - q_hb) * dt / g_cfg.c_head;
@@ -257,6 +260,10 @@ Config board_preset() {
             c.color_lm[k] = lm[k];
         }
     }
+#endif
+#if LX_HAS_COLOR && LX_COLOR_RAIL_MV > 0
+    c.color_rail_v = LX_COLOR_RAIL_MV / 1000.0;
+    c.color_rail_eff = LX_COLOR_RAIL_EFF_PCT / 100.0;
 #endif
 #ifdef LX_SIM_COLOR_DROP_MOHM
     c.color_drop_ohm = LX_SIM_COLOR_DROP_MOHM / 1000.0;

@@ -22,3 +22,4 @@
 #define LX_DRIVER_EFF_PCT 90
 #define LX_COLOR_FULL_MA 1200      // sink current at the full set point
 #define LX_COLOR_MAX_MA 1000       // most a colour LED gets
+#define LX_COLOR_SUM_MA 2500       // most the three get together (a mix is scaled down)

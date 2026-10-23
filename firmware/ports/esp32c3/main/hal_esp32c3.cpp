@@ -119,9 +119,10 @@ bool g_console = false;
 
 #if LX_HAS_COLOR
 // Colour beam: MCP4728 channels A, B, C = red, green, blue set points (12 bit, VDD reference: code
-// 4095 = LX_COLOR_FULL_MA); channel D is not used. A channel at 0 is powered down with its
-// output pulled to ground through 1 kOhm, so the sink is firmly off; all four powered down, the
-// chip takes well under 1 uA. Only changed codes are sent (no I2C traffic in a steady state).
+// 4095 = LX_COLOR_FULL_MA); channel D drives the enable pin of the converter that feeds the sinks
+// (EDCO Prism: a TPS63020 rail), high while any colour LED is on. A channel at 0 is powered down
+// with its output pulled to ground through 1 kOhm, so the sink (or the converter) is firmly off,
+// and the DAC itself drops to its power-down current. Only changed codes are sent.
 i2c_master_bus_handle_t g_i2c = nullptr;
 i2c_master_dev_handle_t g_dac = nullptr;
 uint16_t g_dac_code[3] = {0xFFFF, 0xFFFF, 0xFFFF};
@@ -129,8 +130,9 @@ uint16_t g_dac_code[3] = {0xFFFF, 0xFFFF, 0xFFFF};
 void dac_write(const uint16_t code[3]) {
     if (!g_dac) return;
     uint8_t b[8];
+    const bool any = code[0] || code[1] || code[2];
     for (int c = 0; c < 4; c++) {
-        uint16_t v = c < 3 ? code[c] : 0;
+        uint16_t v = c < 3 ? code[c] : (any ? 4095 : 0);
         uint8_t pd = v ? 0 : 1;                  // fast write: 0 0 PD1 PD0 D11..D8, D7..D0
         b[2 * c] = (uint8_t)((pd << 4) | ((v >> 8) & 0x0F));
         b[2 * c + 1] = (uint8_t)(v & 0xFF);

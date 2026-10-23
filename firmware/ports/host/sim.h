@@ -65,6 +65,9 @@ struct Config {
     double color_rs[3] = {0.3, 0.3, 0.3};
     double color_lm[3] = {100.0, 250.0, 40.0};
     double color_drop_ohm = 0.15;
+    // the sinks hang off a regulated rail (V) made by a converter of this efficiency; 0 = off the cell
+    double color_rail_v = 0.0;
+    double color_rail_eff = 0.90;
     // electronics (MCU, regulator, op-amp) while awake, A; asleep it is 0.3 mA (board header LX_SIM_MCU_UA)
     double mcu_awake_a = 0.0003;
     bool keep_storage = false;      // keep the emulated EEPROM from the previous run

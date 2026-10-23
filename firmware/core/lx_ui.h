@@ -93,6 +93,8 @@ uint8_t side_uv();                        // UV side light requested now (0-255)
 bool color_active();                      // the colour beam is on (the main level drives the colour LEDs)
 uint8_t color_index();                    // colour of the colour beam (used last if it is off)
 void color_ma(uint8_t level, uint16_t ma[3]);   // colour LED currents for an output level
+bool turbo_all();                         // white turbo with the colour LEDs on as well (TURBO_ALL)
+void turbo_all_ma(uint8_t level, uint16_t ma[3]);   // their currents: white from the three colours, above the top mode
 bool action_available(uint8_t action);    // this board has the hardware for the action
 bool busy();                              // something time-based runs: do not sleep
 bool turbo_active();

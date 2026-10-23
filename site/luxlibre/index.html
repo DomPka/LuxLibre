@@ -1,0 +1,1712 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MIT OR Apache-2.0 -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0b7a86">
+<title>LuxLibre settings</title>
+<meta name="description" content="Change the settings of a light with the LuxLibre firmware over USB-C, and pick the colours of a colour beam.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='12' width='17' height='8' rx='3' fill='%230b7a86'/%3E%3Cpath d='M23 8l5-3M23 16h6M23 24l5 3' stroke='%236366f1' stroke-width='2.4' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<!-- LuxLibre settings: reads the status and changes the settings of a light with the LuxLibre firmware
+     (ESP32-C3 boards: EDCO, EDCO Mini, EDCO Prism) over Web Serial, and picks the colours of a colour beam.
+     Self-contained: inline CSS and JavaScript, no external scripts, no web fonts, no images, nothing uploaded.
+     Protocol: the text console of the firmware (firmware/core/lx_console.h): one command per line, answers end
+     with "ok", "ok ..." or "err ...". Names, ranges, units and descriptions of the parameters come from
+     parameters.json next to this page (generated from firmware/core/lx_params_list.h); without it the page
+     still works and learns the ranges from the light's answers. "Try the demo" runs a simulated light inside
+     the page. The colours, font stack and logo are those of the landing page (../index.html). -->
+<style>
+:root{
+  color-scheme:light dark;
+  --bg:#f2f5f9; --surface:#ffffff; --surface2:#e9eef4; --text:#121820; --muted:#4f5d6d;
+  --border:#cfd7e2; --accent:#0b7a86; --accent-ink:#ffffff; --accent-soft:#d3eef1;
+  --ok:#14753f; --ok-soft:#dcf3e5; --warn:#7a4a00; --warn-soft:#fff0cc; --bad:#b3261e; --bad-soft:#fde4e1;
+  --demo:#5b34c4; --demo-soft:#ece6fb;
+  --shadow:0 1px 2px rgba(15,23,42,.06),0 6px 18px rgba(15,23,42,.06);
+  --radius:16px;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0c1116; --surface:#151b22; --surface2:#1f2832; --text:#e9eef4; --muted:#9eabbb;
+    --border:#2b3643; --accent:#46d3dc; --accent-ink:#031f23; --accent-soft:#10343a;
+    --ok:#5fd493; --ok-soft:#12301f; --warn:#f2b552; --warn-soft:#38290c; --bad:#ff8a80; --bad-soft:#3b1714;
+    --demo:#b9a4ff; --demo-soft:#2a2046;
+    --shadow:0 1px 2px rgba(0,0,0,.5);
+  }
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow-wrap:anywhere}
+h1,h2,h3,p,ul,ol,dl,dd,figure{margin:0}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 16px calc(32px + env(safe-area-inset-bottom));padding-top:max(28px,env(safe-area-inset-top))}
+.stack{display:flex;flex-direction:column;gap:16px}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 16px;margin-bottom:20px}
+.brand{display:flex;align-items:center;gap:14px;min-width:0}
+.logo{width:48px;height:48px;flex:none}
+.brand h1{font-size:1.75rem;line-height:1.1;letter-spacing:.2px}
+.brand p{margin-top:4px;color:var(--muted)}
+.brand a{color:inherit;text-decoration:none}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:var(--surface2);border:1px solid var(--border);font-size:.88rem;font-weight:650;overflow-wrap:normal}
+.pill .dot{width:10px;height:10px;border-radius:50%;background:var(--muted);flex:none}
+body[data-conn="connecting"] .pill .dot{background:var(--warn);animation:pulse 1s infinite}
+body[data-conn="connected"] .pill{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+body[data-conn="connected"] .pill .dot{background:var(--ok)}
+body[data-mode="demo"] .pill{background:var(--demo-soft);border-color:var(--demo);color:var(--demo)}
+body[data-mode="demo"] .pill .dot{background:var(--demo)}
+body[data-conn="lost"] .pill{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+body[data-conn="lost"] .pill .dot{background:var(--bad)}
+@keyframes pulse{50%{opacity:.3}}
+
+/* cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;min-width:0}
+.card h2{font-size:1.2rem;line-height:1.25;margin-bottom:10px}
+.card h3{font-size:.82rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
+.card-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 12px;margin-bottom:10px}
+.card-head h2{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.lead{margin-bottom:10px}
+.need{color:var(--muted);font-size:.92rem;margin-top:6px}
+.local{color:var(--muted);font-size:.88rem;margin-top:12px}
+@media (min-width:760px){.card{padding:20px}}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:8px 18px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-weight:700;text-align:center;cursor:pointer;overflow-wrap:normal;-webkit-tap-highlight-color:transparent}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.demo{background:var(--demo-soft);color:var(--demo);border-color:var(--demo)}
+.btn.danger{background:var(--bad-soft);color:var(--bad);border-color:var(--bad)}
+.btn.slim{min-height:44px;padding:6px 14px;font-size:.93rem}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn[aria-busy="true"]{cursor:progress}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.actions .btn{flex:1 1 180px}
+.check{display:flex;align-items:flex-start;gap:10px;min-height:44px;padding:8px 0;cursor:pointer}
+.check input{width:22px;height:22px;margin:1px 0 0;flex:none;accent-color:var(--accent)}
+
+/* messages and banners */
+.msg{min-height:1.5em;margin-top:8px;font-size:.93rem;color:var(--muted)}
+.msg.err{color:var(--bad);font-weight:650}
+.msg.ok{color:var(--ok)}
+.banner{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);font-size:.95rem}
+.banner .grow{flex:1 1 240px;min-width:0}
+.banner.demo{border:2px dashed var(--demo);background:var(--demo-soft)}
+.banner.demo b{color:var(--demo)}
+.banner.bad{background:var(--bad-soft);border-color:var(--bad)}
+.banner.bad b{color:var(--bad)}
+.banner.warn{background:var(--warn-soft);border-color:var(--warn)}
+.banner.warn b{color:var(--warn)}
+.support{margin-top:14px;padding:12px 14px;border-radius:12px;border:1px solid var(--warn);background:var(--warn-soft)}
+.support b{color:var(--warn)}
+.demo-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;width:100%}
+.demo-tools span{font-size:.9rem;margin-right:2px}
+.demo-tools .btn{flex:1 1 96px}
+@media (max-width:640px){.demo-tools span{flex-basis:100%}.demo-tools .btn{flex-basis:40%}}
+details.help{margin-top:12px;border-top:1px solid var(--border);padding-top:4px}
+details.help summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:650;color:var(--accent)}
+details.help ul{padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:.93rem;margin-bottom:6px}
+
+/* layout of the connected view */
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+@media (min-width:900px){
+  .grid{grid-template-columns:minmax(0,5fr) minmax(0,6fr);align-items:start}
+  .col{display:flex;flex-direction:column;gap:16px;min-width:0}
+}
+@media (max-width:899px){.col{display:contents}}
+@media (min-width:760px){
+  /* a light without a colour beam: status and white beam side by side */
+  .grid.no-colour{grid-template-columns:minmax(0,1fr)}
+  .grid.no-colour .col:first-child{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+  .grid.no-colour .col:last-child{display:none}
+}
+#banner-lost,#banner-slow{position:sticky;top:8px;z-index:11;box-shadow:0 6px 24px rgba(0,0,0,.2)}
+body[data-conn="lost"] #view{opacity:.55;filter:grayscale(.6)}
+
+/* status */
+.board{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;margin-bottom:12px}
+.board b{font-size:1.05rem}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.stat{background:var(--surface2);border-radius:12px;padding:9px 12px;min-width:0}
+.stat.wide{grid-column:1 / -1}
+.stat dt{font-size:.74rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.stat dd{font-size:1.15rem;font-weight:750;font-variant-numeric:tabular-nums;margin-top:2px}
+.stat dd small{display:block;font-size:.8rem;font-weight:600;color:var(--muted)}
+.bar{display:block;height:8px;border-radius:4px;background:rgba(127,127,127,.25);margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .4s}
+.bar.mid i{background:var(--warn)}
+.bar.low i{background:var(--bad)}
+.stat.limit{background:var(--warn-soft);color:var(--warn)}
+.stat.limit dt{color:var(--warn)}
+
+/* sliders */
+.slider-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:6px}
+.slider-head label{font-weight:700}
+.slider-head output{font-weight:800;font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:44px;background:transparent;margin:2px 0 0;cursor:pointer;--track:var(--accent)}
+input[type=range]::-webkit-slider-runnable-track{height:10px;border-radius:5px;background:var(--track);border:1px solid var(--border)}
+input[type=range]::-moz-range-track{height:10px;border-radius:5px;background:var(--track);border:1px solid var(--border)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-10px;border-radius:50%;background:var(--surface);border:4px solid var(--text);box-shadow:0 1px 4px rgba(0,0,0,.35)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--surface);border:4px solid var(--text)}
+input[type=range]:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:8px}
+
+/* colour beam */
+.preview{display:flex;align-items:center;gap:14px;padding:12px;border-radius:14px;background:#0b0f14;color:#e9eef4;margin-bottom:14px}
+.beam{width:64px;height:64px;border-radius:50%;flex:none;background:radial-gradient(circle,#fff 0 8%,var(--beam,#ff3030) 30%,transparent 72%);box-shadow:0 0 28px 4px var(--beam,#ff3030)}
+.preview b{display:block;font-size:1.05rem}
+.preview span{font-size:.88rem;color:#b9c4d1}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+legend{padding:0;font-weight:700;margin-bottom:8px}
+.swatches{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.sw{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:74px;padding:8px 2px;border-radius:12px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;font-size:.82rem;font-weight:650;text-align:center;overflow-wrap:normal}
+.sw input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.sw .chip{width:28px;height:28px;border-radius:50%;background:var(--c);border:1px solid rgba(127,127,127,.6)}
+.sw.on{border-color:var(--accent);background:var(--accent-soft)}
+.sw:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.custom-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:14px}
+.custom-row label{font-weight:700}
+input[type=color]{width:72px;height:48px;padding:3px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;flex:none}
+.note{font-size:.88rem;color:var(--muted);margin-top:8px}
+.switch-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.switch-row p{font-size:.88rem;color:var(--muted)}
+.switch{flex:none;position:relative;width:68px;height:44px;border-radius:22px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;padding:0}
+.switch span{position:absolute;top:3px;left:3px;width:34px;height:34px;border-radius:50%;background:var(--muted);transition:transform .2s,background .2s}
+.switch[aria-checked="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.switch[aria-checked="true"] span{transform:translateX(24px);background:var(--accent)}
+.checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
+.checks .check{align-items:center}
+.checks .check small{color:var(--muted);font-variant-numeric:tabular-nums}
+.sum{font-size:.9rem;color:var(--muted)}
+.sum output{font-family:var(--mono);color:var(--text);font-weight:700}
+.keys{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 14px;padding:12px;border-radius:12px;background:var(--surface2);font-size:.93rem}
+.keys dt{font-weight:750}
+
+/* settings */
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin:4px 0 12px}
+.toolbar .btn{flex:1 1 160px}
+.confirm{margin:0 0 14px;padding:12px 14px;border-radius:12px;border:1px solid var(--bad);background:var(--bad-soft)}
+.confirm .actions{margin-top:10px}
+.filter{display:flex;flex-direction:column;gap:4px;margin:6px 0 4px}
+.filter label{font-weight:700}
+.filter input{min-height:48px;padding:0 12px;border-radius:10px;border:2px solid var(--border);background:var(--bg);width:100%;max-width:420px}
+.filter input:focus{border-color:var(--accent);outline:none}
+.meta-note{margin:8px 0;padding:10px 12px;border-radius:12px;background:var(--warn-soft);border:1px solid var(--warn);font-size:.9rem}
+.group h3{margin-top:22px}
+.prow{display:grid;grid-template-columns:minmax(0,1fr);gap:6px 18px;padding:12px 0;border-top:1px solid var(--border)}
+.group .prow:first-of-type{border-top:0}
+@media (min-width:700px){.prow{grid-template-columns:minmax(0,1fr) 230px;align-items:start}}
+.pname{font-family:var(--mono);font-weight:700;font-size:.98rem;overflow-wrap:normal}
+.tag{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;background:var(--warn-soft);border:1px solid var(--warn);color:var(--warn);font-size:.75rem;font-weight:700;vertical-align:1px;white-space:nowrap}
+.pdesc{font-size:.9rem;color:var(--muted);margin-top:2px}
+.inp{display:flex;align-items:center;gap:8px}
+.inp input{width:100%;min-width:0;min-height:48px;padding:0 12px;border-radius:10px;border:2px solid var(--border);background:var(--bg);font-size:1.05rem;font-variant-numeric:tabular-nums}
+.inp input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.inp input[aria-invalid="true"]{border-color:var(--bad)}
+.prow.changed .inp input{border-color:var(--warn)}
+.unit{flex:none;min-width:3.2em;max-width:7.5em;color:var(--muted);font-size:.85rem;line-height:1.2}
+.prange{font-size:.8rem;color:var(--muted);margin-top:3px}
+.pmsg{font-size:.85rem;margin-top:3px;color:var(--muted)}
+.pmsg.err{color:var(--bad);font-weight:650}
+.pmsg:empty{display:none}
+.savebar{position:sticky;bottom:12px;z-index:10;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:16px;padding:10px 12px 10px 16px;border-radius:14px;border:2px solid var(--warn);background:var(--warn-soft);box-shadow:0 6px 24px rgba(0,0,0,.25)}
+.savebar p{flex:1 1 200px;min-width:0;font-size:.95rem}
+.savebar b{color:var(--warn)}
+.savebar .btn{flex:0 1 auto}
+
+/* log */
+details.log>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;gap:8px;font-weight:700;list-style:none}
+details.log>summary::-webkit-details-marker{display:none}
+details.log>summary::before{content:"";width:9px;height:9px;border-right:3px solid currentColor;border-bottom:3px solid currentColor;transform:rotate(-45deg);transition:transform .2s;margin:0 4px}
+details.log[open]>summary::before{transform:rotate(45deg)}
+.loglines{list-style:none;padding:10px 12px;margin:8px 0;border-radius:12px;background:#0b0f14;color:#d9e1ea;font:13px/1.45 var(--mono);max-height:340px;overflow:auto;white-space:pre-wrap;word-break:break-all}
+.loglines li.o{color:#7ee0e8}
+.loglines li.n{color:#f2b552}
+.loglines time{color:#7f8b99;margin-right:8px}
+
+.foot{margin-top:32px;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:.86rem;display:grid;gap:8px}
+.foot .id{white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body data-mode="idle" data-conn="idle">
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2dd4a7"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs>
+        <rect x="3" y="12" width="17" height="8" rx="3" fill="url(#lg)"/>
+        <path d="M23 8l5-3M23 16h6M23 24l5 3" stroke="url(#lg)" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+      </svg>
+      <div>
+        <h1>LuxLibre settings</h1>
+        <p>For lights with the LuxLibre firmware, over USB-C.</p>
+      </div>
+    </div>
+    <p class="pill"><span class="dot" aria-hidden="true"></span><span id="pill-text">Not connected</span></p>
+  </header>
+
+  <main class="stack">
+    <section class="card" id="card-connect" aria-labelledby="connect-title">
+      <h2 id="connect-title">Connect a light</h2>
+      <p class="lead">Read the status of a flashlight with the LuxLibre firmware, change its settings and choose the colours of its colour beam. For the ESP32-C3 lights with a USB-C port: EDCO, EDCO Mini and EDCO Prism.</p>
+      <p class="need" id="need-serial">Uses Web Serial: Chrome or Edge on a computer, with a USB-C data cable. Phones and tablets cannot do this.</p>
+      <div class="support" id="no-serial" hidden>
+        <p><b>This browser cannot connect to a light.</b> <span id="no-serial-why">It has no Web Serial.</span> Use Chrome or Edge on a computer (Windows, macOS, Linux or ChromeOS). The demo works here.</p>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn primary" id="btn-connect" aria-describedby="need-serial">Connect</button>
+        <button type="button" class="btn" id="btn-disconnect" hidden>Disconnect</button>
+        <button type="button" class="btn demo" id="btn-demo">Try the demo</button>
+      </div>
+      <label class="check" id="show-all-row"><input type="checkbox" id="show-all"> <span>Show all serial ports (if the light is not in the list)</span></label>
+      <p class="msg" id="conn-msg" role="status" aria-live="polite"></p>
+      <details class="help" id="conn-help">
+        <summary>The light does not show up</summary>
+        <ul>
+          <li>Use a USB-C cable that carries data. Some cables only charge.</li>
+          <li>Tick <b>Show all serial ports</b> and look for a USB JTAG/serial port.</li>
+          <li>Close other programs and tabs that use the port, such as a serial monitor or the firmware installer.</li>
+          <li>On Linux your user may need to be in the <code>dialout</code> group.</li>
+          <li>The light needs the LuxLibre firmware 0.4 or newer.</li>
+        </ul>
+      </details>
+      <p class="local">The light keeps working while it is connected, and its button always has priority. Changes take effect at once; <b>Save to the light</b> keeps them after a restart. Everything runs in your browser: nothing is uploaded.</p>
+    </section>
+
+    <div class="banner demo" id="banner-demo" hidden>
+      <p class="grow"><b>Demo mode.</b> A simulated light inside this page. Nothing here talks to a real flashlight.</p>
+      <button type="button" class="btn slim" id="btn-leave-demo">Leave the demo</button>
+      <div class="demo-tools" role="group" aria-label="Press the button of the demo light">
+        <span>Press the demo light's button:</span>
+        <button type="button" class="btn demo slim" data-clicks="1">1 click</button>
+        <button type="button" class="btn demo slim" data-clicks="2">2 clicks</button>
+        <button type="button" class="btn demo slim" data-clicks="4">4 clicks</button>
+        <button type="button" class="btn demo slim" data-clicks="5">5 clicks</button>
+      </div>
+    </div>
+
+    <div class="banner bad" id="banner-lost" role="alert" hidden>
+      <p class="grow"><b>Connection lost.</b> <span id="lost-text">Check the cable, then reconnect.</span></p>
+      <button type="button" class="btn primary slim" id="btn-lost-connect">Reconnect</button>
+      <button type="button" class="btn slim" id="btn-lost-close">Close</button>
+    </div>
+    <div class="banner warn" id="banner-slow" role="alert" hidden>
+      <p class="grow"><b>The light does not answer.</b> Check the cable. If it stays like this, disconnect and connect again.</p>
+    </div>
+
+    <div id="view" class="stack" hidden>
+      <div class="grid">
+        <div class="col">
+          <section class="card" id="card-status" aria-labelledby="status-title">
+            <div class="card-head"><h2 id="status-title">Status</h2><span class="muted small" id="st-age">Updated every 2 s</span></div>
+            <p class="board"><b id="st-board">-</b><span class="muted small" id="st-fw"></span></p>
+            <dl class="stats">
+              <div class="stat"><dt>Light</dt><dd id="st-state">-</dd></div>
+              <div class="stat" id="st-beam-box" hidden><dt>Beam</dt><dd id="st-beam">-</dd></div>
+              <div class="stat"><dt>Level</dt><dd id="st-level">-</dd></div>
+              <div class="stat"><dt>Battery</dt><dd id="st-batt">-</dd></div>
+              <div class="stat"><dt>Cell voltage</dt><dd id="st-mv">-</dd></div>
+              <div class="stat"><dt>Temperature</dt><dd id="st-temp">-</dd></div>
+              <div class="stat"><dt>Cell current</dt><dd id="st-ma">-</dd></div>
+              <div class="stat" id="st-caps-box"><dt>Limits</dt><dd id="st-caps">-</dd></div>
+            </dl>
+            <p class="msg" id="st-msg"></p>
+          </section>
+
+          <section class="card" id="card-light" aria-labelledby="light-title">
+            <h2 id="light-title">White beam</h2>
+            <div class="slider-head"><label for="w-level">Level</label><output id="w-out" for="w-level">70 of 150</output></div>
+            <input type="range" id="w-level" min="1" max="150" step="1" value="70" aria-describedby="w-hint">
+            <p class="note" id="w-hint">1 is the dimmest, 150 the brightest. The heat and battery limits still apply.</p>
+            <div class="actions">
+              <button type="button" class="btn primary" id="w-on">On at this level</button>
+              <button type="button" class="btn" id="w-off">Off</button>
+            </div>
+            <p class="msg" id="w-msg" role="status"></p>
+          </section>
+        </div>
+
+        <div class="col">
+          <section class="card" id="card-colour" aria-labelledby="colour-title" hidden>
+            <h2 id="colour-title">Colour beam</h2>
+            <div class="preview" aria-hidden="true">
+              <span class="beam" id="col-beam"></span>
+              <div><b id="col-name">Custom</b><span id="col-mix">Red 100 %, green 35 %, blue 0 %</span></div>
+            </div>
+            <fieldset>
+              <legend>Colour to show</legend>
+              <div class="swatches" id="swatches"></div>
+            </fieldset>
+            <div class="custom-row">
+              <label for="col-picker">Custom colour</label>
+              <input type="color" id="col-picker" value="#ff5900" aria-describedby="col-shares col-approx">
+              <output id="col-shares" for="col-picker" class="small">Red 100 %, green 35 %, blue 0 %</output>
+            </div>
+            <p class="note" id="col-approx">The LEDs' own colours decide what you see, so the beam only comes close to the colour on the screen.</p>
+
+            <div class="switch-row">
+              <div><b id="show-label">Show on the light</b><p id="show-hint">Switches the colour beam on in the chosen colour.</p></div>
+              <button type="button" class="switch" id="col-show" role="switch" aria-checked="false" aria-labelledby="show-label" aria-describedby="show-hint"><span></span></button>
+            </div>
+            <div class="slider-head"><label for="col-level">Colour level</label><output id="col-out" for="col-level">100 of 150</output></div>
+            <input type="range" id="col-level" min="1" max="150" step="1" value="100">
+            <p class="msg" id="col-msg" role="status"></p>
+
+            <fieldset id="cs-box" hidden>
+              <legend>Colours that 2 clicks step through</legend>
+              <div class="checks" id="cs-checks"></div>
+              <p class="sum">COLOR_SET = <output id="cs-sum">0</output></p>
+              <p class="msg" id="cs-msg" role="status"></p>
+            </fieldset>
+
+            <h3>On the light</h3>
+            <dl class="keys">
+              <dt>5 clicks from off</dt><dd>colour beam on</dd>
+              <dt>2 clicks</dt><dd>next colour</dd>
+              <dt>4 clicks while on</dt><dd>switch between the white and the colour beam</dd>
+              <dt>Hold</dt><dd>brighter or dimmer</dd>
+            </dl>
+          </section>
+        </div>
+      </div>
+
+      <section class="card" id="card-settings" aria-labelledby="settings-title">
+        <div class="card-head"><h2 id="settings-title">All settings</h2><span class="muted small" id="settings-count"></span></div>
+        <p class="muted small">A change is sent when you leave the field or press Enter. The light uses it at once and keeps it after a restart only once you save.</p>
+        <div class="toolbar">
+          <button type="button" class="btn primary" id="btn-save">Save to the light</button>
+          <button type="button" class="btn" id="btn-reload">Read again</button>
+          <button type="button" class="btn" id="btn-defaults" aria-expanded="false" aria-controls="confirm-defaults">Back to defaults</button>
+        </div>
+        <div class="confirm" id="confirm-defaults" role="group" aria-labelledby="cd-text" tabindex="-1" hidden>
+          <p id="cd-text"><b>Put all settings back to their defaults?</b> The calibration (BAT_CAL, THM_OFFSET) is kept. The light uses the defaults at once; save to keep them.</p>
+          <div class="actions">
+            <button type="button" class="btn danger" id="cd-yes">Yes, back to defaults</button>
+            <button type="button" class="btn" id="cd-no">Cancel</button>
+          </div>
+        </div>
+        <p class="msg" id="set-msg" role="status"></p>
+        <p class="meta-note" id="meta-note" hidden></p>
+        <div class="filter">
+          <label for="filter">Filter by name</label>
+          <input type="search" id="filter" autocomplete="off" spellcheck="false" placeholder="for example THM or COL" aria-describedby="filter-count">
+          <span class="muted small" id="filter-count" aria-live="polite"></span>
+        </div>
+        <div id="settings-list"></div>
+      </section>
+
+      <details class="card log" id="log">
+        <summary>Log <span class="muted small">(the last 50 lines)</span></summary>
+        <label class="check"><input type="checkbox" id="log-polls"> <span>Include the status requests every 2 s</span></label>
+        <ol class="loglines" id="log-lines" aria-label="Lines sent and received"></ol>
+        <button type="button" class="btn slim" id="log-clear">Clear the log</button>
+      </details>
+
+      <div class="savebar" id="savebar" hidden>
+        <p><b id="savebar-count">1 change not saved.</b> <span id="savebar-hint">The light forgets it when it restarts.</span></p>
+        <button type="button" class="btn primary slim" id="btn-save2">Save to the light</button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <p><b>Safety:</b> lithium cells, bright LEDs and hot surfaces can hurt people. Some settings change the protection against heat and a flat cell. Read the <a href="https://github.com/DomPka/LuxLibre/blob/main/SAFETY.md">safety notes</a> and the <a href="https://github.com/DomPka/LuxLibre/blob/main/docs/firmware/parameters.md">parameter list</a> before you change them.</p>
+    <p><a href="../">LuxLibre home</a>. This page: MIT or <span class="id">Apache-2.0</span>. LuxLibre firmware: <span class="id">GPL-3.0-or-later</span>. <a href="https://github.com/DomPka/LuxLibre/blob/main/LICENSING.md">What the licences mean</a>.</p>
+  </footer>
+</div>
+<div class="sr" id="announce" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------- constants and small helpers ---------- */
+const VID_ESPRESSIF = 0x303A;   // USB vendor id of the ESP32-C3 USB-Serial-JTAG port
+const BAUD = 115200;            // ignored by USB-Serial-JTAG, any value works
+const TIMEOUT_MS = 2000;        // per command (restarted by every line of a long answer)
+const POLL_MS = 2000;           // status while the page is visible
+const QUEUE_MAX = 16;
+const LOG_MAX = 50;
+const COLOURS = [
+  {name: 'red', label: 'Red', bit: 1, css: '#ff3030'},
+  {name: 'green', label: 'Green', bit: 2, css: '#22d45f'},
+  {name: 'blue', label: 'Blue', bit: 4, css: '#3a63ff'},
+  {name: 'yellow', label: 'Yellow', bit: 8, css: '#ffd21f'},
+  {name: 'cyan', label: 'Cyan', bit: 16, css: '#25d8ee'},
+  {name: 'magenta', label: 'Magenta', bit: 32, css: '#ea3cf2'},
+  {name: 'white', label: 'White', bit: 64, css: '#ffffff'},
+  {name: 'custom', label: 'Custom', bit: 128, css: null},
+];
+// The sections of core/lx_params_list.h, by their first parameter. parameters.json and the light's
+// "list" both follow that file's order, so a section runs until the next one starts.
+const GROUPS = new Map([
+  ['UI_STYLE', 'Buttons and brightness'], ['THM_LIMIT', 'Heat'], ['BAT_CELLS', 'Battery'],
+  ['CHG_TMIN', 'Charging'], ['LASER_EN', 'Laser'], ['SIDE_RED', 'Side lights'], ['COLOR_SET', 'Colour beam'],
+]);
+const STATE_TEXT = {
+  off: 'Off', on: 'On', lockout: 'Locked', blinky: 'Blinky mode', laser: 'Laser',
+  momentary: 'Momentary', 'side light': 'Side light', 'colour beam': 'Colour beam',
+};
+
+let S = null;            // the current session (a real light or the demo)
+let demoLight = null;
+let connecting = false;
+let sessionNo = 0;
+
+const $ = (id) => document.getElementById(id);
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') e.className = v;
+    else if (k === 'text') e.textContent = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? '' : String(v));
+  }
+  for (const c of kids) if (c != null) e.append(c);
+  return e;
+}
+const toInt = (v) => (typeof v === 'string' && /^-?\d+$/.test(v.trim()) ? Number(v.trim()) : NaN);
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function parseKV(lines) {
+  const out = {};
+  for (const line of lines) {
+    const m = /^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/.exec(line);
+    if (m) out[m[1]] = m[2].trim();
+  }
+  return out;
+}
+function colourOf(name) { return COLOURS.find((c) => c.name === name); }
+function sharesToHex(r, g, b) {
+  return '#' + [r, g, b].map((s) => Math.round(clamp(s, 0, 100) * 2.55).toString(16).padStart(2, '0')).join('');
+}
+function hexToShares(hex) {
+  const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex || '');
+  if (!m) return [100, 0, 0];
+  return [m[1], m[2], m[3]].map((x) => Math.round(parseInt(x, 16) / 255 * 100));
+}
+// What the light makes of the shares: the strongest runs at full (core/lx_color.cpp), all 0 = red.
+function sharesToCss(r, g, b) {
+  const top = Math.max(r, g, b);
+  if (!(top > 0)) return '#ff3030';
+  return `rgb(${[r, g, b].map((v) => Math.round(clamp(v, 0, 100) / top * 255)).join(',')})`;
+}
+function fmtRange(r) { return r ? `${r.min} to ${r.max}` : ''; }
+
+/* ---------- log and announcements ---------- */
+const logRows = [];
+function log(dir, text, poll) {
+  if (poll && !$('log-polls').checked) return;
+  logRows.push({t: new Date(), dir, text});
+  if (logRows.length > LOG_MAX) logRows.splice(0, logRows.length - LOG_MAX);
+  if ($('log').open) renderLog();
+}
+function renderLog() {
+  const ol = $('log-lines');
+  const atEnd = ol.scrollTop + ol.clientHeight >= ol.scrollHeight - 8;
+  ol.replaceChildren(...logRows.map((r) => h('li', {class: r.dir === '>' ? 'o' : r.dir === '!' ? 'n' : null},
+    h('time', {text: r.t.toTimeString().slice(0, 8)}), `${r.dir} ${r.text}`)));
+  if (atEnd) ol.scrollTop = ol.scrollHeight;
+}
+let annBuf = [], annTimer = 0;
+function announce(text) {
+  annBuf.push(text);
+  clearTimeout(annTimer);
+  annTimer = setTimeout(() => {
+    const a = $('announce');
+    a.textContent = '';
+    const t = annBuf.join('. ');
+    annBuf = [];
+    setTimeout(() => { a.textContent = t; }, 40);
+  }, 120);
+}
+const msgTime = {};
+function setMsg(id, text, kind) {
+  const e = $(id);
+  msgTime[id] = Date.now();
+  e.textContent = text || '';
+  e.classList.toggle('err', kind === 'err');
+  e.classList.toggle('ok', kind === 'ok');
+}
+function explain(r) {
+  const e = (r && r.err) || '';
+  if (e === 'timeout') return 'No answer from the light within 2 s.';
+  if (e === 'busy') return 'Too many commands are waiting. Try again in a moment.';
+  if (e === 'lost') return 'The connection to the light was lost.';
+  if (e === 'closed') return 'Not connected.';
+  if (e.startsWith('range')) {
+    const m = /(-?\d+)\.\.(-?\d+)/.exec(e);
+    return m ? `Out of range: the light accepts ${m[1]} to ${m[2]}.` : 'Out of range.';
+  }
+  if (e === 'not allowed') return 'The light refused: it is locked, too hot, or its battery is empty.';
+  if (e === 'unknown parameter') return 'This light has no setting of that name.';
+  if (e === 'unknown colour') return 'This light does not know that colour.';
+  if (e === 'storage') return 'The light could not store the settings. Try again.';
+  if (e === 'unknown command') return 'The firmware of this light does not know this command. It may be older than 0.4.';
+  return `The light answered "${(r && r.final) || e}".`;
+}
+
+/* ---------- parameter descriptions (parameters.json) ---------- */
+const meta = {state: 'loading', fw: null, byName: new Map(), order: []};
+const metaReady = (async () => {
+  try {
+    if (location.protocol === 'file:') throw new Error('local file: no fetch');
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 5000);
+    const r = await fetch('parameters.json', {cache: 'no-cache', signal: ctl.signal});
+    clearTimeout(t);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    if (!j || !Array.isArray(j.parameters)) throw new Error('format');
+    for (const p of j.parameters) {
+      if (!p || typeof p.name !== 'string' || meta.byName.has(p.name)) continue;
+      meta.byName.set(p.name, {
+        min: Number.isFinite(p.min) ? p.min : null, max: Number.isFinite(p.max) ? p.max : null,
+        unit: typeof p.unit === 'string' ? p.unit : '', desc: typeof p.desc === 'string' ? p.desc : '',
+      });
+      meta.order.push(p.name);
+    }
+    meta.fw = typeof j.firmware === 'string' ? j.firmware : null;
+    meta.state = meta.order.length ? 'ok' : 'missing';
+  } catch (e) {
+    meta.state = 'missing';   // opened as a local file, offline, or the file is missing
+  }
+  if (S && S.ready) renderSettings(S, true);
+})();
+
+/* ---------- the line protocol: one command at a time, a queue, timeouts ---------- */
+const fail = (err) => ({ok: false, err, lines: []});
+class Link {
+  constructor(tr, hooks) {
+    this.tr = tr; this.hooks = hooks; this.q = []; this.cur = null; this.buf = '';
+    this.closed = false; this.flushing = false; this.flushTimer = 0; this.flushEnd = 0;
+    tr.onData = (s) => this.feed(s);
+    tr.onClose = (why) => this.fail(why || 'lost');
+  }
+  get idle() { return !this.cur && !this.q.length && !this.flushing && !this.closed; }
+  feed(s) {
+    this.buf += s;
+    let i;
+    while ((i = this.buf.indexOf('\n')) >= 0) {
+      const line = this.buf.slice(0, i)
+        .replace(/\x1b\[[0-9;]*[A-Za-z]/g, '').replace(/[\x00-\x1f\x7f]/g, '').trim();
+      this.buf = this.buf.slice(i + 1);
+      if (line) this.line(line);
+    }
+    if (this.buf.length > 1024) { this.hooks.log('!', 'A line longer than 1024 characters was dropped'); this.buf = ''; }
+  }
+  line(s) {
+    if (this.flushing) { this.hooks.log('<', s + '   (late, ignored)'); this.armFlush(); return; }
+    const c = this.cur;
+    if (!c) { this.hooks.log('<', s); return; }   // something the light printed on its own
+    const x = c.expect;
+    if (s === 'ok' || s.startsWith('ok ')) {
+      // an "ok" before the line this command must print belongs to an earlier, timed-out command
+      if (x && !c.got) { this.hooks.log('<', s + '   (not the answer, ignored)'); return; }
+      this.hooks.log('<', s, c.quiet);
+      this.done(c, {ok: true, lines: c.lines, final: s});
+    } else if (s.startsWith('err')) {
+      this.hooks.log('<', s, c.quiet);
+      this.done(c, {ok: false, lines: c.lines, final: s, err: s.slice(3).trim() || 'error'});
+    } else if (x && !x.part(s)) {
+      this.hooks.log('<', s + '   (not the answer, ignored)');   // e.g. a boot or log message
+    } else {
+      this.hooks.log('<', s, c.quiet);
+      if (x && x.key(s)) c.got = true;
+      if (c.lines.length < 500) c.lines.push(s);
+      this.arm(c);
+    }
+  }
+  // What the answer to a command must contain (core/lx_console.cpp), so that lines of another answer are not
+  // taken for it: "set X" and "get X" print X=value, "status" state=..., "list" NAME=value lines, "ver" LuxLibre.
+  static expectFor(cmd) {
+    const w = cmd.split(' '), word = w[0].toLowerCase();
+    if ((word === 'set' && w.length === 3) || (word === 'get' && w.length === 2)) {
+      const pre = w[1].toUpperCase() + '=';
+      const f = (l) => l.toUpperCase().startsWith(pre);
+      return {part: f, key: f};
+    }
+    if (word === 'status') return {part: (l) => /^[a-z][A-Za-z0-9_]*=/.test(l), key: (l) => l.startsWith('state=')};
+    if (word === 'list') { const f = (l) => /^[A-Z][A-Z0-9_]*=/.test(l); return {part: f, key: f}; }
+    if (word === 'ver') { const f = (l) => /^LuxLibre\b/.test(l); return {part: f, key: f}; }
+    return null;   // save, defaults, level, color, off: just "ok" or "err ..."
+  }
+  // Resolves with {ok, lines, final, err}; never rejects. A queued command with the same key is
+  // replaced (its promise resolves with replaced: true), so sliders and pickers cannot flood the queue.
+  send(cmd, o = {}) {
+    return new Promise((resolve) => {
+      if (this.closed) { resolve(fail('closed')); return; }
+      if (o.key) {
+        const j = this.q.findIndex((e) => e.key === o.key);
+        if (j >= 0) this.q.splice(j, 1)[0].resolve({ok: false, err: 'replaced', replaced: true, lines: []});
+      }
+      if (this.q.length >= QUEUE_MAX) { this.hooks.log('!', `Queue full: "${cmd}" not sent`); resolve(fail('busy')); return; }
+      this.q.push({cmd, key: o.key || null, quiet: !!o.quiet, ms: o.timeout || TIMEOUT_MS, lines: [], resolve, timer: 0,
+        expect: Link.expectFor(cmd), got: false});
+      this.pump();
+    });
+  }
+  pump() {
+    if (this.cur || this.flushing || this.closed || !this.q.length) return;
+    const c = this.cur = this.q.shift();
+    this.hooks.log('>', c.cmd, c.quiet);
+    this.arm(c);
+    Promise.resolve().then(() => this.tr.write(c.cmd + '\n')).catch(() => {
+      if (this.cur === c) this.done(c, fail('lost'));
+      this.fail('lost');
+    });
+  }
+  arm(c) { clearTimeout(c.timer); c.timer = setTimeout(() => this.expire(c), c.ms); }
+  expire(c) {
+    if (this.cur !== c) return;
+    this.hooks.log('!', `No answer to "${c.cmd}" within ${c.ms / 1000} s`);
+    // A late answer must not be taken for the answer to the next command: wait until the line is quiet.
+    this.flushing = true;
+    this.flushEnd = Date.now() + 1500;
+    this.armFlush();
+    this.done(c, {ok: false, err: 'timeout', lines: c.lines});
+  }
+  armFlush() {
+    clearTimeout(this.flushTimer);
+    const wait = clamp(this.flushEnd - Date.now(), 0, 300);
+    this.flushTimer = setTimeout(() => { this.flushing = false; this.buf = ''; this.pump(); }, wait);
+  }
+  done(c, res) {
+    clearTimeout(c.timer);
+    if (this.cur === c) this.cur = null;
+    try { this.hooks.result(c, res); } catch (e) { /* never let the UI stop the queue */ }
+    c.resolve(res);
+    setTimeout(() => this.pump(), 0);
+  }
+  fail(why) {
+    if (this.closed) return;
+    this.closed = true;
+    clearTimeout(this.flushTimer);
+    const c = this.cur;
+    this.cur = null;
+    if (c) { clearTimeout(c.timer); c.resolve(fail(why)); }
+    for (const e of this.q.splice(0)) e.resolve(fail(why));
+    if (why === 'lost') this.hooks.lost();
+  }
+  async close() {
+    this.fail('closed');
+    try { await this.tr.close(); } catch (e) { /* already gone */ }
+  }
+}
+
+/* ---------- Web Serial transport ---------- */
+class SerialTransport {
+  constructor(port) {
+    this.port = port; this.onData = null; this.onClose = null;
+    this.reader = null; this.writer = null; this.closing = false; this.loop = null;
+    this.enc = new TextEncoder();
+  }
+  async open() {
+    await this.port.open({baudRate: BAUD});
+    this.writer = this.port.writable.getWriter();
+    this.loop = this.readLoop();
+  }
+  async readLoop() {
+    const dec = new TextDecoder();
+    while (this.port.readable && !this.closing) {
+      let reader;
+      try { reader = this.reader = this.port.readable.getReader(); } catch (e) { break; }
+      try {
+        for (;;) {
+          const {value, done} = await reader.read();
+          if (done) break;
+          if (value && this.onData) this.onData(dec.decode(value, {stream: true}));
+        }
+      } catch (e) {
+        // framing or overrun errors replace the stream and the loop goes on; a lost device ends it
+      } finally {
+        try { reader.releaseLock(); } catch (e) { /* ignore */ }
+        this.reader = null;
+      }
+    }
+    if (!this.closing) {
+      this.closing = true;
+      if (this.onClose) this.onClose('lost');
+      try { this.writer.releaseLock(); } catch (e) { /* ignore */ }
+      await Promise.race([this.port.close().catch(() => {}), sleep(1500)]);
+    }
+  }
+  async write(text) {
+    if (this.closing || !this.writer) throw new Error('closed');
+    await this.writer.write(this.enc.encode(text));
+  }
+  // Every step has a time limit, so that a port that hangs cannot freeze the page.
+  async close() {
+    const wasClosing = this.closing;
+    this.closing = true;
+    if (wasClosing && !this.reader) return;
+    const limit = (p, ms) => Promise.race([Promise.resolve(p).catch(() => {}), sleep(ms)]);
+    if (this.reader) await limit(this.reader.cancel(), 1000);
+    await limit(this.loop, 1000);
+    if (this.writer) { await limit(this.writer.close(), 500); try { this.writer.releaseLock(); } catch (e) { /* ignore */ } }
+    await limit(this.port.close(), 1500);
+  }
+}
+
+/* ---------- the demo light: answers like the firmware, inside the page ---------- */
+// Defaults of the demo: those of firmware/boards/edco-prism/board.h and core/lx_board.h.
+const DEMO_DEFAULTS = {
+  UI_STYLE: 1, PREVIEW: 1, CLICK_MS: 400, RAMP_FLOOR: 22, RAMP_CEIL: 120, RAMP_MS: 16, MODE_CNT: 3,
+  MODE_1: 70, MODE_2: 104, MODE_3: 138, MODE_4: 120, MODE_5: 140, MODE_MS: 600, MEMORY: 1, MEM_LEVEL: 70,
+  TURBO_LVL: 150, TURBO_S: 60, TURBO_DOWN: 138, SIMPLE_MAX: 100, SMOOTH_MS: 2, BLINK_LVL: 70, BLINKY: 0,
+  STROBE_HZ: 10, LOCK_MOON: 0, AUTOLOCK: 0, POCKET_S: 30, AUX_MODE: 2, THM_LIMIT: 48, THM_OFFSET: 0,
+  THM_KP: 20, THM_KI: 8, THM_LEAD: 10, THM_FLOOR: 60, THM_UP: 20, THM_SHUTDN: 80, BAT_CELLS: 1, BAT_CHEM: 0,
+  LVP_WARN: 3200, LVP_CUT: 3000, LVP_RESUME: 3300, BAT_RINT: 75, BAT_CAL: 0, BAT_MAX_MA: 7000, CHG_TMIN: 0,
+  CHG_TMAX: 45, CHG_MAXLVL: 121, LASER_EN: 0, LASER_S: 60, LASER_TMAX: 60, LASER_VMIN: 3200, SIDE_RED: 40,
+  SIDE_UV: 100, COLOR_SET: 135, COL_R: 100, COL_G: 35, COL_B: 0, TURBO_ALL: 1,
+};
+const DEMO_START = {RAMP_FLOOR: 30, MEM_LEVEL: 90, BAT_CAL: -12, THM_OFFSET: 1};   // a light in use
+const DEMO_CALIBRATION = ['BAT_CAL', 'THM_OFFSET'];
+// Used when parameters.json cannot be read (page opened as a file): name, min, max, in the firmware's order.
+const DEMO_FALLBACK = [
+  ['UI_STYLE', 0, 2], ['RAMP_FLOOR', 1, 150], ['RAMP_CEIL', 1, 150], ['MEMORY', 0, 1], ['MEM_LEVEL', 1, 150],
+  ['TURBO_LVL', 1, 150], ['THM_LIMIT', 30, 70], ['THM_OFFSET', -10, 10], ['BAT_CELLS', 1, 4], ['LVP_WARN', 900, 3700],
+  ['LVP_CUT', 900, 3500], ['BAT_CAL', -300, 300], ['COLOR_SET', 1, 255], ['COL_R', 0, 100], ['COL_G', 0, 100],
+  ['COL_B', 0, 100],
+];
+const DEMO_OCV = [[0, 3000], [0.05, 3300], [0.1, 3450], [0.2, 3600], [0.4, 3720], [0.6, 3850], [0.8, 4000], [1, 4180]];
+
+class DemoLight {
+  constructor(specs) {
+    this.board = 'EDCO Prism v0.1 (demo)';
+    this.fw = '0.4.0';
+    this.spec = new Map();
+    this.p = new Map();
+    for (const s of specs) {
+      const def = s.name in DEMO_DEFAULTS ? DEMO_DEFAULTS[s.name] : clamp(0, s.min, s.max);
+      const d = clamp(def, s.min, s.max);
+      this.spec.set(s.name, {min: s.min, max: s.max, def: d});
+      this.p.set(s.name, clamp(s.name in DEMO_START ? DEMO_START[s.name] : d, s.min, s.max));
+    }
+    this.saved = new Map(this.p);
+    this.received = [];
+    this.state = 'off'; this.req = 0; this.colour = false; this.cidx = 7;
+    this.lastLevel = this.v('MEM_LEVEL', 70); this.lastColourLevel = 100; this.turboFrom = 0;
+    this.soc = 0.78; this.temp = 23.4; this.tcap = 150; this.lcap = 150; this.empty = false;
+    this.timer = setInterval(() => this.tick(1), 1000);
+  }
+  stop() { clearInterval(this.timer); }
+  v(name, dflt) { return this.p.has(name) ? this.p.get(name) : dflt; }
+  find(name) { const u = String(name).toUpperCase(); return this.p.has(u) ? u : null; }
+  frac(level) { return level <= 0 ? 0 : Math.exp(Math.log(0.00046) * (150 - level) / 149); }
+  output() { return this.state === 'on' ? Math.max(1, Math.min(this.req, this.tcap, this.lcap)) : 0; }
+  mix(idx) {
+    const fixed = [[100, 0, 0], [0, 100, 0], [0, 0, 100], [100, 50, 0], [0, 100, 100], [100, 0, 100], [100, 100, 100]];
+    const v = idx === 7 ? [this.v('COL_R', 100), this.v('COL_G', 0), this.v('COL_B', 0)] : fixed[idx] || fixed[0];
+    const top = Math.max(...v);
+    return top <= 0 ? [100, 0, 0] : v.map((x) => Math.round(clamp(x, 0, 100) * 100 / top));
+  }
+  inSet(i) { return (this.v('COLOR_SET', 255) & (1 << i)) !== 0; }
+  valid(i) { for (let k = 0; k < 8; k++) { const c = (i + k) % 8; if (this.inSet(c)) return c; } return 0; }
+  ledMa() {
+    const lv = this.output();
+    if (!lv) return 0;
+    if (!this.colour) return 2850 * this.frac(lv);
+    const f = Math.min(1, this.frac(lv) / this.frac(this.v('RAMP_CEIL', 120)));
+    return this.mix(this.cidx).reduce((a, pct) => a + f * 1000 * pct / 100, 0);
+  }
+  cellMv(ma) {
+    let ocv = DEMO_OCV[0][1];
+    for (let i = 1; i < DEMO_OCV.length; i++) {
+      const [s0, v0] = DEMO_OCV[i - 1], [s1, v1] = DEMO_OCV[i];
+      if (this.soc <= s1) { ocv = v0 + (v1 - v0) * (this.soc - s0) / (s1 - s0); break; }
+      ocv = v1;
+    }
+    return Math.round(ocv - ma * this.v('BAT_RINT', 80) / 1000 + this.v('BAT_CAL', 0));
+  }
+  cellMa() {
+    const led = this.ledMa();
+    if (!led) return this.state === 'off' ? 0 : 3;
+    return Math.round(this.colour ? led + 3 : led * 3.0 / (3.7 * 0.87) + 3);
+  }
+  tick(dt) {
+    const ma = this.cellMa();
+    this.soc = clamp(this.soc - ma * dt * 4 / 3600 / 1100, 0, 1);       // 1100 mAh, time runs 4 x faster
+    const target = 23.4 + 0.0115 * this.ledMa() * (this.colour ? 0.8 : 1);
+    this.temp += (target - this.temp) * dt / 45 + (Math.random() - 0.5) * 0.04;
+    const t = this.temp + this.v('THM_OFFSET', 0), lim = this.v('THM_LIMIT', 50);
+    if (this.state === 'on') {
+      if (t > lim) this.tcap = Math.max(this.v('THM_FLOOR', 60), this.tcap - Math.ceil((t - lim) * this.v('THM_KP', 20) / 10));
+      else if (t < lim - 1) this.tcap = Math.min(150, this.tcap + Math.max(1, Math.round(this.v('THM_UP', 20) / 10)));
+      if (t >= this.v('THM_SHUTDN', 75)) this.goOff();
+    } else if (t < lim - 1) this.tcap = 150;
+    const mv = this.cellMv(ma);
+    if (this.state === 'on' && mv < this.v('LVP_WARN', 3200)) this.lcap = Math.max(1, this.lcap - 2);
+    if (this.state === 'on' && mv < Math.max(this.v('LVP_CUT', 2900), 2700)) { this.goOff(); this.empty = true; }
+    if (this.empty && mv > this.v('LVP_RESUME', 3300)) this.empty = false;
+  }
+  goOn(level, colour, cidx) {
+    this.state = 'on';
+    this.req = clamp(level, 1, 150);
+    this.colour = colour;
+    if (colour) { this.cidx = cidx; this.lastColourLevel = this.req; } else this.lastLevel = this.req;
+    this.lcap = 150;
+  }
+  goOff() { this.state = 'off'; this.req = 0; this.turboFrom = 0; }
+  allowed() { return this.state !== 'lockout' && !this.empty; }
+  // The button of the demo light (ramp layout): what the firmware does for these gestures.
+  press(clicks) {
+    const st = this.state;
+    if (st === 'lockout') { if (clicks === 4) this.state = 'off'; return; }
+    if (clicks === 1) {
+      if (st === 'on') this.goOff();
+      else if (this.allowed()) this.goOn(this.v('MEMORY', 1) ? this.lastLevel : this.v('MEM_LEVEL', 70), false, this.cidx);
+    } else if (clicks === 2) {
+      if (st === 'on' && this.colour) this.cidx = this.valid(this.cidx + 1);
+      else if (st === 'on' && this.turboFrom) { this.req = this.turboFrom; this.turboFrom = 0; }
+      else if (this.allowed()) {
+        const from = st === 'on' ? this.req : 0;
+        this.goOn(this.v('TURBO_LVL', 150), false, this.cidx);
+        this.turboFrom = from;
+      }
+    } else if (clicks === 4) {
+      if (st === 'on') { this.colour = !this.colour; if (this.colour) this.cidx = this.valid(this.cidx); }
+      else this.state = 'lockout';
+    } else if (clicks === 5 && st === 'off' && this.allowed()) {
+      this.goOn(this.lastColourLevel, true, this.valid(this.cidx));
+    }
+  }
+  exec(line) {
+    this.received.push(line);
+    const w = line.split(' ').filter(Boolean).slice(0, 3);
+    if (!w.length) return '';
+    const cmd = w[0].toLowerCase(), n = w.length;
+    const strictInt = (s) => (/^-?\d+$/.test(s) && Math.abs(Number(s)) <= 100000 ? Number(s) : NaN);
+    const kv = (k) => `${k}=${this.p.get(k)}`;
+    if (cmd === 'help') return 'help ver status list get set save defaults [all] level color off reboot wdtest\ncolor N [red|green|blue|yellow|cyan|magenta|white|custom]\nok';
+    if (cmd === 'ver') return `LuxLibre ${this.fw} / ${this.board}\nok`;
+    if (cmd === 'status') {
+      const ma = this.cellMa(), lv = this.output();
+      return [`state=${this.state}`, `level=${lv}`, `requested=${this.state === 'on' ? this.req : 0}`, `cell_mA=${ma}`,
+        `temp_dC=${Math.round((this.temp + this.v('THM_OFFSET', 0)) * 10)}`, `cell_mV=${this.cellMv(ma)}`,
+        `battery_pct=${Math.round(this.soc * 100)}`, `thermal_cap=${this.tcap}`, `lvp_cap=${this.lcap}`,
+        `beam=${this.state === 'on' && this.colour ? 'colour' : 'white'}`, `color=${COLOURS[this.cidx].name}`, 'ok'].join('\n');
+    }
+    if (cmd === 'list') return [...this.p.keys()].map(kv).concat('ok').join('\n');
+    if (cmd === 'get' && n === 2) {
+      const k = this.find(w[1]);
+      return k ? `${kv(k)}\nok` : 'err unknown parameter';
+    }
+    if (cmd === 'set' && n === 3) {
+      const k = this.find(w[1]);
+      if (!k) return 'err unknown parameter';
+      const v = strictInt(w[2]), s = this.spec.get(k);
+      if (!Number.isFinite(v) || v < s.min || v > s.max) return `err range ${s.min}..${s.max}`;
+      this.p.set(k, v);
+      return `${kv(k)}\nok`;
+    }
+    if (cmd === 'save') { this.saved = new Map(this.p); return 'ok'; }
+    if (cmd === 'defaults') {
+      const all = n === 2 && w[1].toLowerCase() === 'all';
+      if (n === 2 && !all) return 'err usage: defaults [all]';
+      for (const [k, s] of this.spec) if (all || !DEMO_CALIBRATION.includes(k)) this.p.set(k, s.def);
+      return 'ok (not saved yet)';
+    }
+    if (cmd === 'level' && n === 2) {
+      const v = strictInt(w[1]);
+      if (!Number.isFinite(v) || v < 0 || v > 150 || this.state === 'lockout') return 'err not allowed';
+      if (v === 0) { if (this.state === 'on') this.goOff(); return 'ok'; }
+      if (this.empty || this.temp >= this.v('THM_SHUTDN', 75)) return 'err not allowed';
+      this.goOn(v, false, this.cidx);
+      return 'ok';
+    }
+    if (cmd === 'color' && (n === 2 || n === 3)) {
+      const c = n === 3 ? COLOURS.findIndex((x) => x.name === w[2]) : -1;
+      if (n === 3 && c < 0) return 'err unknown colour';
+      const v = strictInt(w[1]);
+      if (!Number.isFinite(v) || v < 0 || v > 150 || this.state === 'lockout') return 'err not allowed';
+      if (v === 0) { if (this.state === 'on') this.goOff(); return 'ok'; }
+      if (this.empty || this.temp >= this.v('THM_SHUTDN', 75)) return 'err not allowed';
+      this.goOn(v, true, c >= 0 ? c : this.valid(this.cidx));
+      return 'ok';
+    }
+    if (cmd === 'off') { if (this.state === 'on') this.goOff(); return 'ok'; }
+    if (cmd === 'reboot') { this.goOff(); this.p = new Map(this.saved); return 'ok'; }
+    if (cmd === 'wdtest') return 'err not in the demo';
+    return 'err unknown command';
+  }
+}
+class DemoTransport {
+  constructor(light) { this.light = light; this.onData = null; this.onClose = null; this.open = true; this.chain = Promise.resolve(); }
+  write(text) {
+    if (!this.open) return Promise.reject(new Error('closed'));
+    for (const raw of text.split('\n')) {
+      const line = raw.replace(/\r$/, '');
+      if (!line.trim()) continue;
+      const out = this.light.exec(line);
+      if (!out) continue;
+      // answer after a short delay, in two pieces, like a USB link does
+      this.chain = this.chain.then(() => sleep(12 + Math.random() * 30)).then(() => {
+        if (!this.open || !this.onData) return;
+        const s = out + '\n', cut = 1 + Math.floor(Math.random() * (s.length - 1));
+        this.onData(s.slice(0, cut));
+        this.onData(s.slice(cut));
+      });
+    }
+    return Promise.resolve();
+  }
+  async close() { this.open = false; this.light.stop(); }
+}
+
+/* ---------- session ---------- */
+const hasSerial = 'serial' in navigator && !!navigator.serial;
+
+function newSession(mode, tr) {
+  const s = {
+    no: ++sessionNo, mode, tr, link: null, ready: false, lost: false, closed: false,
+    board: '', fw: '', order: [], params: new Map(), baseline: new Map(), learned: new Map(),
+    status: null, hasBeam: false, timeouts: 0, pollTimer: 0, polling: false, wInit: false, cInit: false,
+  };
+  s.link = new Link(tr, {
+    log,
+    lost: () => onLost(s),
+    result: (c, r) => {
+      if (s !== S) return;
+      if (r.err === 'timeout') { if (++s.timeouts >= 3) $('banner-slow').hidden = false; }
+      else if (!r.replaced && r.err !== 'busy') { s.timeouts = 0; $('banner-slow').hidden = true; }
+    },
+  });
+  return s;
+}
+
+async function startSession(s) {
+  S = s;
+  renderConn();
+  const live = () => S === s && !s.closed;
+  if (s.mode === 'serial') {
+    // an empty line clears anything half-typed in the light's line buffer; the firmware ignores it
+    try { await s.tr.write('\n'); } catch (e) { /* the first command reports it */ }
+  }
+  let r = await s.link.send('ver');
+  if (live() && !r.ok && r.err !== 'lost' && r.err !== 'closed') r = await s.link.send('ver');
+  if (!live()) return;
+  if (!r.ok) return startFailed(s, r.err === 'timeout'
+    ? 'The light did not answer. It needs the LuxLibre firmware 0.4 or newer. Unplug it, plug it in again and press Connect.'
+    : explain(r));
+  const vl = r.lines.find((l) => /^LuxLibre\b/.test(l)) || r.lines[0] || '';
+  const m = /^LuxLibre\s+(\S+)\s*\/\s*(.+)$/.exec(vl);
+  s.fw = m ? m[1] : '';
+  s.board = m ? m[2].trim() : (vl || 'Unknown board');
+  r = await s.link.send('list');
+  if (!live()) return;
+  if (!r.ok) return startFailed(s, 'The light did not send its settings. ' + explain(r));
+  applyList(s, r.lines, true);
+  await readStatus(s, false);
+  if (!live()) return;
+  s.ready = true;
+  await metaReady.catch(() => {});
+  if (!live()) return;
+  renderAll(s);
+  renderConn();
+  setMsg('conn-msg', s.mode === 'demo' ? 'The demo light is running. It is not a real light.' : `Connected to ${s.board}.`, 'ok');
+  schedulePoll(s);
+}
+async function startFailed(s, text) {
+  await endSession(s);
+  setMsg('conn-msg', text, 'err');
+}
+async function endSession(s) {
+  if (!s || s.closed) return;
+  s.closed = true;
+  clearTimeout(s.pollTimer);
+  if (S === s) S = null;
+  await s.link.close();
+  if (s.mode === 'demo' && demoLight) { demoLight.stop(); demoLight = null; }
+  resetView();
+  renderConn();
+}
+function onLost(s) {
+  if (s !== S || s.closed) return;
+  s.lost = true;
+  clearTimeout(s.pollTimer);
+  $('banner-slow').hidden = true;
+  $('lost-text').textContent = 'Check the cable, then reconnect. Changes that were not saved stay in the light until it restarts.';
+  renderConn();
+  setMsg('conn-msg', 'The connection to the light was lost.', 'err');
+}
+
+async function connectSerial() {
+  if (!hasSerial || connecting) return;
+  connecting = true;
+  renderConn();
+  try {
+    let port;
+    try {
+      // first, while the click still counts as a user gesture
+      port = await navigator.serial.requestPort($('show-all').checked ? {} : {filters: [{usbVendorId: VID_ESPRESSIF}]});
+    } catch (e) {
+      if (e && e.name === 'NotFoundError') {
+        setMsg('conn-msg', $('show-all').checked ? 'No port was chosen.'
+          : 'No port was chosen. If your light is not in the list, tick "Show all serial ports" and try again.');
+      } else if (e && e.name === 'SecurityError') {
+        setMsg('conn-msg', 'The browser does not allow serial ports here. Open the page over https.', 'err');
+      } else setMsg('conn-msg', 'The port list could not be opened.', 'err');
+      return;
+    }
+    if (S) await endSession(S);
+    const tr = new SerialTransport(port);
+    setMsg('conn-msg', 'Connecting...');
+    try {
+      await tr.open();
+    } catch (e) {
+      setMsg('conn-msg', e && e.name === 'InvalidStateError'
+        ? 'This port is already open, maybe in another tab.'
+        : 'The port could not be opened. Close other programs and tabs that use it (a serial monitor, the firmware installer) and try again.', 'err');
+      return;
+    }
+    const s = newSession('serial', tr);
+    connecting = false;
+    await startSession(s);
+  } finally {
+    connecting = false;
+    renderConn();
+  }
+}
+async function startDemo() {
+  if (S) await endSession(S);
+  setMsg('conn-msg', 'Starting the demo...');
+  await metaReady.catch(() => {});
+  const specs = meta.state === 'ok'
+    ? meta.order.map((n) => ({name: n, min: meta.byName.get(n).min ?? -32768, max: meta.byName.get(n).max ?? 32767}))
+    : DEMO_FALLBACK.map(([name, min, max]) => ({name, min, max}));
+  demoLight = new DemoLight(specs);
+  await startSession(newSession('demo', new DemoTransport(demoLight)));
+}
+if (hasSerial) {
+  navigator.serial.addEventListener('disconnect', (e) => {
+    if (S && S.mode === 'serial' && S.tr.port === e.target && !S.closed) S.link.fail('lost');
+  });
+}
+
+/* ---------- connection UI ---------- */
+function renderConn() {
+  const mode = S ? S.mode : 'idle';
+  const conn = !S ? 'idle' : S.lost ? 'lost' : S.ready ? 'connected' : 'connecting';
+  document.body.dataset.mode = mode;
+  document.body.dataset.conn = connecting ? 'connecting' : conn;
+  const bc = $('btn-connect');
+  bc.hidden = mode === 'serial' && conn !== 'lost';
+  bc.disabled = !hasSerial || connecting;
+  bc.setAttribute('aria-busy', connecting ? 'true' : 'false');
+  bc.textContent = conn === 'lost' ? 'Connect again' : mode === 'demo' ? 'Connect a real light' : 'Connect';
+  $('btn-disconnect').hidden = mode !== 'serial';
+  $('btn-demo').hidden = mode !== 'idle';
+  $('show-all-row').hidden = !hasSerial || (mode === 'serial' && conn !== 'lost');
+  $('banner-demo').hidden = mode !== 'demo';
+  $('banner-lost').hidden = conn !== 'lost';
+  if (conn !== 'connected') $('banner-slow').hidden = true;
+  $('view').hidden = !S || !S.ready;
+  $('view').inert = conn === 'lost';
+  $('pill-text').textContent = connecting ? 'Connecting' :
+    mode === 'demo' ? (conn === 'connected' ? 'Demo light (not real)' : 'Starting the demo') :
+    conn === 'connected' ? 'Connected' : conn === 'lost' ? 'Connection lost' : conn === 'connecting' ? 'Connecting' : 'Not connected';
+}
+function resetView() {
+  $('settings-list').replaceChildren();
+  rows.clear();
+  $('card-colour').hidden = true;
+  $('savebar').hidden = true;
+  $('confirm-defaults').hidden = true;
+  $('btn-defaults').setAttribute('aria-expanded', 'false');
+  for (const id of ['w-msg', 'col-msg', 'cs-msg', 'set-msg', 'st-msg']) setMsg(id, '');
+  colourState.show = false;
+}
+
+/* ---------- status ---------- */
+function schedulePoll(s) {
+  clearTimeout(s.pollTimer);
+  if (s === S && !s.closed && !s.lost) s.pollTimer = setTimeout(() => pollTick(s), POLL_MS);
+}
+async function pollTick(s) {
+  clearTimeout(s.pollTimer);
+  if (s !== S || s.closed || s.lost) return;
+  if (!s.polling && document.visibilityState === 'visible' && s.link.idle) {
+    s.polling = true;
+    try { await readStatus(s, true); } finally { s.polling = false; }
+  }
+  schedulePoll(s);
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && S && S.ready && !S.lost) pollTick(S);
+});
+async function readStatus(s, quiet) {
+  const r = await s.link.send('status', {quiet, key: 'status'});
+  if (s !== S || r.replaced) return r;
+  if (r.ok) {
+    setMsg('st-msg', '');
+    applyStatus(s, parseKV(r.lines));
+  } else if (r.err !== 'closed' && r.err !== 'lost') {
+    setMsg('st-msg', 'The status could not be read. ' + explain(r), 'err');
+  }
+  return r;
+}
+function applyStatus(s, st) {
+  const prev = s.status;
+  s.status = st;
+  s.hasBeam = 'beam' in st;
+  if (!s.ready) return;
+  renderStatus(s);
+  if (prev && (prev.state !== st.state || prev.beam !== st.beam || prev.color !== st.color)) {
+    // the light changed by itself or by its button: older answers next to the controls no longer apply
+    // (an error at once; a success message once it is no longer the answer to what just happened)
+    for (const id of ['w-msg', 'col-msg']) {
+      if ($(id).classList.contains('err') || Date.now() - (msgTime[id] || 0) > 1500) setMsg(id, '');
+    }
+  }
+  if (prev) announceChanges(prev, st);
+  syncColourFromStatus(s, prev, st);
+  updateColourVisibility(s);
+}
+function renderStatus(s) {
+  const st = s.status || {};
+  $('st-board').textContent = s.board || 'Unknown board';
+  $('st-fw').textContent = s.fw ? `LuxLibre ${s.fw}` : '';
+  $('st-state').textContent = st.state ? (STATE_TEXT[st.state] || st.state) : '-';
+  $('st-beam-box').hidden = !('beam' in st);
+  if ('beam' in st) {
+    const c = colourOf(st.color);
+    const name = c ? c.label.toLowerCase() : (st.color || '');
+    $('st-beam').replaceChildren(st.beam === 'colour' ? `Colour, ${name}` : 'White',
+      st.beam === 'colour' ? '' : h('small', {text: `colour used last: ${name}`}));
+  }
+  const lv = toInt(st.level), rq = toInt(st.requested);
+  $('st-level').replaceChildren(Number.isFinite(lv) ? `${lv} of 150` : '-',
+    Number.isFinite(rq) && Number.isFinite(lv) && rq > lv && lv > 0 ? h('small', {text: `set to ${rq}, limited`}) : '');
+  const pct = toInt(st.battery_pct);
+  const bar = h('span', {class: 'bar' + (pct <= 10 ? ' low' : pct <= 30 ? ' mid' : ''), 'aria-hidden': 'true'},
+    h('i', {style: `width:${clamp(Number.isFinite(pct) ? pct : 0, 0, 100)}%`}));
+  $('st-batt').replaceChildren(Number.isFinite(pct) ? `${pct} %` : '-', bar);
+  const mv = toInt(st.cell_mV);
+  $('st-mv').textContent = Number.isFinite(mv) ? `${(mv / 1000).toFixed(2)} V` : '-';
+  const dc = toInt(st.temp_dC);
+  $('st-temp').textContent = Number.isFinite(dc) ? `${(dc / 10).toFixed(1)} °C` : '-';
+  const ma = toInt(st.cell_mA);
+  $('st-ma').textContent = !Number.isFinite(ma) ? '-' : Math.abs(ma) >= 1000 ? `${(ma / 1000).toFixed(2)} A` : `${ma} mA`;
+  const tc = toInt(st.thermal_cap), lc = toInt(st.lvp_cap);
+  const caps = [];
+  if (tc < 150) caps.push(`Heat: level ${tc}`);
+  if (lc < 150) caps.push(`Battery: level ${lc}`);
+  $('st-caps').replaceChildren(caps.length ? caps.join(', ') : 'None',
+    caps.length ? h('small', {text: 'the light holds its level at or below this'}) : '');
+  $('st-caps-box').classList.toggle('limit', caps.length > 0);
+}
+function announceChanges(a, b) {
+  const said = [];
+  if (a.state !== b.state) said.push(`Light ${(STATE_TEXT[b.state] || b.state || '').toLowerCase()}`);
+  if (b.state === 'on' && (a.beam !== b.beam || (b.beam === 'colour' && a.color !== b.color))) {
+    const c = colourOf(b.color);
+    said.push(b.beam === 'colour' ? `Colour beam, ${c ? c.label.toLowerCase() : b.color}` : 'White beam');
+  }
+  const pa = toInt(a.battery_pct), pb = toInt(b.battery_pct);
+  for (const lim of [20, 10, 5]) if (pa > lim && pb <= lim) { said.push(`Battery low: ${pb} %`); break; }
+  const ta = toInt(a.thermal_cap), tb = toInt(b.thermal_cap), la = toInt(a.lvp_cap), lb = toInt(b.lvp_cap);
+  if (ta >= 150 && tb < 150) said.push('The light is dimming itself because it is hot');
+  if (ta < 150 && tb >= 150) said.push('The heat limit has ended');
+  if (la >= 150 && lb < 150) said.push('The light is dimming itself because the battery is low');
+  if (said.length) announce(said.join('. '));
+}
+
+/* ---------- white beam ---------- */
+function wOut() { $('w-out').textContent = `${$('w-level').value} of 150`; }
+$('w-level').addEventListener('input', wOut);
+async function whiteCommand(cmd, btn) {
+  const s = S;
+  if (!s || !s.ready) return;
+  btn.disabled = true;
+  btn.setAttribute('aria-busy', 'true');
+  setMsg('w-msg', 'Sending...');
+  try {
+    const r = await s.link.send(cmd);
+    if (s !== S) return;
+    if (r.ok) {
+      setMsg('w-msg', cmd === 'off' ? 'Off.' : `On at level ${cmd.split(' ')[1]}.`, 'ok');
+      if (colourState.show) setShow(false);
+      await readStatus(s, true);
+    } else setMsg('w-msg', explain(r), 'err');
+  } finally {
+    btn.disabled = false;
+    btn.setAttribute('aria-busy', 'false');
+  }
+}
+$('w-on').addEventListener('click', (e) => whiteCommand(`level ${$('w-level').value}`, e.currentTarget));
+$('w-off').addEventListener('click', (e) => whiteCommand('off', e.currentTarget));
+
+/* ---------- colour beam ---------- */
+const colourState = {sel: 'custom', show: false};
+let pickerTimer = 0;
+// While sets from the checkboxes or the picker are on their way, the replies to the earlier ones must
+// not redraw the controls the user is still changing; the last reply redraws them.
+const pending = {cs: 0, col: 0};
+// Shown when the light has COL_R / COL_G / COL_B and its status reports the beam: firmware 0.4.0
+// lists every parameter on every board, and only boards with a colour beam add beam= to the status.
+function updateColourVisibility(s) {
+  const yes = s.ready && ['COL_R', 'COL_G', 'COL_B'].every((n) => s.params.has(n)) && s.hasBeam;
+  const card = $('card-colour');
+  if (yes && card.hidden) { buildColourCard(); card.hidden = false; renderColour(s); }
+  else if (!yes) card.hidden = true;
+  card.closest('.grid').classList.toggle('no-colour', !yes);
+}
+function buildColourCard() {
+  if (!$('swatches').childElementCount) {
+    $('swatches').replaceChildren(...COLOURS.map((c) => h('label', {class: 'sw', 'data-c': c.name},
+      h('input', {type: 'radio', name: 'colour', value: c.name, onchange: () => pickColour(c.name)}),
+      h('span', {class: 'chip', 'aria-hidden': 'true', style: c.css ? `--c:${c.css}` : null}),
+      h('span', {text: c.label}))));
+    $('cs-checks').replaceChildren(...COLOURS.map((c) => h('label', {class: 'check'},
+      h('input', {type: 'checkbox', value: c.bit, 'data-c': c.name, onchange: onColourSet}),
+      h('span', {}, c.label + ' ', h('small', {text: `(${c.bit})`})))));
+  }
+}
+function customShares(s) { return ['COL_R', 'COL_G', 'COL_B'].map((n) => s.params.get(n) ?? 0); }
+function renderColour(s, keepPicker) {
+  if ($('card-colour').hidden) return;
+  const sh = customShares(s);
+  const custom = COLOURS[7];
+  custom.css = sharesToCss(...sh);
+  const chip = document.querySelector('.sw[data-c="custom"] .chip');
+  if (chip) chip.style.setProperty('--c', custom.css);
+  const pk = $('col-picker');
+  if (!keepPicker && document.activeElement !== pk && !pickerTimer && !pending.col) pk.value = sharesToHex(...sh);
+  $('col-shares').textContent = sharesText(hexToShares(pk.value));
+  for (const lab of document.querySelectorAll('.sw')) {
+    const on = lab.dataset.c === colourState.sel;
+    lab.classList.toggle('on', on);
+    lab.querySelector('input').checked = on;
+  }
+  const sel = colourOf(colourState.sel);
+  const css = sel.name === 'custom' ? custom.css : sel.css;
+  $('col-beam').style.setProperty('--beam', css);
+  $('col-level').style.setProperty('--track', css);
+  $('col-name').textContent = sel.label;
+  $('col-mix').textContent = sel.name === 'custom' ? sharesText(sh)
+    : sel.name === 'white' ? 'White made of the red, green and blue LEDs' : 'A fixed colour of the light';
+  $('col-show').setAttribute('aria-checked', String(colourState.show));
+  const set = s.params.get('COLOR_SET');
+  $('cs-box').hidden = !Number.isFinite(set);
+  if (Number.isFinite(set) && !pending.cs) {
+    for (const cb of $('cs-checks').querySelectorAll('input')) cb.checked = (set & Number(cb.value)) !== 0;
+    $('cs-sum').textContent = String(set);
+  }
+}
+function sharesText(sh) { return `Red ${sh[0]} %, green ${sh[1]} %, blue ${sh[2]} %`; }
+function colourLevel() { return Number($('col-level').value); }
+async function sendColour() {
+  const s = S;
+  if (!s || !s.ready) return;
+  const r = await s.link.send(`color ${colourLevel()} ${colourState.sel}`, {key: 'color'});
+  if (s !== S || r.replaced) return;
+  if (r.ok) setMsg('col-msg', `Showing ${colourOf(colourState.sel).label.toLowerCase()} at level ${colourLevel()}.`, 'ok');
+  else { setMsg('col-msg', explain(r), 'err'); setShow(false); }
+  return r;
+}
+function setShow(on) {
+  colourState.show = on;
+  $('col-show').setAttribute('aria-checked', String(on));
+}
+function pickColour(name) {
+  colourState.sel = name;
+  if (S) renderColour(S, true);
+  if (colourState.show) sendColour();
+}
+$('col-show').addEventListener('click', async () => {
+  const s = S;
+  if (!s || !s.ready) return;
+  if (!colourState.show) {
+    setShow(true);
+    await sendColour();
+  } else {
+    setShow(false);
+    const r = await s.link.send('color 0', {key: 'color'});
+    if (s !== S || r.replaced) return;
+    if (r.ok) setMsg('col-msg', 'Colour beam off.', 'ok'); else setMsg('col-msg', explain(r), 'err');
+  }
+});
+$('col-level').addEventListener('input', () => { $('col-out').textContent = `${colourLevel()} of 150`; });
+$('col-level').addEventListener('change', () => { if (colourState.show) sendColour(); });
+$('col-picker').addEventListener('input', () => {
+  colourState.sel = 'custom';
+  const sh = hexToShares($('col-picker').value);
+  $('col-shares').textContent = sharesText(sh);
+  $('col-beam').style.setProperty('--beam', sharesToCss(...sh));
+  clearTimeout(pickerTimer);
+  pickerTimer = setTimeout(applyCustom, 250);
+});
+$('col-picker').addEventListener('change', applyCustom);
+async function applyCustom() {
+  clearTimeout(pickerTimer);
+  pickerTimer = 0;
+  const s = S;
+  if (!s || !s.ready) return;
+  colourState.sel = 'custom';
+  const sh = hexToShares($('col-picker').value);
+  // only the shares that change are sent; the colour command goes last, after them
+  const jobs = ['COL_R', 'COL_G', 'COL_B']
+    .filter((n, i) => s.params.get(n) !== sh[i])
+    .map((n) => setParam(s, n, sh[['COL_R', 'COL_G', 'COL_B'].indexOf(n)], {key: 'set:' + n}));
+  const sets = jobs.length;
+  if (colourState.show) jobs.push(sendColour());
+  renderColour(s, true);
+  pending.col++;
+  let res;
+  try { res = await Promise.all(jobs); } finally { pending.col--; }
+  if (s !== S) return;
+  const bad = res.find((r) => !r.ok && !r.replaced);
+  if (bad) setMsg('col-msg', explain(bad), 'err');
+  else if (!colourState.show && sets) setMsg('col-msg', `Custom colour set: ${sharesText(sh).toLowerCase()}. Not saved yet.`, 'ok');
+  renderColour(s, true);
+}
+async function onColourSet(e) {
+  const s = S;
+  if (!s || !s.ready) return;
+  const boxes = [...$('cs-checks').querySelectorAll('input')];
+  const sum = boxes.reduce((a, cb) => a + (cb.checked ? Number(cb.value) : 0), 0);
+  if (sum === 0) {
+    e.target.checked = true;
+    setMsg('cs-msg', 'At least one colour must stay ticked.', 'err');
+    return;
+  }
+  $('cs-sum').textContent = String(sum);
+  setMsg('cs-msg', 'Sending...');
+  pending.cs++;
+  let r;
+  try { r = await setParam(s, 'COLOR_SET', sum, {key: 'set:COLOR_SET'}); } finally { pending.cs--; }
+  if (s !== S) return;
+  if (!pending.cs) renderColour(s, true);   // the last answer decides what the boxes show
+  if (r.replaced) return;
+  if (r.ok) { if (!pending.cs) setMsg('cs-msg', `COLOR_SET is now ${s.params.get('COLOR_SET')}. Not saved yet.`, 'ok'); }
+  else setMsg('cs-msg', explain(r), 'err');
+}
+function syncColourFromStatus(s, a, b) {
+  if (!a || !s.hasBeam) return;
+  const on = b.state === 'on' && b.beam === 'colour';
+  const was = a.state === 'on' && a.beam === 'colour';
+  let changed = false;
+  if (on !== was && colourState.show !== on) { setShow(on); changed = true; }   // the button has priority
+  if (on && a.color !== b.color && colourOf(b.color)) { colourState.sel = b.color; changed = true; }
+  if (changed) renderColour(s, true);
+}
+
+/* ---------- settings ---------- */
+const rows = new Map();    // name -> {row, input, tag, range, msg}
+function rangeOf(s, name) {
+  const l = s.learned.get(name);
+  if (l) return l;
+  const m = meta.state === 'ok' && meta.byName.get(name);
+  return m && m.min != null && m.max != null ? {min: m.min, max: m.max} : null;
+}
+function applyList(s, lines, first) {
+  const kv = parseKV(lines);
+  const names = Object.keys(kv).filter((n) => Number.isFinite(toInt(kv[n])));
+  const sameSet = names.length === s.order.length && names.every((n) => s.params.has(n));
+  s.order = names;
+  for (const n of names) s.params.set(n, toInt(kv[n]));
+  for (const n of [...s.params.keys()]) if (!(n in kv)) s.params.delete(n);
+  if (first) s.baseline = new Map(s.params);
+  return !sameSet;
+}
+function displayGroups(s) {
+  const have = new Set(s.order);
+  const known = meta.state === 'ok';
+  const order = known ? meta.order.filter((n) => have.has(n)) : s.order.slice();
+  const extra = known ? s.order.filter((n) => !meta.byName.has(n)) : [];   // newer firmware than the file
+  const groups = [];
+  let g = null;
+  for (const n of order) {
+    if (!g || GROUPS.has(n)) { g = {title: GROUPS.get(n) || 'Settings', names: []}; groups.push(g); }
+    g.names.push(n);
+  }
+  if (extra.length) groups.push({title: 'Other settings', names: extra});
+  return groups;
+}
+function renderAll(s) {
+  renderStatus(s);
+  renderSettings(s, true);
+  updateColourVisibility(s);
+  const st = s.status || {};
+  if (!s.wInit) {
+    s.wInit = true;
+    const lv = toInt(st.requested);
+    $('w-level').value = String(st.state === 'on' && st.beam !== 'colour' && lv > 0 ? lv : s.params.get('MEM_LEVEL') || 70);
+    wOut();
+  }
+  if (!s.cInit) {
+    s.cInit = true;
+    const on = st.state === 'on' && st.beam === 'colour';
+    setShow(on);
+    if (colourOf(st.color)) colourState.sel = st.color;
+    if (on && toInt(st.requested) > 0) $('col-level').value = String(toInt(st.requested));
+    $('col-out').textContent = `${colourLevel()} of 150`;
+    renderColour(s);
+  }
+}
+function renderMetaNote(s) {
+  const note = $('meta-note');
+  if (meta.state === 'missing') {
+    note.hidden = false;
+    note.textContent = 'The descriptions and ranges could not be loaded (the page may be opened as a local file). The settings still work; a range is shown once the light has reported it.';
+  } else if (meta.state === 'ok' && meta.fw && s.fw && meta.fw !== s.fw) {
+    note.hidden = false;
+    note.textContent = `The descriptions are for firmware ${meta.fw}; this light runs ${s.fw}. Where they differ, the light's answers count.`;
+  } else note.hidden = true;
+}
+function renderSettings(s, rebuild) {
+  renderMetaNote(s);
+  const box = $('settings-list');
+  if (rebuild || !rows.size) {
+    const focused = document.activeElement && document.activeElement.id;
+    rows.clear();
+    const frag = document.createDocumentFragment();
+    for (const g of displayGroups(s)) {
+      const gid = 'g-' + g.title.toLowerCase().replace(/[^a-z]+/g, '-');
+      const sec = h('section', {class: 'group', 'aria-labelledby': gid}, h('h3', {id: gid, text: g.title}));
+      for (const n of g.names) sec.append(buildRow(s, n));
+      frag.append(sec);
+    }
+    box.replaceChildren(frag);
+    if (focused && $(focused)) $(focused).focus();
+  }
+  for (const n of rows.keys()) renderRow(s, n, false);
+  $('settings-count').textContent = plural(s.order.length, 'setting', 'settings');
+  applyFilter();
+  updateSavebar(s);
+}
+function buildRow(s, n) {
+  const m = (meta.state === 'ok' && meta.byName.get(n)) || null;
+  const id = 'p-' + n;
+  const input = h('input', {
+    id, type: 'number', step: 1, autocomplete: 'off', 'aria-describedby': `d-${n} r-${n} m-${n}`,
+  });
+  input.addEventListener('change', () => onParamChange(n));
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && S && S.params.has(n)) { input.value = String(S.params.get(n)); clearRowError(n); }
+  });
+  const tag = h('span', {class: 'tag', text: 'not saved', hidden: true});
+  const range = h('p', {class: 'prange', id: `r-${n}`});
+  const msg = h('p', {class: 'pmsg', id: `m-${n}`});
+  const row = h('div', {class: 'prow', 'data-name': n},
+    h('div', {}, h('label', {class: 'pname', for: id, text: n}), tag,
+      h('p', {class: 'pdesc', id: `d-${n}`, text: m ? m.desc : 'No description available.'})),
+    h('div', {}, h('div', {class: 'inp'}, input, h('span', {class: 'unit', text: m ? m.unit : ''})), range, msg));
+  rows.set(n, {row, input, tag, range, msg});
+  return row;
+}
+function renderRow(s, n, force) {
+  const r = rows.get(n);
+  if (!r) return;
+  const v = s.params.get(n);
+  const focused = document.activeElement === r.input;
+  const typing = focused && r.input.value !== '' && Number(r.input.value) !== v;   // typed on after sending
+  if (force ? !typing : !focused && r.input.getAttribute('aria-invalid') !== 'true') r.input.value = String(v);
+  const rg = rangeOf(s, n);
+  if (rg) { r.input.min = rg.min; r.input.max = rg.max; } else { r.input.removeAttribute('min'); r.input.removeAttribute('max'); }
+  r.range.textContent = rg ? `Range ${fmtRange(rg)}${s.learned.has(n) && !(meta.state === 'ok' && meta.byName.has(n)) ? ' (from the light)' : ''}` : 'Range not known yet';
+  const changed = s.baseline.has(n) && s.baseline.get(n) !== v;
+  r.tag.hidden = !changed;
+  r.row.classList.toggle('changed', changed);
+}
+function rowMsg(n, text, err) {
+  const r = rows.get(n);
+  if (!r) return;
+  r.msg.textContent = text || '';
+  r.msg.classList.toggle('err', !!err);
+  if (err) r.input.setAttribute('aria-invalid', 'true'); else r.input.removeAttribute('aria-invalid');
+}
+function clearRowError(n) { rowMsg(n, ''); }
+function setValue(s, n, v) {
+  s.params.set(n, v);
+  renderRow(s, n, true);
+  updateSavebar(s);
+  if (['COL_R', 'COL_G', 'COL_B', 'COLOR_SET'].includes(n)) renderColour(s, n !== 'COLOR_SET' && document.activeElement === $('col-picker'));
+}
+// Sends "set NAME VALUE"; the value the light reports back is what is shown.
+async function setParam(s, n, v, o = {}) {
+  const r = await s.link.send(`set ${n} ${v}`, {key: o.key});
+  if (s !== S || r.replaced) return r;
+  if (r.ok) {
+    const kv = parseKV(r.lines);
+    const back = toInt(kv[n] ?? Object.entries(kv).find(([k]) => k.toUpperCase() === n)?.[1] ?? '');
+    setValue(s, n, Number.isFinite(back) ? back : v);
+  } else if (r.err && r.err.startsWith('range')) {
+    const m = /(-?\d+)\.\.(-?\d+)/.exec(r.err);
+    if (m) { s.learned.set(n, {min: Number(m[1]), max: Number(m[2])}); renderRow(s, n, false); }
+  }
+  return r;
+}
+async function onParamChange(n) {
+  const s = S;
+  const r = rows.get(n);
+  if (!s || !s.ready || !r) return;
+  const raw = r.input.value.trim();
+  if (r.input.validity.badInput || !/^-?\d+$/.test(raw)) {
+    rowMsg(n, raw || r.input.validity.badInput ? 'Enter a whole number.' : `Empty: the light keeps ${s.params.get(n)}.`, true);
+    announce(`${n}: enter a whole number`);
+    return;
+  }
+  const v = Number(raw);
+  if (v === s.params.get(n)) { r.input.value = String(v); clearRowError(n); return; }
+  rowMsg(n, 'Sending...');
+  const res = await setParam(s, n, v, {key: 'set:' + n});
+  if (s !== S || res.replaced) return;
+  if (res.ok) {
+    const now = s.params.get(n);
+    const unsaved = s.baseline.get(n) !== now;
+    rowMsg(n, `The light now uses ${now}.${unsaved ? ' Not saved yet.' : ''}`);
+    announce(`${n} is now ${now}${unsaved ? ', not saved yet' : ''}`);
+  } else {
+    const keep = ` It keeps ${s.params.get(n)}.`;
+    rowMsg(n, explain(res) + (res.err && (res.err.startsWith('range') || res.err === 'unknown parameter') ? keep : ''), true);
+    announce(`${n}: ${explain(res)}`);
+  }
+}
+function changedCount(s) {
+  let k = 0;
+  for (const [n, v] of s.params) if (s.baseline.has(n) && s.baseline.get(n) !== v) k++;
+  return k;
+}
+function updateSavebar(s) {
+  const k = changedCount(s);
+  $('savebar').hidden = k === 0;
+  $('savebar-count').textContent = `${plural(k, 'change', 'changes')} not saved.`;
+  $('savebar-hint').textContent = `The light forgets ${k === 1 ? 'it' : 'them'} when it restarts.`;
+}
+function applyFilter() {
+  const q = $('filter').value.trim().toUpperCase();
+  let shown = 0;
+  for (const [n, r] of rows) {
+    const vis = !q || n.includes(q);
+    r.row.hidden = !vis;
+    if (vis) shown++;
+  }
+  for (const sec of $('settings-list').querySelectorAll('.group')) sec.hidden = !sec.querySelector('.prow:not([hidden])');
+  $('filter-count').textContent = q ? `${shown} of ${rows.size} shown` : '';
+}
+$('filter').addEventListener('input', applyFilter);
+
+async function save() {
+  const s = S;
+  if (!s || !s.ready) return;
+  const btns = [$('btn-save'), $('btn-save2')];
+  btns.forEach((b) => { b.disabled = true; b.setAttribute('aria-busy', 'true'); });
+  setMsg('set-msg', 'Saving...');
+  try {
+    const r = await s.link.send('save', {timeout: 3000});
+    if (s !== S) return;
+    if (r.ok) {
+      s.baseline = new Map(s.params);
+      for (const n of rows.keys()) { renderRow(s, n, false); const m = rows.get(n).msg; if (!m.classList.contains('err')) m.textContent = ''; }
+      updateSavebar(s);
+      setMsg('set-msg', 'Saved in the light.', 'ok');
+    } else {
+      setMsg('set-msg', 'Not saved. ' + explain(r), 'err');
+    }
+  } finally {
+    btns.forEach((b) => { b.disabled = false; b.setAttribute('aria-busy', 'false'); });
+  }
+}
+async function relist(s, msgOk) {
+  const r = await s.link.send('list');
+  if (s !== S) return r;
+  if (r.ok) {
+    const rebuild = applyList(s, r.lines, false);
+    for (const n of rows.keys()) clearRowError(n);
+    renderSettings(s, rebuild);
+    for (const n of rows.keys()) renderRow(s, n, true);
+    setMsg('cs-msg', '');
+    renderColour(s);
+    if (msgOk) setMsg('set-msg', msgOk, 'ok');
+  } else setMsg('set-msg', 'The settings could not be read. ' + explain(r), 'err');
+  return r;
+}
+$('btn-save').addEventListener('click', save);
+$('btn-save2').addEventListener('click', save);
+$('btn-reload').addEventListener('click', async (e) => {
+  const s = S;
+  if (!s || !s.ready) return;
+  const b = e.currentTarget;
+  b.disabled = true;
+  setMsg('set-msg', 'Reading...');
+  try { await relist(s, 'Read again from the light.'); } finally { b.disabled = false; }
+});
+function showConfirm(on) {
+  $('confirm-defaults').hidden = !on;
+  $('btn-defaults').setAttribute('aria-expanded', String(on));
+  if (on) $('confirm-defaults').focus(); else $('btn-defaults').focus();
+}
+$('btn-defaults').addEventListener('click', () => showConfirm($('confirm-defaults').hidden));
+$('cd-no').addEventListener('click', () => showConfirm(false));
+$('confirm-defaults').addEventListener('keydown', (e) => { if (e.key === 'Escape') showConfirm(false); });
+$('cd-yes').addEventListener('click', async () => {
+  const s = S;
+  if (!s || !s.ready) return;
+  const b = $('cd-yes');
+  b.disabled = true;
+  setMsg('set-msg', 'Sending...');
+  try {
+    const r = await s.link.send('defaults');
+    if (s !== S) return;
+    if (r.ok) {
+      $('confirm-defaults').hidden = true;
+      $('btn-defaults').setAttribute('aria-expanded', 'false');
+      $('btn-defaults').focus();
+      await relist(s, 'Back to the defaults. Not saved yet: save to keep them.');
+    } else setMsg('set-msg', explain(r), 'err');
+  } finally { b.disabled = false; }
+});
+
+/* ---------- buttons of the connect card, demo, log ---------- */
+$('btn-connect').addEventListener('click', connectSerial);
+$('btn-lost-connect').addEventListener('click', connectSerial);
+$('btn-disconnect').addEventListener('click', async () => {
+  await endSession(S);
+  setMsg('conn-msg', 'Disconnected. Changes that were not saved last until the light restarts.');
+});
+$('btn-demo').addEventListener('click', startDemo);
+$('btn-leave-demo').addEventListener('click', async () => {
+  await endSession(S);
+  setMsg('conn-msg', 'The demo has ended.');
+  $('btn-demo').focus();
+});
+$('btn-lost-close').addEventListener('click', async () => {
+  await endSession(S);
+  setMsg('conn-msg', 'Not connected.');
+});
+for (const b of document.querySelectorAll('[data-clicks]')) {
+  b.addEventListener('click', () => {
+    if (!demoLight || !S || S.mode !== 'demo') return;
+    demoLight.press(Number(b.dataset.clicks));
+    if (S.link.idle) readStatus(S, true);
+  });
+}
+$('log').addEventListener('toggle', () => { if ($('log').open) renderLog(); });
+$('log-clear').addEventListener('click', () => { logRows.length = 0; renderLog(); });
+
+/* ---------- start ---------- */
+if (!hasSerial) {
+  $('no-serial').hidden = false;
+  if (!window.isSecureContext) $('no-serial-why').textContent = 'Web Serial needs a secure page: open it over https.';
+  $('show-all-row').hidden = true;
+}
+renderConn();
+// For automated tests of the demo: the commands the demo light has received.
+window.LuxLibreSettings = Object.freeze({demoCommands: () => (demoLight ? demoLight.received.slice() : [])});
+})();
+</script>
+</body>
+</html>

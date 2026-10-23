@@ -35,3 +35,4 @@ _autosave-*
 .idea/
 .DS_Store
 Thumbs.db
+firmware/ports/esp32c3/build-prism/

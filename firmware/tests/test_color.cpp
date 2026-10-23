@@ -197,12 +197,14 @@ TEST(colour_refused_in_lockout_and_on_an_empty_cell) {
 
 TEST(cell_current_and_thermal_limit_cover_the_colour_leds) {
     fresh();
-    set(P_COLOR_SET, 64);                        // white from the three colours: 3 x 1 A at the top
+    set(P_COLOR_SET, 64);                        // white from the three colours: 3 x 1 A at the top, capped at 2.5 A
     sim::click(5);
     sim::run_script();
     sim::hold(0, 4000);
     sim::run_script();
-    CHECK(sim::color_req_ma(0) == LX_COLOR_MAX_MA && sim::color_req_ma(1) == LX_COLOR_MAX_MA);
+    CHECK_MSG(sim::color_req_ma(0) == LX_COLOR_MAX_MA * LX_COLOR_SUM_MA / (3 * LX_COLOR_MAX_MA) &&
+                  sim::color_req_ma(1) == sim::color_req_ma(0) && sim::color_req_ma(2) == sim::color_req_ma(0),
+              "white mix %u %u %u", sim::color_req_ma(0), sim::color_req_ma(1), sim::color_req_ma(2));
     sim::run_for(300);
     uint32_t sum = (uint32_t)sim::color_req_ma(0) + sim::color_req_ma(1) + sim::color_req_ma(2);
     CHECK_MSG((uint32_t)light::cell_ma() + 5u >= sum && (uint32_t)light::cell_ma() <= sum + 5u, "cell %u mA, colour LEDs %u mA",
@@ -218,6 +220,28 @@ TEST(cell_current_and_thermal_limit_cover_the_colour_leds) {
     CHECK(ui::color_active());
     CHECK_MSG(sim::t_sensor() < p(P_THM_LIMIT) + 3, "sensor %.1f degC", sim::t_sensor());
     CHECK(sim::level() < p(P_RAMP_CEIL));
+}
+
+TEST(turbo_all_lights_the_colour_leds_too) {
+    fresh();
+    sim::click(2);                               // white turbo, TURBO_ALL = 0: colour LEDs off
+    sim::run_script(1000);                       // the gesture, then the soft ramp up (SMOOTH_MS)
+    CHECK(ui::turbo_active() && sim::led_a() > 2.0 && sim::color_req_ma(0) == 0);
+    double lm_white = sim::lumens();
+    sim::click(1);
+    sim::run_script();
+    set(P_TURBO_ALL, 1);
+    sim::click(2);
+    sim::run_script(1000);
+    CHECK(ui::turbo_active() && sim::led_a() > 2.0);
+    uint16_t r = sim::color_req_ma(0), g = sim::color_req_ma(1), b = sim::color_req_ma(2);
+    CHECK_MSG(r > 0 && r == g && g == b && r + g + b <= LX_COLOR_SUM_MA, "colour LEDs %u %u %u", r, g, b);
+    CHECK_MSG(sim::lumens() > lm_white + 50, "%.0f lm with the colour LEDs, %.0f without", sim::lumens(), lm_white);
+    sim::click(2);                               // back from turbo: the colour LEDs go off
+    sim::run_script();
+    CHECK(!ui::turbo_active() && sim::color_req_ma(0) == 0 && sim::led_a() > 0);
+    sim::click(1);
+    sim::run_script();
 }
 
 TEST(console_colour_command) {

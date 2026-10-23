@@ -57,6 +57,7 @@
     {"name": "COLOR_SET", "min": 1, "max": 255, "unit": "bits", "desc": "Colours that two clicks step through in the colour beam: 1 = red, 2 = green, 4 = blue, 8 = yellow, 16 = cyan, 32 = magenta, 64 = white from the three colours, 128 = the custom colour COL_R / COL_G / COL_B (add the numbers)"},
     {"name": "COL_R", "min": 0, "max": 100, "unit": "%", "desc": "Custom colour: share of the red LED (the strongest of the three runs at the full colour brightness)"},
     {"name": "COL_G", "min": 0, "max": 100, "unit": "%", "desc": "Custom colour: share of the green LED"},
-    {"name": "COL_B", "min": 0, "max": 100, "unit": "%", "desc": "Custom colour: share of the blue LED (red, green and blue all 0 = red)"}
+    {"name": "COL_B", "min": 0, "max": 100, "unit": "%", "desc": "Custom colour: share of the blue LED (red, green and blue all 0 = red)"},
+    {"name": "TURBO_ALL", "min": 0, "max": 1, "unit": "", "desc": "1 = turbo of the white beam also lights the three colour LEDs above the top mode: more lumens, a slightly tinted beam"}
   ]
 }
