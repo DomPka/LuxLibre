@@ -42,12 +42,12 @@ if not os.path.exists(FONT):
 SIZES = {
     # body, head (= bezel = head section), bore, band (thread major), cell, optic, LED board, flats, button,
     # magnet. Placeholders until the parts research is in: marked in the README.
-    "14": dict(name="EDCO Mini-14", body_od=17.0, head_od=19.0, bore_d=15.0, band_d=17.0, cell_d=14.2,
-               cell_len=35.2, cell_name="14350", opt_d=13.0, opt_h=8.0, mcpcb_d=12.0, mcpcb_t=1.2, led_w=3.45,
-               flat_r=8.3, cap_d=5.8, btn_cb_d=7.4, mag_d=7.0, mag_t=1.5, lan_r=5.6, tail_wall=3.6),
-    "16": dict(name="EDCO Mini-16", body_od=20.0, head_od=22.0, bore_d=17.4, band_d=20.0, cell_d=16.5,
+    "14": dict(name="EDCO Mini-14", body_od=17.0, head_od=19.0, bore_d=15.0, band_d=17.0, cell_d=14.0,
+               cell_len=35.0, cell_name="14350", opt_d=13.0, opt_h=8.0, mcpcb_d=12.0, mcpcb_t=1.2, led_w=3.45,
+               flat_r=8.3, cap_d=5.8, btn_cb_d=7.4, mag_d=8.0, mag_t=2.0, lan_r=5.6, tail_wall=3.6),
+    "16": dict(name="EDCO Mini-16", body_od=20.0, head_od=22.0, bore_d=17.4, band_d=20.0, cell_d=16.6,
                cell_len=34.5, cell_name="16340", opt_d=16.1, opt_h=9.0, mcpcb_d=16.0, mcpcb_t=1.5, led_w=3.45,
-               flat_r=9.6, cap_d=6.5, btn_cb_d=8.2, mag_d=8.0, mag_t=1.5, lan_r=6.8, tail_wall=3.6),
+               flat_r=9.6, cap_d=6.5, btn_cb_d=8.2, mag_d=10.0, mag_t=1.5, lan_r=6.8, tail_wall=3.6),
 }
 
 
